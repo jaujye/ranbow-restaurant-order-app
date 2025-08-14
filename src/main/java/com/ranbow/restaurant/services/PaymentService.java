@@ -1,22 +1,23 @@
 package com.ranbow.restaurant.services;
 
+import com.ranbow.restaurant.dao.PaymentDAO;
 import com.ranbow.restaurant.models.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Service
 public class PaymentService {
-    private List<Payment> payments;
-    private OrderService orderService;
+    @Autowired
+    private PaymentDAO paymentDAO;
     
-    public PaymentService(OrderService orderService) {
-        this.payments = new ArrayList<>();
-        this.orderService = orderService;
-    }
+    @Autowired
+    private OrderService orderService;
     
     public Payment createPayment(String orderId, String customerId, PaymentMethod paymentMethod) {
         Optional<Order> orderOpt = orderService.findOrderById(orderId);
@@ -36,36 +37,27 @@ public class PaymentService {
         }
         
         Payment payment = new Payment(orderId, customerId, order.getTotalAmount(), paymentMethod);
-        payments.add(payment);
-        return payment;
+        return paymentDAO.save(payment);
     }
     
     public Optional<Payment> findPaymentById(String paymentId) {
-        return payments.stream()
-                .filter(payment -> payment.getPaymentId().equals(paymentId))
-                .findFirst();
+        return paymentDAO.findById(paymentId);
     }
     
     public Optional<Payment> findPaymentByOrderId(String orderId) {
-        return payments.stream()
-                .filter(payment -> payment.getOrderId().equals(orderId))
-                .findFirst();
+        return paymentDAO.findByOrderId(orderId);
     }
     
     public List<Payment> getAllPayments() {
-        return new ArrayList<>(payments);
+        return paymentDAO.findAll();
     }
     
     public List<Payment> getPaymentsByCustomerId(String customerId) {
-        return payments.stream()
-                .filter(payment -> payment.getCustomerId().equals(customerId))
-                .toList();
+        return paymentDAO.findByCustomerId(customerId);
     }
     
     public List<Payment> getPaymentsByStatus(PaymentStatus status) {
-        return payments.stream()
-                .filter(payment -> payment.getStatus() == status)
-                .toList();
+        return paymentDAO.findByStatus(status);
     }
     
     public boolean processPayment(String paymentId) {
@@ -90,6 +82,7 @@ public class PaymentService {
             if (paymentSuccess) {
                 String transactionId = generateTransactionId();
                 payment.markAsProcessed(transactionId);
+                paymentDAO.update(payment);
                 
                 // Update order status after successful payment
                 orderService.updateOrderStatus(payment.getOrderId(), OrderStatus.PREPARING);
@@ -97,11 +90,13 @@ public class PaymentService {
                 return true;
             } else {
                 payment.markAsFailed("付款處理失敗");
+                paymentDAO.update(payment);
                 return false;
             }
             
         } catch (Exception e) {
             payment.markAsFailed("付款處理異常: " + e.getMessage());
+            paymentDAO.update(payment);
             return false;
         }
     }
@@ -143,6 +138,7 @@ public class PaymentService {
         // Create refund record (in real implementation, you might have a separate Refund entity)
         payment.setStatus(PaymentStatus.REFUNDED);
         payment.setFailureReason("退款原因: " + reason);
+        paymentDAO.update(payment);
         
         // Cancel the associated order
         orderService.cancelOrder(payment.getOrderId(), "付款已退款: " + reason);
@@ -151,46 +147,26 @@ public class PaymentService {
     }
     
     public List<Payment> getTodaysPayments() {
-        LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
-        LocalDateTime endOfDay = startOfDay.plusDays(1);
-        
-        return payments.stream()
-                .filter(payment -> payment.getPaymentTime().isAfter(startOfDay) && 
-                                 payment.getPaymentTime().isBefore(endOfDay))
-                .toList();
+        return paymentDAO.findTodaysPayments();
     }
     
     public BigDecimal getTodaysRevenue() {
-        return getTodaysPayments().stream()
-                .filter(payment -> payment.getStatus() == PaymentStatus.COMPLETED)
-                .map(Payment::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return paymentDAO.getTodaysRevenue();
     }
     
     public BigDecimal getTotalRevenue() {
-        return payments.stream()
-                .filter(payment -> payment.getStatus() == PaymentStatus.COMPLETED)
-                .map(Payment::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return paymentDAO.getTotalRevenue();
     }
     
     public int getSuccessfulPaymentsCount() {
-        return (int) payments.stream()
-                .filter(payment -> payment.getStatus() == PaymentStatus.COMPLETED)
-                .count();
+        return paymentDAO.countSuccessfulPayments();
     }
     
     public int getFailedPaymentsCount() {
-        return (int) payments.stream()
-                .filter(payment -> payment.getStatus() == PaymentStatus.FAILED)
-                .count();
+        return paymentDAO.countFailedPayments();
     }
     
     public double getPaymentSuccessRate() {
-        long totalAttempts = payments.size();
-        if (totalAttempts == 0) return 0.0;
-        
-        long successfulPayments = getSuccessfulPaymentsCount();
-        return (double) successfulPayments / totalAttempts * 100;
+        return paymentDAO.getPaymentSuccessRate();
     }
 }

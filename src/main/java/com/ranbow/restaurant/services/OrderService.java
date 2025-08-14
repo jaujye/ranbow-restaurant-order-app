@@ -1,47 +1,42 @@
 package com.ranbow.restaurant.services;
 
+import com.ranbow.restaurant.dao.OrderDAO;
 import com.ranbow.restaurant.models.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class OrderService {
-    private List<Order> orders;
-    private MenuService menuService;
     
-    public OrderService(MenuService menuService) {
-        this.orders = new ArrayList<>();
-        this.menuService = menuService;
-    }
+    @Autowired
+    private OrderDAO orderDAO;
+    
+    @Autowired
+    private MenuService menuService;
     
     public Order createOrder(String customerId, int tableNumber) {
         Order newOrder = new Order(customerId, tableNumber);
-        orders.add(newOrder);
-        return newOrder;
+        return orderDAO.save(newOrder);
     }
     
     public Optional<Order> findOrderById(String orderId) {
-        return orders.stream()
-                .filter(order -> order.getOrderId().equals(orderId))
-                .findFirst();
+        return orderDAO.findById(orderId);
     }
     
     public List<Order> getAllOrders() {
-        return new ArrayList<>(orders);
+        return orderDAO.findAll();
     }
     
     public List<Order> getOrdersByCustomerId(String customerId) {
-        return orders.stream()
-                .filter(order -> order.getCustomerId().equals(customerId))
-                .toList();
+        return orderDAO.findByCustomerId(customerId);
     }
     
     public List<Order> getOrdersByStatus(OrderStatus status) {
-        return orders.stream()
-                .filter(order -> order.getStatus() == status)
-                .toList();
+        return orderDAO.findByStatus(status);
     }
     
     public List<Order> getPendingOrders() {
@@ -49,10 +44,7 @@ public class OrderService {
     }
     
     public List<Order> getActiveOrders() {
-        return orders.stream()
-                .filter(order -> order.getStatus() != OrderStatus.COMPLETED && 
-                               order.getStatus() != OrderStatus.CANCELLED)
-                .toList();
+        return orderDAO.findActiveOrders();
     }
     
     public boolean addItemToOrder(String orderId, String menuItemId, int quantity, String specialRequests) {
@@ -73,6 +65,7 @@ public class OrderService {
             
             OrderItem orderItem = new OrderItem(menuItem, quantity, specialRequests);
             order.addOrderItem(orderItem);
+            orderDAO.update(order);
             return true;
         }
         return false;
@@ -87,7 +80,11 @@ public class OrderService {
                 throw new IllegalStateException("只能在訂單待確認狀態下移除項目");
             }
             
-            return order.getOrderItems().removeIf(item -> item.getOrderItemId().equals(orderItemId));
+            boolean removed = order.getOrderItems().removeIf(item -> item.getOrderItemId().equals(orderItemId));
+            if (removed) {
+                orderDAO.update(order);
+            }
+            return removed;
         }
         return false;
     }
@@ -107,6 +104,7 @@ public class OrderService {
             
             if (orderItem.isPresent()) {
                 orderItem.get().setQuantity(newQuantity);
+                orderDAO.update(order);
                 return true;
             }
         }
@@ -124,6 +122,7 @@ public class OrderService {
             
             if (order.getStatus() == OrderStatus.PENDING) {
                 order.setStatus(OrderStatus.CONFIRMED);
+                orderDAO.update(order);
                 return true;
             }
         }
@@ -138,6 +137,7 @@ public class OrderService {
             // Validate status transition
             if (isValidStatusTransition(order.getStatus(), newStatus)) {
                 order.setStatus(newStatus);
+                orderDAO.update(order);
                 return true;
             } else {
                 throw new IllegalStateException("無效的狀態轉換: " + 
@@ -170,23 +170,18 @@ public class OrderService {
             order.setStatus(OrderStatus.CANCELLED);
             order.setSpecialInstructions((order.getSpecialInstructions() != null ? 
                     order.getSpecialInstructions() + " | " : "") + "取消原因: " + reason);
+            orderDAO.update(order);
             return true;
         }
         return false;
     }
     
     public List<Order> getTodaysOrders() {
-        LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
-        LocalDateTime endOfDay = startOfDay.plusDays(1);
-        
-        return orders.stream()
-                .filter(order -> order.getOrderTime().isAfter(startOfDay) && 
-                               order.getOrderTime().isBefore(endOfDay))
-                .toList();
+        return orderDAO.findTodaysOrders();
     }
     
     public int getTotalOrdersCount() {
-        return orders.size();
+        return getAllOrders().size();
     }
     
     public int getTodaysOrdersCount() {
@@ -194,8 +189,6 @@ public class OrderService {
     }
     
     public int getCompletedOrdersCount() {
-        return (int) orders.stream()
-                .filter(order -> order.getStatus() == OrderStatus.COMPLETED)
-                .count();
+        return getOrdersByStatus(OrderStatus.COMPLETED).size();
     }
 }

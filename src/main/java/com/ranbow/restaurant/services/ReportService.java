@@ -1,6 +1,8 @@
 package com.ranbow.restaurant.services;
 
 import com.ranbow.restaurant.models.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -9,19 +11,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Service
 public class ReportService {
+    @Autowired
     private OrderService orderService;
-    private PaymentService paymentService;
-    private UserService userService;
-    private MenuService menuService;
     
-    public ReportService(OrderService orderService, PaymentService paymentService, 
-                        UserService userService, MenuService menuService) {
-        this.orderService = orderService;
-        this.paymentService = paymentService;
-        this.userService = userService;
-        this.menuService = menuService;
-    }
+    @Autowired
+    private PaymentService paymentService;
+    
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private MenuService menuService;
     
     public DailyReport generateDailyReport() {
         DailyReport report = new DailyReport();
