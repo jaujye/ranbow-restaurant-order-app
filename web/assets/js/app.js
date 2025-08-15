@@ -289,10 +289,10 @@ class RanbowApp {
         // Load page templates
         const templates = {
             'home': homePage.getHomePageTemplate(),
-            'menu': this.getMenuPageTemplate(),
-            'cart': this.getCartPageTemplate(),
-            'orders': this.getOrdersPageTemplate(),
-            'profile': this.getProfilePageTemplate(),
+            'menu': menuPage.getMenuPageTemplate(),
+            'cart': cartPage.getCartPageTemplate(),
+            'orders': ordersPage.getOrdersPageTemplate(),
+            'profile': profilePage.getProfilePageTemplate(),
             'login': authPages.getLoginPageTemplate(),
             'register': authPages.getRegisterPageTemplate(),
             'forgot-password': authPages.getForgotPasswordTemplate()
@@ -301,26 +301,8 @@ class RanbowApp {
         return templates[page] || '<div class="container"><h1>頁面建構中...</h1></div>';
     }
 
-    // Placeholder templates for other pages
-    getMenuPageTemplate() {
-        return '<div class="container"><h1>菜單頁面建構中...</h1></div>';
-    }
-
-    getCartPageTemplate() {
-        return '<div class="container"><h1>購物車頁面建構中...</h1></div>';
-    }
-
-    getOrdersPageTemplate() {
-        return '<div class="container"><h1>訂單頁面建構中...</h1></div>';
-    }
-
-    getProfilePageTemplate() {
-        return '<div class="container"><h1>個人中心頁面建構中...</h1></div>';
-    }
-
-    getRegisterPageTemplate() {
-        return '<div class="container"><h1>註冊頁面建構中...</h1></div>';
-    }
+    // These methods are now handled by individual page components
+    // Keeping them for backward compatibility but they should not be used
 
     async initializePage(page) {
         switch (page) {
@@ -337,16 +319,18 @@ class RanbowApp {
                 authPages.initializeForgotPasswordPage();
                 break;
             case 'menu':
-                await this.initializeMenuPage();
+                await menuPage.initializeMenuPage();
                 break;
-            // Add other page initializations
+            case 'cart':
+                await cartPage.initializeCartPage();
+                break;
+            case 'orders':
+                await ordersPage.initializeOrdersPage();
+                break;
+            case 'profile':
+                await profilePage.initializeProfilePage();
+                break;
         }
-    }
-
-
-
-    async initializeMenuPage() {
-        // Menu page initialization will be implemented later
     }
 
 
@@ -395,21 +379,27 @@ class RanbowApp {
     }
 
     showToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `
-            <i class="fas fa-${this.getToastIcon(type)}"></i>
-            <span>${message}</span>
-        `;
+        // Use the global toast manager if available
+        if (window.toast) {
+            window.toast.show(message, type);
+        } else {
+            // Fallback to simple toast implementation
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${this.getToastIcon(type)}"></i>
+                <span>${message}</span>
+            `;
 
-        const container = document.getElementById('toast-container');
-        if (container) {
-            container.appendChild(toast);
-            
-            // Auto remove after 3 seconds
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
+            const container = document.getElementById('toast-container');
+            if (container) {
+                container.appendChild(toast);
+                
+                // Auto remove after 3 seconds
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            }
         }
     }
 
