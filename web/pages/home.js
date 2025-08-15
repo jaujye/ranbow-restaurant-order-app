@@ -226,7 +226,7 @@ class HomePage {
     }
 
     updateCartCount() {
-        const cartCount = Storage.getCartItemCount();
+        const cartCount = cart.getItemCount();
         const badge = document.getElementById('cart-count');
         const actionCard = badge?.closest('.action-card');
         
@@ -446,7 +446,7 @@ class HomePage {
 
     setupEventListeners() {
         // Listen for cart updates
-        app.on('cartUpdated', () => {
+        cart.eventEmitter.on('cartUpdated', () => {
             this.updateCartCount();
         });
         
@@ -631,14 +631,11 @@ class HomePage {
                 return;
             }
             
-            Storage.addToCart(item);
+            cart.addItem(item);
             app.showToast(`已將 ${item.name} 加入購物車`, 'success');
             
             // Update cart count
             this.updateCartCount();
-            
-            // Emit cart update event
-            app.emit('cartUpdated');
             
         } catch (error) {
             console.error('Failed to add to cart:', error);

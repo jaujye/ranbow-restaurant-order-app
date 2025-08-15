@@ -144,7 +144,7 @@ class CartPage {
             this.generateTableGrid();
             
             // Listen for cart updates
-            cart.on('cartUpdated', () => {
+            cart.eventEmitter.on('cartUpdated', () => {
                 this.cartItems = cart.getItems();
                 this.updateCartDisplay();
             });
@@ -306,10 +306,16 @@ class CartPage {
     // Cart actions
     incrementItem(itemId, specialRequests = '') {
         cart.incrementItem(itemId, specialRequests || null);
+        // Force immediate UI update
+        this.cartItems = cart.getItems();
+        this.updateCartDisplay();
     }
 
     decrementItem(itemId, specialRequests = '') {
         cart.decrementItem(itemId, specialRequests || null);
+        // Force immediate UI update
+        this.cartItems = cart.getItems();
+        this.updateCartDisplay();
     }
 
     removeItem(itemId, specialRequests = '') {

@@ -480,7 +480,7 @@ class MenuPage {
         }
 
         // Cart updates
-        app.on('cartUpdated', () => {
+        cart.eventEmitter.on('cartUpdated', () => {
             this.updateCartCount();
         });
 
@@ -569,7 +569,7 @@ class MenuPage {
     }
 
     updateCartCount() {
-        const count = Storage.getCartItemCount();
+        const count = cart.getItemCount();
         const badge = document.getElementById('floating-cart-count');
         const button = document.getElementById('floating-cart-btn');
         
@@ -689,11 +689,10 @@ class MenuPage {
                 return;
             }
 
-            Storage.addToCart(item);
+            cart.addItem(item);
             app.showToast(`已將 ${item.name} 加入購物車`, 'success');
             
             this.updateCartCount();
-            app.emit('cartUpdated');
             
         } catch (error) {
             console.error('Failed to add to cart:', error);
