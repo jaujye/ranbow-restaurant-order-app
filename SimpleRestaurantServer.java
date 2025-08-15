@@ -83,6 +83,15 @@ public class SimpleRestaurantServer {
     // 健康檢查處理器
     static class HealthHandler implements HttpHandler {
         public void handle(HttpExchange exchange) throws IOException {
+            // Handle CORS preflight
+            if ("OPTIONS".equals(exchange.getRequestMethod())) {
+                exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+                exchange.sendResponseHeaders(200, -1);
+                return;
+            }
+            
             if ("GET".equals(exchange.getRequestMethod())) {
                 try {
                     // 測試資料庫連接
@@ -152,6 +161,15 @@ public class SimpleRestaurantServer {
             String path = exchange.getRequestURI().getPath();
             String method = exchange.getRequestMethod();
             
+            // Handle CORS preflight
+            if ("OPTIONS".equals(method)) {
+                exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+                exchange.sendResponseHeaders(200, -1);
+                return;
+            }
+            
             if ("GET".equals(method)) {
                 if (path.endsWith("/menu") || path.endsWith("/menu/available")) {
                     getAvailableMenu(exchange);
@@ -215,6 +233,15 @@ public class SimpleRestaurantServer {
     static class UserHandler implements HttpHandler {
         public void handle(HttpExchange exchange) throws IOException {
             String method = exchange.getRequestMethod();
+            
+            // Handle CORS preflight
+            if ("OPTIONS".equals(method)) {
+                exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+                exchange.sendResponseHeaders(200, -1);
+                return;
+            }
             
             if ("GET".equals(method)) {
                 getUserStats(exchange);
