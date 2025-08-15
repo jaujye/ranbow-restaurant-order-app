@@ -183,7 +183,7 @@ class Helpers {
     }
 
     // Handle image loading errors
-    static handleImageError(imgElement, fallbackSrc = 'assets/images/placeholder.jpg') {
+    static handleImageError(imgElement, fallbackSrc = 'assets/images/placeholder.svg') {
         imgElement.onerror = null;
         imgElement.src = fallbackSrc;
     }

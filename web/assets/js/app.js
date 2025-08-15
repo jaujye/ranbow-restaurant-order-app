@@ -288,7 +288,7 @@ class RanbowApp {
     async getPageContent(page) {
         // Load page templates
         const templates = {
-            'home': this.getHomePageTemplate(),
+            'home': homePage.getHomePageTemplate(),
             'menu': this.getMenuPageTemplate(),
             'cart': this.getCartPageTemplate(),
             'orders': this.getOrdersPageTemplate(),
@@ -300,39 +300,6 @@ class RanbowApp {
         
         return templates[page] || '<div class="container"><h1>頁面建構中...</h1></div>';
     }
-
-    // Page Templates (to be moved to separate files later)
-    getHomePageTemplate() {
-        return `
-        <div class="container">
-            <div class="welcome-banner">
-                <h1>🌈 歡迎來到彩虹餐廳</h1>
-                <p>享受美味，享受生活</p>
-            </div>
-            
-            <div class="quick-actions">
-                <div class="action-card" onclick="app.navigateTo('menu')">
-                    <i class="fas fa-utensils"></i>
-                    <h3>瀏覽菜單</h3>
-                    <p>查看我們的美味佳餚</p>
-                </div>
-                
-                <div class="action-card" onclick="app.navigateTo('orders')">
-                    <i class="fas fa-receipt"></i>
-                    <h3>我的訂單</h3>
-                    <p>追蹤訂單狀態</p>
-                </div>
-            </div>
-            
-            <div class="featured-items">
-                <h2>今日推薦</h2>
-                <div class="item-grid" id="featured-items">
-                    <!-- Items will be loaded dynamically -->
-                </div>
-            </div>
-        </div>`;
-    }
-
 
     // Placeholder templates for other pages
     getMenuPageTemplate() {
@@ -358,7 +325,7 @@ class RanbowApp {
     async initializePage(page) {
         switch (page) {
             case 'home':
-                await this.initializeHomePage();
+                await homePage.initializeHomePage();
                 break;
             case 'login':
                 authPages.initializeLoginPage();
@@ -376,35 +343,12 @@ class RanbowApp {
         }
     }
 
-    async initializeHomePage() {
-        try {
-            // Load featured items
-            const featuredItems = await api.getPopularItems();
-            this.renderFeaturedItems(featuredItems);
-        } catch (error) {
-            console.error('Failed to load featured items:', error);
-        }
-    }
 
 
     async initializeMenuPage() {
         // Menu page initialization will be implemented later
     }
 
-    renderFeaturedItems(items) {
-        const container = document.getElementById('featured-items');
-        if (!container) return;
-
-        const html = items.map(item => `
-            <div class="menu-item-card" onclick="app.viewMenuItem('${item.id}')">
-                <img src="${item.imageUrl || 'assets/images/placeholder.jpg'}" alt="${item.name}">
-                <h3>${item.name}</h3>
-                <p class="price">${Helpers.formatCurrency(item.price)}</p>
-            </div>
-        `).join('');
-
-        container.innerHTML = html;
-    }
 
 
     logout() {
