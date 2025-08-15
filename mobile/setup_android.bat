@@ -1,3 +1,4 @@
+chcp 65001
 @echo off
 echo ======================================
 echo Ranbow Restaurant Android Setup
