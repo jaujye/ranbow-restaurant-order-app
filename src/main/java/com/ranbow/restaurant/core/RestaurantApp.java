@@ -20,9 +20,9 @@ public class RestaurantApp {
     public RestaurantApp() {
         this.userService = new UserService();
         this.menuService = new MenuService();
-        this.orderService = new OrderService(menuService);
-        this.paymentService = new PaymentService(orderService);
-        this.reportService = new ReportService(orderService, paymentService, userService, menuService);
+        this.orderService = new OrderService();
+        this.paymentService = new PaymentService();
+        this.reportService = new ReportService();
         this.scanner = new Scanner(System.in);
     }
     
