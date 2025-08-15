@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.ranbow.restaurant" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Ranbow Restaurant</name>
+    <description>彩虹餐廳點餐付款應用程式 - 使用者可以透過這個手機應用程式來進行點餐並且付款</description>
+    <author email="info@ranbow-restaurant.com" href="https://ranbow-restaurant.com">
+        Ranbow Restaurant Team
+    </author>
+    <content src="index.html" />
+    
+    <!-- Allow navigation to external pages -->
+    <allow-navigation href="http://localhost:*" />
+    <allow-navigation href="https://localhost:*" />
+    <allow-navigation href="http://127.0.0.1:*" />
+    <allow-navigation href="https://127.0.0.1:*" />
+    
+    <!-- Allow intent -->
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    
+    <!-- Platform specific configurations -->
+    <platform name="android">
+        <allow-intent href="market:*" />
+        <icon density="ldpi" src="www/img/icon/android/ldpi.png" />
+        <icon density="mdpi" src="www/img/icon/android/mdpi.png" />
+        <icon density="hdpi" src="www/img/icon/android/hdpi.png" />
+        <icon density="xhdpi" src="www/img/icon/android/xhdpi.png" />
+        <icon density="xxhdpi" src="www/img/icon/android/xxhdpi.png" />
+        <icon density="xxxhdpi" src="www/img/icon/android/xxxhdpi.png" />
+        
+        <!-- Splash screens -->
+        <splash density="land-ldpi" src="www/img/splash/android/land-ldpi.png" />
+        <splash density="land-mdpi" src="www/img/splash/android/land-mdpi.png" />
+        <splash density="land-hdpi" src="www/img/splash/android/land-hdpi.png" />
+        <splash density="land-xhdpi" src="www/img/splash/android/land-xhdpi.png" />
+        <splash density="land-xxhdpi" src="www/img/splash/android/land-xxhdpi.png" />
+        <splash density="land-xxxhdpi" src="www/img/splash/android/land-xxxhdpi.png" />
+        <splash density="port-ldpi" src="www/img/splash/android/port-ldpi.png" />
+        <splash density="port-mdpi" src="www/img/splash/android/port-mdpi.png" />
+        <splash density="port-hdpi" src="www/img/splash/android/port-hdpi.png" />
+        <splash density="port-xhdpi" src="www/img/splash/android/port-xhdpi.png" />
+        <splash density="port-xxhdpi" src="www/img/splash/android/port-xxhdpi.png" />
+        <splash density="port-xxxhdpi" src="www/img/splash/android/port-xxxhdpi.png" />
+    </platform>
+    
+    <!-- Preferences -->
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="android-minSdkVersion" value="22" />
+    <preference name="android-targetSdkVersion" value="33" />
+    <preference name="BackupWebStorage" value="none" />
+    <preference name="SplashMaintainAspectRatio" value="true" />
+    <preference name="FadeSplashScreenDuration" value="300" />
+    <preference name="SplashShowOnlyFirstTime" value="false" />
+    <preference name="SplashScreen" value="screen" />
+    <preference name="SplashScreenDelay" value="3000" />
+    <preference name="AutoHideSplashScreen" value="false" />
+    <preference name="ShowSplashScreenSpinner" value="false" />
+    <preference name="orientation" value="portrait" />
+    <preference name="Fullscreen" value="false" />
+    
+    <!-- Allow network access -->
+    <access origin="*" />
+    
+    <!-- CSP meta tag will be added to index.html -->
+</widget>
