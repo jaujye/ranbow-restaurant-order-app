@@ -358,11 +358,31 @@ public class SimpleRestaurantServer {
     static class OrderHandler implements HttpHandler {
         public void handle(HttpExchange exchange) throws IOException {
             String method = exchange.getRequestMethod();
+            String path = exchange.getRequestURI().getPath();
+            
+            // Handle CORS preflight
+            if ("OPTIONS".equals(method)) {
+                exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+                exchange.sendResponseHeaders(200, -1);
+                return;
+            }
             
             if ("GET".equals(method)) {
-                getOrderStats(exchange);
+                if (path.contains("/customer/")) {
+                    // Extract customer ID from path
+                    String customerId = path.substring(path.lastIndexOf("/") + 1);
+                    getCustomerOrders(exchange, customerId);
+                } else if (path.endsWith("/orders")) {
+                    getOrderStats(exchange);
+                } else {
+                    sendResponse(exchange, 404, "{\"error\": \"Endpoint not found\"}");
+                }
+            } else if ("POST".equals(method)) {
+                createOrder(exchange);
             } else {
-                sendResponse(exchange, 501, "{\"error\": \"Order operations not fully implemented in simple version\"}");
+                sendResponse(exchange, 501, "{\"error\": \"Method not implemented\"}");
             }
         }
         
@@ -401,6 +421,103 @@ public class SimpleRestaurantServer {
                 sendResponse(exchange, 200, response);
                 
             } catch (Exception e) {
+                sendResponse(exchange, 500, "{\"error\": \"" + e.getMessage() + "\"}");
+            }
+        }
+        
+        private void getCustomerOrders(HttpExchange exchange, String customerId) throws IOException {
+            try {
+                StringBuilder json = new StringBuilder();
+                json.append("[");
+                
+                String query = """
+                    SELECT o.order_id, o.order_time, o.status, o.total_amount, o.table_number,
+                           u.username, u.email
+                    FROM orders o
+                    JOIN users u ON o.customer_id = u.user_id
+                    WHERE o.customer_id = ?
+                    ORDER BY o.order_time DESC
+                    """;
+                
+                try (PreparedStatement stmt = dbConnection.prepareStatement(query)) {
+                    stmt.setString(1, customerId);
+                    ResultSet rs = stmt.executeQuery();
+                    boolean first = true;
+                    
+                    while (rs.next()) {
+                        if (!first) json.append(",");
+                        first = false;
+                        
+                        json.append(String.format("""
+                            {
+                                "orderId": "%s",
+                                "orderTime": "%s",
+                                "status": "%s",
+                                "totalAmount": %.2f,
+                                "tableNumber": %d,
+                                "customerName": "%s",
+                                "customerEmail": "%s"
+                            }
+                            """, 
+                            rs.getString("order_id"),
+                            rs.getString("order_time"),
+                            rs.getString("status"),
+                            rs.getDouble("total_amount"),
+                            rs.getInt("table_number"),
+                            rs.getString("username"),
+                            rs.getString("email")
+                        ));
+                    }
+                }
+                
+                json.append("]");
+                sendResponse(exchange, 200, json.toString());
+                
+            } catch (Exception e) {
+                System.err.println("Error getting customer orders: " + e.getMessage());
+                sendResponse(exchange, 500, "{\"error\": \"" + e.getMessage() + "\"}");
+            }
+        }
+        
+        private void createOrder(HttpExchange exchange) throws IOException {
+            try {
+                String requestBody = readRequestBody(exchange);
+                
+                // 簡單JSON解析 - 在生產環境中應使用proper JSON library
+                String userId = extractJsonValue(requestBody, "userId");
+                String tableNumber = extractJsonValue(requestBody, "tableNumber");
+                String totalAmount = extractJsonValue(requestBody, "totalAmount");
+                
+                if (userId == null || tableNumber == null || totalAmount == null) {
+                    sendResponse(exchange, 400, "{\"error\": \"Missing required fields\"}");
+                    return;
+                }
+                
+                // 創建新訂單
+                String orderId = UUID.randomUUID().toString();
+                
+                String insertQuery = "INSERT INTO orders (order_id, customer_id, table_number, total_amount, status) VALUES (?, ?, ?, ?, ?)";
+                try (PreparedStatement stmt = dbConnection.prepareStatement(insertQuery)) {
+                    stmt.setString(1, orderId);
+                    stmt.setString(2, userId);
+                    stmt.setInt(3, Integer.parseInt(tableNumber));
+                    stmt.setDouble(4, Double.parseDouble(totalAmount));
+                    stmt.setString(5, "PENDING");
+                    
+                    int rowsAffected = stmt.executeUpdate();
+                    if (rowsAffected > 0) {
+                        String response = String.format(
+                            "{\"success\": true, \"orderId\": \"%s\", \"status\": \"PENDING\"}",
+                            orderId
+                        );
+                        sendResponse(exchange, 201, response);
+                    } else {
+                        sendResponse(exchange, 500, "{\"error\": \"Failed to create order\"}");
+                    }
+                }
+                
+            } catch (Exception e) {
+                System.err.println("Error creating order: " + e.getMessage());
                 sendResponse(exchange, 500, "{\"error\": \"" + e.getMessage() + "\"}");
             }
         }

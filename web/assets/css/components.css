@@ -431,6 +431,10 @@
     padding-top: var(--header-height);
     padding-bottom: var(--bottom-nav-height);
     overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+    height: calc(100vh - var(--header-height) - var(--bottom-nav-height));
+    position: relative;
 }
 
 /* Container */

@@ -1187,16 +1187,22 @@
 }
 
 .add-to-cart-btn {
-    width: 36px;
+    min-width: 90px;
     height: 36px;
-    border-radius: var(--radius-round);
+    padding: var(--space-xs) var(--space-sm);
+    border: none;
+    border-radius: var(--radius-medium);
     background: var(--primary-color);
     color: var(--text-white);
+    font-size: var(--font-sm);
+    font-weight: var(--font-medium);
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: var(--space-xs);
     cursor: pointer;
     transition: all var(--transition-fast);
+    white-space: nowrap;
 }
 
 .add-to-cart-btn:hover {
@@ -1629,4 +1635,39 @@
 
 .dashboard-card .icon {
     color: var(--primary-color);
+}
+
+/* Mobile Scrolling Fixes */
+.menu-page,
+.cart-page, 
+.orders-page,
+.profile-page,
+.home-page {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.menu-content,
+.cart-content,
+.orders-content,
+.profile-content {
+    padding-bottom: var(--space-xl);
+    min-height: calc(100vh - var(--header-height) - var(--bottom-nav-height) - 40px);
+}
+
+/* Ensure menu grid is properly scrollable */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-md);
+    padding: var(--space-md);
+    max-width: 100%;
+    overflow: visible;
+}
+
+.menu-item-card {
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
 }

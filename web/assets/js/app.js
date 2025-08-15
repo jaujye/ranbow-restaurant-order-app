@@ -349,11 +349,10 @@ class RanbowApp {
     }
 
     goBack() {
-        if (window.history.length > 1) {
-            window.history.back();
-        } else {
-            this.navigateTo(this.getInitialPage());
-        }
+        // For better UX, always return to home/main screen instead of previous page
+        // This matches user expectation that "back" means "go to main screen"
+        const mainPage = this.getInitialPage();
+        this.navigateTo(mainPage);
     }
 
     showNotifications() {

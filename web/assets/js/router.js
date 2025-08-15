@@ -108,8 +108,27 @@ class Router {
         this.history.push(path);
     }
 
-    // Go back in history
+    // Go back in history - modified to always return to home/main screen for user-friendly navigation
     goBack() {
+        const user = Storage.getUser();
+        
+        // For better UX, always go back to main screen instead of previous page
+        // This matches user expectation that "back" means "go to main screen"
+        if (user) {
+            const mainRoute = this.getDefaultRoute();
+            
+            // Don't add to history to prevent infinite navigation
+            this.navigateTo(mainRoute, false);
+            
+            // Clear history stack to prevent deep navigation chains
+            this.history = [mainRoute];
+        } else {
+            this.navigateTo('login', false);
+        }
+    }
+    
+    // Original goBack functionality renamed if needed elsewhere
+    goBackInHistory() {
         if (this.history.length > 1) {
             this.history.pop(); // Remove current
             const previousRoute = this.history[this.history.length - 1];
