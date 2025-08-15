@@ -196,7 +196,7 @@ class RanbowApp {
     }
 
     hasPagePermission(page) {
-        const publicPages = ['login', 'register', 'home'];
+        const publicPages = ['login', 'register', 'forgot-password', 'home'];
         
         if (publicPages.includes(page)) {
             return true;
@@ -277,6 +277,7 @@ class RanbowApp {
             'profile': '個人中心',
             'login': '登入',
             'register': '註冊',
+            'forgot-password': '忘記密碼',
             'staff-dashboard': '工作台',
             'admin-dashboard': '管理後台'
         };
@@ -285,16 +286,16 @@ class RanbowApp {
     }
 
     async getPageContent(page) {
-        // In a real app, this would load page templates
-        // For now, return placeholder content
+        // Load page templates
         const templates = {
             'home': this.getHomePageTemplate(),
             'menu': this.getMenuPageTemplate(),
             'cart': this.getCartPageTemplate(),
             'orders': this.getOrdersPageTemplate(),
             'profile': this.getProfilePageTemplate(),
-            'login': this.getLoginPageTemplate(),
-            'register': this.getRegisterPageTemplate()
+            'login': authPages.getLoginPageTemplate(),
+            'register': authPages.getRegisterPageTemplate(),
+            'forgot-password': authPages.getForgotPasswordTemplate()
         };
         
         return templates[page] || '<div class="container"><h1>頁面建構中...</h1></div>';
@@ -332,35 +333,6 @@ class RanbowApp {
         </div>`;
     }
 
-    getLoginPageTemplate() {
-        return `
-        <div class="auth-container">
-            <div class="auth-card">
-                <div class="auth-header">
-                    <h1>🌈 Ranbow</h1>
-                    <p>歡迎回來</p>
-                </div>
-                
-                <form id="login-form" class="auth-form">
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-input" name="email" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">密碼</label>
-                        <input type="password" class="form-input" name="password" required>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary btn-large">登入</button>
-                </form>
-                
-                <div class="auth-footer">
-                    <p>還沒有帳號？<a href="#register" onclick="app.navigateTo('register')">立即註冊</a></p>
-                </div>
-            </div>
-        </div>`;
-    }
 
     // Placeholder templates for other pages
     getMenuPageTemplate() {
@@ -389,7 +361,13 @@ class RanbowApp {
                 await this.initializeHomePage();
                 break;
             case 'login':
-                this.initializeLoginPage();
+                authPages.initializeLoginPage();
+                break;
+            case 'register':
+                authPages.initializeRegisterPage();
+                break;
+            case 'forgot-password':
+                authPages.initializeForgotPasswordPage();
                 break;
             case 'menu':
                 await this.initializeMenuPage();
@@ -408,15 +386,6 @@ class RanbowApp {
         }
     }
 
-    initializeLoginPage() {
-        const loginForm = document.getElementById('login-form');
-        if (loginForm) {
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await this.handleLogin(new FormData(loginForm));
-            });
-        }
-    }
 
     async initializeMenuPage() {
         // Menu page initialization will be implemented later
@@ -437,34 +406,6 @@ class RanbowApp {
         container.innerHTML = html;
     }
 
-    async handleLogin(formData) {
-        try {
-            const email = formData.get('email');
-            const password = formData.get('password');
-            
-            const response = await api.login(email, password);
-            
-            if (response.token && response.user) {
-                // Save user data and token
-                Storage.setUser(response.user);
-                api.setToken(response.token);
-                
-                this.currentUser = response.user;
-                this.showToast('登入成功！', 'success');
-                
-                // Navigate to appropriate page
-                const homePage = this.getInitialPage();
-                await this.navigateTo(homePage);
-                
-                // Show navigation
-                this.showNavigation();
-            }
-            
-        } catch (error) {
-            console.error('Login failed:', error);
-            this.showToast('登入失敗，請檢查帳號密碼', 'error');
-        }
-    }
 
     logout() {
         Storage.clearUser();
