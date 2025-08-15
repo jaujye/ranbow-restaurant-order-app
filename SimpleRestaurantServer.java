@@ -7,6 +7,13 @@ import java.sql.*;
 import java.util.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
+import java.math.BigInteger;
+import java.util.UUID;
+import java.util.regex.Pattern;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 /**
  * 簡單的餐廳訂單管理 HTTP 服務器
@@ -31,6 +38,7 @@ public class SimpleRestaurantServer {
         server.createContext("/api/health", new HealthHandler());
         server.createContext("/api/menu", new MenuHandler());
         server.createContext("/api/users", new UserHandler());
+        server.createContext("/api/users/authenticate", new AuthHandler());
         server.createContext("/api/orders", new OrderHandler());
         server.createContext("/api/payments", new PaymentHandler());
         
@@ -248,8 +256,74 @@ public class SimpleRestaurantServer {
         }
         
         private void createUser(HttpExchange exchange) throws IOException {
-            // 簡化版本 - 實際實現需要解析 JSON 請求體
-            sendResponse(exchange, 501, "{\"error\": \"User creation not implemented in simple version\"}");
+            try {
+                // 讀取請求體
+                String requestBody = readRequestBody(exchange);
+                
+                // 簡單JSON解析 (實際專案建議使用Jackson)
+                String username = extractJsonValue(requestBody, "username");
+                String email = extractJsonValue(requestBody, "email");
+                String phoneNumber = extractJsonValue(requestBody, "phoneNumber");
+                String password = extractJsonValue(requestBody, "password");
+                String role = extractJsonValue(requestBody, "role");
+                if (role == null || role.isEmpty()) {
+                    role = "CUSTOMER";
+                }
+                
+                // 驗證輸入
+                if (username == null || username.trim().isEmpty()) {
+                    sendResponse(exchange, 400, "{\"error\": \"Username is required\"}");
+                    return;
+                }
+                if (email == null || !isValidEmail(email)) {
+                    sendResponse(exchange, 400, "{\"error\": \"Valid email is required\"}");
+                    return;
+                }
+                if (password == null || password.length() < 6) {
+                    sendResponse(exchange, 400, "{\"error\": \"Password must be at least 6 characters\"}");
+                    return;
+                }
+                
+                // 檢查用戶是否已存在
+                String checkQuery = "SELECT COUNT(*) as count FROM users WHERE email = ?";
+                try (PreparedStatement stmt = dbConnection.prepareStatement(checkQuery)) {
+                    stmt.setString(1, email);
+                    ResultSet rs = stmt.executeQuery();
+                    if (rs.next() && rs.getInt("count") > 0) {
+                        sendResponse(exchange, 409, "{\"error\": \"Email already exists\"}");
+                        return;
+                    }
+                }
+                
+                // 創建新用戶
+                String userId = UUID.randomUUID().toString();
+                String passwordHash = hashPassword(password);
+                
+                String insertQuery = "INSERT INTO users (user_id, username, email, phone_number, role, password_hash) VALUES (?, ?, ?, ?, ?::user_role, ?)";
+                try (PreparedStatement stmt = dbConnection.prepareStatement(insertQuery)) {
+                    stmt.setString(1, userId);
+                    stmt.setString(2, username);
+                    stmt.setString(3, email);
+                    stmt.setString(4, phoneNumber);
+                    stmt.setString(5, role);
+                    stmt.setString(6, passwordHash);
+                    
+                    int rowsAffected = stmt.executeUpdate();
+                    if (rowsAffected > 0) {
+                        String response = String.format(
+                            "{\"success\": true, \"user\": {\"userId\": \"%s\", \"username\": \"%s\", \"email\": \"%s\", \"role\": \"%s\"}}",
+                            userId, username, email, role
+                        );
+                        sendResponse(exchange, 201, response);
+                    } else {
+                        sendResponse(exchange, 500, "{\"error\": \"Failed to create user\"}");
+                    }
+                }
+                
+            } catch (Exception e) {
+                System.err.println("Error creating user: " + e.getMessage());
+                sendResponse(exchange, 500, "{\"error\": \"" + e.getMessage() + "\"}");
+            }
         }
     }
     
@@ -309,6 +383,151 @@ public class SimpleRestaurantServer {
     static class PaymentHandler implements HttpHandler {
         public void handle(HttpExchange exchange) throws IOException {
             sendResponse(exchange, 501, "{\"error\": \"Payment operations not implemented in simple version\"}");
+        }
+    }
+    
+    // 認證處理器
+    static class AuthHandler implements HttpHandler {
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("POST".equals(exchange.getRequestMethod())) {
+                authenticateUser(exchange);
+            } else if ("OPTIONS".equals(exchange.getRequestMethod())) {
+                // Handle CORS preflight
+                exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "POST, OPTIONS");
+                exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+                exchange.sendResponseHeaders(200, -1);
+            } else {
+                sendResponse(exchange, 405, "{\"error\": \"Method not allowed\"}");
+            }
+        }
+        
+        private void authenticateUser(HttpExchange exchange) throws IOException {
+            try {
+                String requestBody = readRequestBody(exchange);
+                
+                // 簡單JSON解析
+                String email = extractJsonValue(requestBody, "email");
+                String password = extractJsonValue(requestBody, "password");
+                
+                if (email == null || password == null) {
+                    sendResponse(exchange, 400, "{\"error\": \"Email and password are required\"}");
+                    return;
+                }
+                
+                // 驗證用戶
+                String query = "SELECT user_id, username, email, role, password_hash, is_active FROM users WHERE email = ?";
+                try (PreparedStatement stmt = dbConnection.prepareStatement(query)) {
+                    stmt.setString(1, email);
+                    ResultSet rs = stmt.executeQuery();
+                    
+                    if (rs.next()) {
+                        String storedHash = rs.getString("password_hash");
+                        boolean isActive = rs.getBoolean("is_active");
+                        
+                        if (!isActive) {
+                            sendResponse(exchange, 401, "{\"error\": \"Account is deactivated\"}");
+                            return;
+                        }
+                        
+                        if (verifyPassword(password, storedHash)) {
+                            // 更新最後登入時間
+                            String updateQuery = "UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE email = ?";
+                            try (PreparedStatement updateStmt = dbConnection.prepareStatement(updateQuery)) {
+                                updateStmt.setString(1, email);
+                                updateStmt.executeUpdate();
+                            }
+                            
+                            // 生成簡單的token (在生產環境中應使用JWT)
+                            String token = generateSimpleToken(rs.getString("user_id"));
+                            
+                            String response = String.format(
+                                "{\"success\": true, \"token\": \"%s\", \"user\": {\"userId\": \"%s\", \"username\": \"%s\", \"email\": \"%s\", \"role\": \"%s\"}}",
+                                token, rs.getString("user_id"), rs.getString("username"), email, rs.getString("role")
+                            );
+                            sendResponse(exchange, 200, response);
+                        } else {
+                            sendResponse(exchange, 401, "{\"error\": \"Invalid credentials\"}");
+                        }
+                    } else {
+                        sendResponse(exchange, 401, "{\"error\": \"Invalid credentials\"}");
+                    }
+                }
+                
+            } catch (Exception e) {
+                System.err.println("Error authenticating user: " + e.getMessage());
+                sendResponse(exchange, 500, "{\"error\": \"Authentication failed\"}");
+            }
+        }
+    }
+    
+    // 輔助方法
+    private static String readRequestBody(HttpExchange exchange) throws IOException {
+        StringBuilder body = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                body.append(line);
+            }
+        }
+        return body.toString();
+    }
+    
+    private static boolean isValidEmail(String email) {
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@" +
+                           "(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        Pattern pattern = Pattern.compile(emailRegex);
+        return pattern.matcher(email).matches();
+    }
+    
+    private static String hashPassword(String password) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hashedBytes = md.digest(password.getBytes(StandardCharsets.UTF_8));
+            BigInteger number = new BigInteger(1, hashedBytes);
+            StringBuilder hexString = new StringBuilder(number.toString(16));
+            while (hexString.length() < 32) {
+                hexString.insert(0, '0');
+            }
+            return hexString.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Error hashing password", e);
+        }
+    }
+    
+    private static boolean verifyPassword(String password, String hash) {
+        return hashPassword(password).equals(hash);
+    }
+    
+    private static String generateSimpleToken(String userId) {
+        // 簡單的token生成 (生產環境應使用JWT)
+        return "token_" + userId + "_" + System.currentTimeMillis();
+    }
+    
+    // 簡單JSON解析方法
+    private static String extractJsonValue(String json, String key) {
+        try {
+            String searchKey = "\"" + key + "\"";
+            int startIndex = json.indexOf(searchKey);
+            if (startIndex == -1) {
+                return null;
+            }
+            
+            startIndex = json.indexOf(":", startIndex) + 1;
+            startIndex = json.indexOf("\"", startIndex) + 1;
+            
+            if (startIndex == 0) {
+                return null;
+            }
+            
+            int endIndex = json.indexOf("\"", startIndex);
+            if (endIndex == -1) {
+                return null;
+            }
+            
+            return json.substring(startIndex, endIndex).trim();
+        } catch (Exception e) {
+            return null;
         }
     }
     
