@@ -82,9 +82,11 @@ public class RestaurantApp {
         String email = scanner.nextLine();
         System.out.print("請輸入手機號碼: ");
         String phone = scanner.nextLine();
+        System.out.print("請輸入密碼: ");
+        String password = scanner.nextLine();
         
         try {
-            User newUser = userService.createUser(username, email, phone, UserRole.CUSTOMER);
+            User newUser = userService.createUser(username, email, phone, password, UserRole.CUSTOMER);
             System.out.println("註冊成功！請使用 Email 登入。");
         } catch (IllegalArgumentException e) {
             System.out.println("註冊失敗: " + e.getMessage());

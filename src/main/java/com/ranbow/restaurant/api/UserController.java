@@ -28,6 +28,7 @@ public class UserController {
                     request.getUsername(),
                     request.getEmail(), 
                     request.getPhoneNumber(),
+                    request.getPassword(),
                     request.getRole());
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
         } catch (IllegalArgumentException e) {

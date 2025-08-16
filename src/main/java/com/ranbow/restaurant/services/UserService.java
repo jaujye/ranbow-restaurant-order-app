@@ -16,12 +16,14 @@ public class UserService {
     @Autowired
     private UserDAO userDAO;
     
-    public User createUser(String username, String email, String phoneNumber, UserRole role) {
+    public User createUser(String username, String email, String phoneNumber, String password, UserRole role) {
         // Check if user already exists
         if (userDAO.existsByEmail(email)) {
             throw new IllegalArgumentException("使用者已存在，Email: " + email);
         }
         
+        // For this demo, we'll create user without password hashing
+        // In a real application, you would hash the password here
         User newUser = new User(username, email, phoneNumber, role);
         return userDAO.save(newUser);
     }

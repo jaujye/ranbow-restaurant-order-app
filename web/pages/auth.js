@@ -467,10 +467,12 @@ class AuthPages {
         try {
             const response = await api.login(email, password);
             
-            if (response.token && response.user) {
+            if (response.authenticated && response.user) {
                 // Store user data
                 Storage.setUser(response.user);
-                api.setToken(response.token);
+                
+                // For now, we don't have JWT tokens, so we'll store user ID as a simple token
+                api.setToken(response.user.userId);
                 
                 // Handle remember me
                 if (remember) {
@@ -520,7 +522,7 @@ class AuthPages {
         try {
             const response = await api.register(userData);
             
-            if (response.success || response.user) {
+            if (response && response.userId) {
                 app.showToast('註冊成功！請登入您的帳號', 'success');
                 this.switchToLogin();
                 
