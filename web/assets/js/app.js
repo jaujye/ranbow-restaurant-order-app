@@ -313,10 +313,12 @@ class RanbowApp {
             'profile': profilePage.getProfilePageTemplate(),
             'login': authPages.getLoginPageTemplate(),
             'register': authPages.getRegisterPageTemplate(),
-            'forgot-password': authPages.getForgotPasswordTemplate()
+            'forgot-password': authPages.getForgotPasswordTemplate(),
+            '404': this.get404PageTemplate(),
+            'error': this.getErrorPageTemplate()
         };
         
-        return templates[page] || '<div class="container"><h1>頁面建構中...</h1></div>';
+        return templates[page] || templates['404'];
     }
 
     // These methods are now handled by individual page components
@@ -442,6 +444,56 @@ class RanbowApp {
             dropdown.classList.add('hidden');
             menuBtn.classList.remove('active');
         }
+    }
+
+    get404PageTemplate() {
+        return `
+            <div class="error-page">
+                <div class="error-content">
+                    <div class="error-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h1>404</h1>
+                    <h2>頁面不存在</h2>
+                    <p>抱歉，您訪問的頁面不存在或已被移除。</p>
+                    <div class="error-actions">
+                        <button class="btn btn-primary" onclick="app.goBack()">
+                            <i class="fas fa-home"></i>
+                            返回首頁
+                        </button>
+                        <button class="btn btn-outline" onclick="window.history.back()">
+                            <i class="fas fa-arrow-left"></i>
+                            返回上頁
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    getErrorPageTemplate() {
+        return `
+            <div class="error-page">
+                <div class="error-content">
+                    <div class="error-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h1>錯誤</h1>
+                    <h2>系統發生錯誤</h2>
+                    <p>抱歉，系統暫時發生問題，請稍後再試。</p>
+                    <div class="error-actions">
+                        <button class="btn btn-primary" onclick="window.location.reload()">
+                            <i class="fas fa-redo"></i>
+                            重新載入
+                        </button>
+                        <button class="btn btn-outline" onclick="app.goBack()">
+                            <i class="fas fa-home"></i>
+                            返回首頁
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     updateUserDropdownInfo() {

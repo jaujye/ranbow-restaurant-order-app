@@ -42,7 +42,13 @@ class Router {
             const routeConfig = this.routes.get(route);
             if (!routeConfig) {
                 console.warn(`Route not found: ${route}`);
-                this.navigateTo('404');
+                // Prevent infinite recursion by checking if we're already trying to navigate to a fallback
+                if (route !== 'home' && route !== 'login') {
+                    // Try to navigate to a safe fallback
+                    const user = Storage?.getUser ? Storage.getUser() : null;
+                    const fallbackRoute = user ? 'home' : 'login';
+                    this.navigateTo(fallbackRoute);
+                }
                 return;
             }
 
@@ -76,7 +82,19 @@ class Router {
 
         } catch (error) {
             console.error('Navigation error:', error);
-            this.navigateTo('error');
+            // Prevent infinite recursion by checking if we're already trying to navigate to a fallback
+            if (path !== 'home' && path !== 'login') {
+                // Try to navigate to a safe fallback
+                const user = Storage?.getUser ? Storage.getUser() : null;
+                const fallbackRoute = user ? 'home' : 'login';
+                try {
+                    this.navigateTo(fallbackRoute);
+                } catch (nestedError) {
+                    console.error('Fallback navigation also failed:', nestedError);
+                    // Last resort: reload the page
+                    window.location.reload();
+                }
+            }
         }
     }
 
