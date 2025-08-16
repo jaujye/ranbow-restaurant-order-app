@@ -335,6 +335,10 @@ class CartPage {
 
     // Checkout process
     async proceedToCheckout() {
+        console.log('proceedToCheckout called');
+        console.log('Cart items length:', this.cartItems.length);
+        console.log('Table number:', this.tableNumber);
+        
         if (this.cartItems.length === 0) {
             toast.warning('購物車是空的');
             return;
@@ -342,18 +346,21 @@ class CartPage {
 
         // Check if table number is selected
         if (!this.tableNumber) {
+            console.log('No table number, showing table selection');
             this.showTableSelection();
             return;
         }
 
         // Validate cart
         const validation = cart.validate();
+        console.log('Cart validation:', validation);
         if (!validation.valid) {
             toast.error(validation.errors[0]);
             return;
         }
 
         // Navigate to checkout
+        console.log('Navigating to checkout...');
         app.navigateTo('checkout');
     }
 
