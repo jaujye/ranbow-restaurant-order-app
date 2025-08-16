@@ -33,9 +33,16 @@ logs/
 
 # Output files (use output/ directory instead)
 *.csv
-*.json
 *.xlsx
 output/
+
+# Exclude data output JSON files but allow config files
+output*.json
+data*.json
+result*.json
+report*.json
+export*.json
+temp*.json
 
 # Temporary files
 tmp/
