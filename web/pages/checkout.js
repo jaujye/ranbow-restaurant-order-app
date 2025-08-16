@@ -161,27 +161,38 @@ class CheckoutPage {
 
     async initializeCheckoutPage() {
         try {
+            console.log('Checkout page initialization started');
+            
             // Get user and cart data
             this.currentUser = Storage.getUser();
             this.cartItems = cart.getItems();
             this.tableNumber = Storage.getTableNumber();
             
+            console.log('Checkout - Current user:', this.currentUser ? 'Logged in' : 'Not logged in');
+            console.log('Checkout - Cart items:', this.cartItems.length);
+            console.log('Checkout - Table number:', this.tableNumber);
+            
             if (!this.currentUser) {
+                console.log('Checkout redirecting to login - no user');
                 app.navigateTo('login');
                 return;
             }
             
             if (this.cartItems.length === 0) {
+                console.log('Checkout redirecting to cart - empty cart');
                 toast.warning('購物車是空的');
                 app.navigateTo('cart');
                 return;
             }
             
             if (!this.tableNumber) {
+                console.log('Checkout redirecting to cart - no table number');
                 toast.warning('請先選擇桌號');
                 app.navigateTo('cart');
                 return;
             }
+            
+            console.log('Checkout page initialization successful');
             
             this.updateDisplay();
             this.setupEventListeners();

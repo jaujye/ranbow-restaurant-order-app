@@ -197,13 +197,18 @@ class RanbowApp {
 
     async navigateTo(page, addToHistory = true) {
         try {
+            console.log(`Navigating to page: ${page}`);
+            
             // Check if user has permission for this page
             if (!this.hasPagePermission(page)) {
+                console.log(`Permission denied for page: ${page}`);
                 this.showToast('您沒有權限訪問此頁面', 'error');
                 return;
             }
-
+            
+            console.log(`Permission granted for page: ${page}`);
             await this.loadPage(page, addToHistory);
+            console.log(`Successfully loaded page: ${page}`);
             
         } catch (error) {
             console.error('Navigation failed:', error);

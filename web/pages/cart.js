@@ -139,6 +139,13 @@ class CartPage {
             this.cartItems = cart.getItems();
             this.tableNumber = Storage.getTableNumber();
             
+            // FOR TESTING: Set default table number if not exists
+            if (!this.tableNumber) {
+                this.tableNumber = 1;
+                Storage.setTableNumber(this.tableNumber);
+                console.log('Set default table number for testing:', this.tableNumber);
+            }
+            
             this.updateCartDisplay();
             this.setupEventListeners();
             this.generateTableGrid();
@@ -341,25 +348,34 @@ class CartPage {
 
     // Checkout process
     async proceedToCheckout() {
+        console.log('proceedToCheckout() called');
+        console.log('Cart items:', this.cartItems.length);
+        console.log('Table number:', this.tableNumber);
+        
         if (this.cartItems.length === 0) {
+            console.log('Checkout blocked: Empty cart');
             toast.warning('購物車是空的');
             return;
         }
 
         // Check if table number is selected
         if (!this.tableNumber) {
+            console.log('Checkout blocked: No table number');
             this.showTableSelection();
             return;
         }
 
         // Validate cart
         const validation = cart.validate();
+        console.log('Cart validation:', validation);
         if (!validation.valid) {
+            console.log('Checkout blocked: Cart validation failed', validation.errors);
             toast.error(validation.errors[0]);
             return;
         }
 
         // Navigate to checkout
+        console.log('Navigating to checkout...');
         app.navigateTo('checkout');
     }
 
