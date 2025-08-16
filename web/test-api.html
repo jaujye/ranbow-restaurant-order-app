@@ -109,6 +109,8 @@
             <h3>👥 用戶API測試</h3>
             <button onclick="testUsersAPI()">獲取用戶列表</button>
             <button onclick="testUserRegistration()">測試用戶註冊</button>
+            <button onclick="testLogin()">測試Redis登入</button>
+            <button onclick="testSessionManagement()">測試會話管理</button>
             <div id="usersResult" class="result" style="display:none;"></div>
         </div>
 
@@ -283,6 +285,79 @@ ${data.map(user => `- ${user.username} (${user.email}) - ${user.role}`).join('\n
 總金額: $${data.totalAmount}`, 'success');
             } catch (error) {
                 showResult('ordersResult', `❌ 訂單創建失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // Redis登入測試功能
+        let currentToken = null;
+
+        async function testLogin() {
+            try {
+                showResult('usersResult', '正在測試Redis登入...', 'info');
+                
+                const loginData = {
+                    email: 'admin@ranbow.com',
+                    password: 'admin123'
+                };
+                
+                const response = await fetch('http://localhost:8080/api/users/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(loginData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentToken = data.token;
+                    showResult('usersResult', `✅ Redis登入成功！
+用戶: ${data.user.username} (${data.user.role})
+Token: ${data.token.substring(0, 50)}...
+Session ID: ${data.sessionId}
+Redis會話已創建`, 'success');
+                } else {
+                    showResult('usersResult', `❌ Redis登入失敗: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showResult('usersResult', `❌ Redis登入請求失敗: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSessionManagement() {
+            if (!currentToken) {
+                showResult('usersResult', '❌ 請先執行Redis登入獲取token', 'error');
+                return;
+            }
+
+            try {
+                showResult('usersResult', '正在測試會話管理...', 'info');
+                
+                // 測試會話查詢
+                const sessionResponse = await fetch('http://localhost:8080/api/users/sessions', {
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+                
+                const sessionData = await sessionResponse.json();
+                
+                if (sessionData.success) {
+                    showResult('usersResult', `✅ 會話管理測試成功！
+活躍會話數量: ${sessionData.sessions.length}
+會話詳情:
+${sessionData.sessions.map(session => 
+    `- 設備: ${session.deviceInfo}
+  IP: ${session.ipAddress}
+  創建時間: ${new Date(session.createdAt).toLocaleString()}
+  最後訪問: ${new Date(session.lastAccessedAt).toLocaleString()}`
+).join('\n')}`, 'success');
+                } else {
+                    showResult('usersResult', `❌ 會話查詢失敗: ${sessionData.error}`, 'error');
+                }
+            } catch (error) {
+                showResult('usersResult', `❌ 會話管理測試失敗: ${error.message}`, 'error');
             }
         }
     </script>
