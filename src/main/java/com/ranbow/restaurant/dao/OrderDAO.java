@@ -234,13 +234,24 @@ public class OrderDAO {
     }
     
     public List<Order> findByCustomerId(String customerId) {
-        List<Order> orders = jdbcTemplate.query(SELECT_ORDERS_BY_CUSTOMER, orderRowMapper, customerId);
-        for (Order order : orders) {
-            List<OrderItem> orderItems = jdbcTemplate.query(SELECT_ORDER_ITEMS_BY_ORDER, 
-                    orderItemRowMapper, order.getOrderId());
-            order.setOrderItems(orderItems);
+        try {
+            List<Order> orders = jdbcTemplate.query(SELECT_ORDERS_BY_CUSTOMER, orderRowMapper, customerId);
+            for (Order order : orders) {
+                try {
+                    List<OrderItem> orderItems = jdbcTemplate.query(SELECT_ORDER_ITEMS_BY_ORDER, 
+                            orderItemRowMapper, order.getOrderId());
+                    order.setOrderItems(orderItems);
+                } catch (Exception e) {
+                    // If order items fail to load, set empty list to prevent null pointer
+                    System.err.println("Failed to load order items for order " + order.getOrderId() + ": " + e.getMessage());
+                    order.setOrderItems(new java.util.ArrayList<>());
+                }
+            }
+            return orders;
+        } catch (Exception e) {
+            System.err.println("Failed to find orders by customer ID " + customerId + ": " + e.getMessage());
+            return new java.util.ArrayList<>();
         }
-        return orders;
     }
     
     public List<Order> findByStatus(OrderStatus status) {

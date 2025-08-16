@@ -149,7 +149,8 @@ class Storage {
     // Order history cache
     static cacheOrder(order) {
         const orders = this.getCachedOrders();
-        const existingIndex = orders.findIndex(o => o.id === order.id);
+        const orderKey = order.orderId || order.id;
+        const existingIndex = orders.findIndex(o => (o.orderId || o.id) === orderKey);
         
         if (existingIndex !== -1) {
             orders[existingIndex] = order;
@@ -169,7 +170,7 @@ class Storage {
 
     static getCachedOrder(orderId) {
         const orders = this.getCachedOrders();
-        return orders.find(order => order.id === orderId);
+        return orders.find(order => (order.orderId || order.id) === orderId);
     }
 
     // App state

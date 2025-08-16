@@ -118,9 +118,12 @@ class OrdersPage {
 
     async initializeOrdersPage() {
         try {
+            console.log('Initializing orders page...');
             this.isLoading = true;
             
             await this.loadOrders();
+            console.log('Orders loaded:', this.orders.length);
+            
             this.setupEventListeners();
             this.updateDisplay();
             this.startAutoRefresh();
@@ -135,13 +138,18 @@ class OrdersPage {
 
     async loadOrders() {
         const user = Storage.getUser();
+        console.log('Loading orders for user:', user);
         if (!user) {
+            console.log('No user found, redirecting to login');
             app.navigateTo('login');
             return;
         }
 
         try {
-            this.orders = await api.getCustomerOrders(user.userId);
+            console.log('Fetching orders from API for customer:', user.userId);
+            const response = await api.getCustomerOrders(user.userId);
+            console.log('API response:', response);
+            this.orders = response || [];
             
             // Cache orders locally
             this.orders.forEach(order => {
@@ -150,11 +158,16 @@ class OrdersPage {
             
         } catch (error) {
             console.error('Failed to load orders:', error);
+            console.error('Error details:', error.message, error.stack);
             
             // Load from cache if API fails
-            this.orders = Storage.getCachedOrders();
+            this.orders = Storage.getCachedOrders() || [];
+            console.log('Loaded from cache:', this.orders.length, 'orders');
+            
+            // Show user-friendly message for empty orders vs API error
             if (this.orders.length === 0) {
-                throw error;
+                console.warn('No orders found in API or cache');
+                // Don't throw error - just show empty state
             }
         }
     }

@@ -32,7 +32,7 @@ public class OrderController {
     }
     
     @GetMapping("/{orderId}")
-    public ResponseEntity<?> getOrder(@PathVariable String orderId) {
+    public ResponseEntity<?> getOrder(@PathVariable("orderId") String orderId) {
         Optional<Order> order = orderService.findOrderById(orderId);
         if (order.isPresent()) {
             return ResponseEntity.ok(order.get());
@@ -47,13 +47,20 @@ public class OrderController {
     }
     
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<Order>> getOrdersByCustomer(@PathVariable String customerId) {
-        List<Order> orders = orderService.getOrdersByCustomerId(customerId);
-        return ResponseEntity.ok(orders);
+    public ResponseEntity<?> getOrdersByCustomer(@PathVariable("customerId") String customerId) {
+        try {
+            List<Order> orders = orderService.getOrdersByCustomerId(customerId);
+            return ResponseEntity.ok(orders != null ? orders : new java.util.ArrayList<>());
+        } catch (Exception e) {
+            System.err.println("Error getting orders for customer " + customerId + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "無法載入訂單資料", "details", e.getMessage()));
+        }
     }
     
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Order>> getOrdersByStatus(@PathVariable OrderStatus status) {
+    public ResponseEntity<List<Order>> getOrdersByStatus(@PathVariable("status") OrderStatus status) {
         List<Order> orders = orderService.getOrdersByStatus(status);
         return ResponseEntity.ok(orders);
     }
@@ -77,7 +84,7 @@ public class OrderController {
     }
     
     @PostMapping("/{orderId}/items")
-    public ResponseEntity<?> addItemToOrder(@PathVariable String orderId, 
+    public ResponseEntity<?> addItemToOrder(@PathVariable("orderId") String orderId, 
                                           @Valid @RequestBody AddOrderItemRequest request) {
         try {
             boolean success = orderService.addItemToOrder(
@@ -95,8 +102,8 @@ public class OrderController {
     }
     
     @DeleteMapping("/{orderId}/items/{orderItemId}")
-    public ResponseEntity<?> removeItemFromOrder(@PathVariable String orderId, 
-                                               @PathVariable String orderItemId) {
+    public ResponseEntity<?> removeItemFromOrder(@PathVariable("orderId") String orderId, 
+                                               @PathVariable("orderItemId") String orderItemId) {
         try {
             boolean success = orderService.removeItemFromOrder(orderId, orderItemId);
             if (success) {
@@ -109,8 +116,8 @@ public class OrderController {
     }
     
     @PutMapping("/{orderId}/items/{orderItemId}/quantity")
-    public ResponseEntity<?> updateOrderItemQuantity(@PathVariable String orderId,
-                                                    @PathVariable String orderItemId,
+    public ResponseEntity<?> updateOrderItemQuantity(@PathVariable("orderId") String orderId,
+                                                    @PathVariable("orderItemId") String orderItemId,
                                                     @RequestBody UpdateQuantityRequest request) {
         try {
             boolean success = orderService.updateOrderItemQuantity(
@@ -125,7 +132,7 @@ public class OrderController {
     }
     
     @PutMapping("/{orderId}/confirm")
-    public ResponseEntity<?> confirmOrder(@PathVariable String orderId) {
+    public ResponseEntity<?> confirmOrder(@PathVariable("orderId") String orderId) {
         try {
             boolean success = orderService.confirmOrder(orderId);
             if (success) {
@@ -138,7 +145,7 @@ public class OrderController {
     }
     
     @PutMapping("/{orderId}/status")
-    public ResponseEntity<?> updateOrderStatus(@PathVariable String orderId, 
+    public ResponseEntity<?> updateOrderStatus(@PathVariable("orderId") String orderId, 
                                              @RequestBody UpdateOrderStatusRequest request) {
         try {
             boolean success = orderService.updateOrderStatus(orderId, request.getStatus());
@@ -156,7 +163,7 @@ public class OrderController {
     }
     
     @PutMapping("/{orderId}/cancel")
-    public ResponseEntity<?> cancelOrder(@PathVariable String orderId, 
+    public ResponseEntity<?> cancelOrder(@PathVariable("orderId") String orderId, 
                                        @RequestBody CancelOrderRequest request) {
         try {
             boolean success = orderService.cancelOrder(orderId, request.getReason());

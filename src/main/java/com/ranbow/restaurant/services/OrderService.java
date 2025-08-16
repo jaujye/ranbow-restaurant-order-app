@@ -32,7 +32,17 @@ public class OrderService {
     }
     
     public List<Order> getOrdersByCustomerId(String customerId) {
-        return orderDAO.findByCustomerId(customerId);
+        try {
+            if (customerId == null || customerId.trim().isEmpty()) {
+                System.err.println("Invalid customer ID provided: " + customerId);
+                return new java.util.ArrayList<>();
+            }
+            return orderDAO.findByCustomerId(customerId);
+        } catch (Exception e) {
+            System.err.println("Error in OrderService.getOrdersByCustomerId for customer " + customerId + ": " + e.getMessage());
+            e.printStackTrace();
+            return new java.util.ArrayList<>();
+        }
     }
     
     public List<Order> getOrdersByStatus(OrderStatus status) {
