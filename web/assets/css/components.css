@@ -120,6 +120,108 @@
     font-size: var(--font-lg);
 }
 
+/* User Menu Dropdown */
+.user-menu-container {
+    position: relative;
+}
+
+.user-menu-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.user-menu-btn .dropdown-arrow {
+    font-size: var(--font-sm);
+    transition: transform var(--transition-fast);
+}
+
+.user-menu-btn.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + var(--space-xs));
+    right: 0;
+    width: 280px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-large);
+    box-shadow: var(--shadow-large);
+    z-index: var(--z-popover);
+    overflow: hidden;
+    transition: all var(--transition-medium);
+    transform-origin: top right;
+}
+
+.user-dropdown.hidden {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.95) translateY(-10px);
+}
+
+.dropdown-header {
+    padding: var(--space-lg);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--text-white);
+}
+
+.user-info .user-name {
+    font-size: var(--font-lg);
+    font-weight: var(--font-semibold);
+    margin-bottom: var(--space-xs);
+}
+
+.user-info .user-email {
+    font-size: var(--font-sm);
+    opacity: 0.9;
+}
+
+.dropdown-menu {
+    padding: var(--space-xs);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    border-radius: var(--radius-medium);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: background-color var(--transition-fast);
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: var(--bg-muted);
+}
+
+.dropdown-item i {
+    width: 20px;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.dropdown-item.logout-item {
+    color: var(--error-color);
+}
+
+.dropdown-item.logout-item i {
+    color: var(--error-color);
+}
+
+.dropdown-item.logout-item:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: var(--border-light);
+    margin: var(--space-xs) var(--space-md);
+}
+
 /* Bottom Navigation */
 .bottom-nav {
     position: fixed;

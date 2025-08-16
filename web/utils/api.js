@@ -96,6 +96,11 @@ class API {
         return this.post('/users', userData);
     }
 
+    // User logout
+    async logout() {
+        return this.post('/users/logout', {});
+    }
+
     // Get user profile
     async getUserProfile(userId) {
         return this.get(`/users/${userId}`);

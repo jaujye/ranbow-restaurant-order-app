@@ -71,6 +71,9 @@ class RanbowApp {
         if (this.currentUser) {
             topNav?.classList.remove('hidden');
             
+            // Update user dropdown info
+            this.updateUserDropdownInfo();
+            
             // Show bottom nav only for customers
             if (this.currentUser.role === 'CUSTOMER') {
                 bottomNav?.classList.remove('hidden');
@@ -125,10 +128,23 @@ class RanbowApp {
             notificationBtn.addEventListener('click', () => this.showNotifications());
         }
 
-        const menuBtn = document.querySelector('.menu-btn');
-        if (menuBtn) {
-            menuBtn.addEventListener('click', () => this.showMenu());
+        const userMenuBtn = document.querySelector('.user-menu-btn');
+        if (userMenuBtn) {
+            userMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleUserDropdown();
+            });
         }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('user-dropdown');
+            const menuBtn = document.querySelector('.user-menu-btn');
+            
+            if (dropdown && menuBtn && !menuBtn.contains(e.target) && !dropdown.contains(e.target)) {
+                this.hideUserDropdown();
+            }
+        });
 
         // Handle browser back button
         window.addEventListener('popstate', (e) => {
@@ -340,17 +356,43 @@ class RanbowApp {
 
 
 
-    logout() {
-        Storage.clearUser();
-        api.clearToken();
-        this.currentUser = null;
-        
-        // Hide navigation
-        document.getElementById('top-nav')?.classList.add('hidden');
-        document.getElementById('bottom-nav')?.classList.add('hidden');
-        
-        this.navigateTo('login');
-        this.showToast('已登出', 'info');
+    async logout() {
+        try {
+            // Hide dropdown first
+            this.hideUserDropdown();
+            
+            // Call logout API
+            await api.logout();
+            
+            // Clear local data
+            Storage.clearUser();
+            Storage.clearCart();
+            api.clearToken();
+            this.currentUser = null;
+            
+            // Hide navigation
+            document.getElementById('top-nav')?.classList.add('hidden');
+            document.getElementById('bottom-nav')?.classList.add('hidden');
+            
+            this.navigateTo('login');
+            this.showToast('已登出', 'success');
+            
+        } catch (error) {
+            console.error('Logout failed:', error);
+            
+            // Clear local data anyway for security
+            Storage.clearUser();
+            Storage.clearCart();
+            api.clearToken();
+            this.currentUser = null;
+            
+            // Hide navigation
+            document.getElementById('top-nav')?.classList.add('hidden');
+            document.getElementById('bottom-nav')?.classList.add('hidden');
+            
+            this.navigateTo('login');
+            this.showToast('已登出', 'info');
+        }
     }
 
     goBack() {
@@ -365,9 +407,56 @@ class RanbowApp {
         this.showToast('通知功能建構中...', 'info');
     }
 
-    showMenu() {
-        // TODO: Implement side menu
-        this.showToast('選單功能建構中...', 'info');
+    toggleUserDropdown() {
+        const dropdown = document.getElementById('user-dropdown');
+        const menuBtn = document.querySelector('.user-menu-btn');
+        
+        if (dropdown) {
+            const isHidden = dropdown.classList.contains('hidden');
+            if (isHidden) {
+                this.showUserDropdown();
+            } else {
+                this.hideUserDropdown();
+            }
+        }
+    }
+
+    showUserDropdown() {
+        const dropdown = document.getElementById('user-dropdown');
+        const menuBtn = document.querySelector('.user-menu-btn');
+        
+        if (dropdown && menuBtn) {
+            // Update user info in dropdown
+            this.updateUserDropdownInfo();
+            
+            dropdown.classList.remove('hidden');
+            menuBtn.classList.add('active');
+        }
+    }
+
+    hideUserDropdown() {
+        const dropdown = document.getElementById('user-dropdown');
+        const menuBtn = document.querySelector('.user-menu-btn');
+        
+        if (dropdown && menuBtn) {
+            dropdown.classList.add('hidden');
+            menuBtn.classList.remove('active');
+        }
+    }
+
+    updateUserDropdownInfo() {
+        if (!this.currentUser) return;
+        
+        const nameEl = document.getElementById('dropdown-user-name');
+        const emailEl = document.getElementById('dropdown-user-email');
+        
+        if (nameEl) {
+            nameEl.textContent = this.currentUser.username || '使用者';
+        }
+        
+        if (emailEl) {
+            emailEl.textContent = this.currentUser.email || '';
+        }
     }
 
     updateNotificationBadge(count) {
