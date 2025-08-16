@@ -113,6 +113,7 @@ public class UserController {
         private String username;
         private String email;
         private String phoneNumber;
+        private String password;
         private UserRole role = UserRole.CUSTOMER;
         
         // Getters and setters
@@ -124,6 +125,9 @@ public class UserController {
         
         public String getPhoneNumber() { return phoneNumber; }
         public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+        
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
         
         public UserRole getRole() { return role; }
         public void setRole(UserRole role) { this.role = role; }
