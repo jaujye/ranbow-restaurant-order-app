@@ -207,7 +207,7 @@ class RanbowApp {
         }
         
         const rolePages = {
-            'CUSTOMER': ['home', 'menu', 'cart', 'orders', 'profile', 'order-detail'],
+            'CUSTOMER': ['home', 'menu', 'cart', 'checkout', 'orders', 'profile', 'order-detail'],
             'STAFF': ['staff-dashboard', 'staff-orders', 'staff-profile'],
             'ADMIN': ['admin-dashboard', 'admin-menu', 'admin-orders', 'admin-users', 'admin-reports']
         };
@@ -273,6 +273,7 @@ class RanbowApp {
             'home': '首頁',
             'menu': '菜單',
             'cart': '購物車',
+            'checkout': '確認訂單',
             'orders': '我的訂單',
             'profile': '個人中心',
             'login': '登入',
@@ -291,6 +292,7 @@ class RanbowApp {
             'home': homePage.getHomePageTemplate(),
             'menu': menuPage.getMenuPageTemplate(),
             'cart': cartPage.getCartPageTemplate(),
+            'checkout': checkoutPage.getCheckoutPageTemplate(),
             'orders': ordersPage.getOrdersPageTemplate(),
             'profile': profilePage.getProfilePageTemplate(),
             'login': authPages.getLoginPageTemplate(),
@@ -323,6 +325,9 @@ class RanbowApp {
                 break;
             case 'cart':
                 await cartPage.initializeCartPage();
+                break;
+            case 'checkout':
+                await checkoutPage.initializeCheckoutPage();
                 break;
             case 'orders':
                 await ordersPage.initializeOrdersPage();

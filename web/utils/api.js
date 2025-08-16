@@ -156,8 +156,8 @@ class API {
     }
 
     // Cancel order
-    async cancelOrder(orderId) {
-        return this.put(`/orders/${orderId}/cancel`);
+    async cancelOrder(orderId, cancelData) {
+        return this.put(`/orders/${orderId}/cancel`, cancelData);
     }
 
     // Get pending orders (for staff)

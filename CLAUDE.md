@@ -86,29 +86,53 @@ This file provides essential guidance to Claude Code (claude.ai/code) when worki
 ### 🎯 **PACKAGE STRUCTURE**
 ```
 src/main/java/com/ranbow/restaurant/
-├── core/          # Core business logic
-├── utils/         # Utility functions/classes
-├── models/        # Data models/entities (Order, MenuItem, User, etc.)
-├── services/      # Service layer (OrderService, PaymentService, etc.)
-└── api/           # API endpoints/interfaces
+├── RestaurantApplication.java    # Spring Boot主應用程式類
+├── config/                       # 配置類
+├── models/                       # Data models/entities (Order, MenuItem, User, etc.)
+├── dao/                          # Data Access Objects
+├── services/                     # Service layer (OrderService, PaymentService, etc.)
+└── api/                          # REST API Controllers
 ```
 
-### 🚀 COMMON COMMANDS
+### 🚀 MAVEN SPRING BOOT 啟動命令
+
+**推薦使用Maven啟動Spring Boot伺服器:**
 
 ```bash
-# Compile Java files
-javac -d out src/main/java/com/ranbow/restaurant/**/*.java
-
-# Run application (adjust main class as needed)
-java -cp out com.ranbow.restaurant.core.Application
-
-# Maven build (if using Maven)
+# 1. 清理並編譯專案
 mvn clean compile
-mvn clean package
 
-# Gradle build (if using Gradle)
-gradle clean build
+# 2. 啟動Spring Boot開發伺服器 (推薦)
+mvn spring-boot:run
+
+# 3. 或者打包並運行
+mvn clean package
+java -jar target/restaurant-order-app-1.0.0.jar
+
+# 4. 測試API健康檢查
+curl http://localhost:8080/api/health
 ```
+
+### 🔧 **開發工作流程**
+
+```bash
+# 完整開發啟動流程
+1. mvn clean compile          # 編譯源碼
+2. mvn spring-boot:run        # 啟動Spring Boot服務器
+3. 訪問 http://localhost:8080/api/health # 驗證服務器狀態
+
+# 測試相關指令
+mvn test                      # 運行測試
+mvn clean package -DskipTests # 打包（跳過測試）
+```
+
+### 📡 **API服務器資訊**
+
+- **主類**: `com.ranbow.restaurant.RestaurantApplication`
+- **端口**: `8080`
+- **基礎URL**: `http://localhost:8080/api`
+- **健康檢查**: `http://localhost:8080/api/health`
+- **數據庫**: PostgreSQL (自動配置)
 
 ## 🎯 RULE COMPLIANCE CHECK
 
