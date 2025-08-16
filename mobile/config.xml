@@ -49,7 +49,8 @@
     <!-- Preferences -->
     <preference name="DisallowOverscroll" value="true" />
     <preference name="android-minSdkVersion" value="22" />
-    <preference name="android-targetSdkVersion" value="33" />
+    <preference name="android-compileSdkVersion" value="35" />
+    <preference name="android-targetSdkVersion" value="35" />
     <preference name="BackupWebStorage" value="none" />
     <preference name="SplashMaintainAspectRatio" value="true" />
     <preference name="FadeSplashScreenDuration" value="300" />
