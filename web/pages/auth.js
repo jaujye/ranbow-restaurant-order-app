@@ -467,12 +467,17 @@ class AuthPages {
         try {
             const response = await api.login(email, password);
             
-            if (response.authenticated && response.user) {
+            if (response.success && response.user && response.token) {
                 // Store user data
                 Storage.setUser(response.user);
                 
-                // For now, we don't have JWT tokens, so we'll store user ID as a simple token
-                api.setToken(response.user.userId);
+                // Store JWT token
+                api.setToken(response.token);
+                
+                // Store session ID if needed
+                if (response.sessionId) {
+                    Storage.setPreference('sessionId', response.sessionId);
+                }
                 
                 // Handle remember me
                 if (remember) {
@@ -488,7 +493,7 @@ class AuthPages {
                 app.showNavigation();
                 
             } else {
-                throw new Error('Invalid response from server');
+                throw new Error(response.error || 'Invalid response from server');
             }
             
         } catch (error) {

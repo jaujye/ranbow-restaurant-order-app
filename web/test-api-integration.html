@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Integration Test - Ranbow Restaurant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section h3 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        .error {
+            border-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        .status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .status.success {
+            color: #28a745;
+        }
+        .status.error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌈 Ranbow Restaurant - API Integration Test</h1>
+    <p>This page tests the integration between the frontend and Spring Boot backend.</p>
+
+    <div class="test-section">
+        <h3>🏥 Health Check</h3>
+        <button class="test-button" onclick="testHealthCheck()">Test Health Endpoint</button>
+        <div id="health-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🍽️ Menu API</h3>
+        <button class="test-button" onclick="testMenuAPI()">Get Menu Items</button>
+        <div id="menu-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>👤 User Authentication</h3>
+        <button class="test-button" onclick="testLogin()">Test Login (Admin)</button>
+        <button class="test-button" onclick="testRegistration()">Test Registration</button>
+        <div id="auth-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📋 Orders API</h3>
+        <button class="test-button" onclick="testOrdersAPI()">Get Orders</button>
+        <div id="orders-result" class="result"></div>
+    </div>
+
+    <!-- Load API utility -->
+    <script src="utils/api.js"></script>
+
+    <script>
+        // Test functions
+        async function testHealthCheck() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.innerHTML = '<div class="status">Testing health endpoint...</div>';
+            
+            try {
+                const response = await api.healthCheck();
+                resultDiv.innerHTML = `
+                    <div class="status success">✅ Health check successful</div>
+                    ${JSON.stringify(response, null, 2)}
+                `;
+                resultDiv.classList.add('success');
+                resultDiv.classList.remove('error');
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">❌ Health check failed</div>
+                    Error: ${error.message}
+                `;
+                resultDiv.classList.add('error');
+                resultDiv.classList.remove('success');
+            }
+        }
+
+        async function testMenuAPI() {
+            const resultDiv = document.getElementById('menu-result');
+            resultDiv.innerHTML = '<div class="status">Testing menu API...</div>';
+            
+            try {
+                const response = await api.getMenuItems();
+                resultDiv.innerHTML = `
+                    <div class="status success">✅ Menu API successful</div>
+                    Found ${response.length} menu items:
+                    ${JSON.stringify(response, null, 2)}
+                `;
+                resultDiv.classList.add('success');
+                resultDiv.classList.remove('error');
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">❌ Menu API failed</div>
+                    Error: ${error.message}
+                `;
+                resultDiv.classList.add('error');
+                resultDiv.classList.remove('success');
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('auth-result');
+            resultDiv.innerHTML = '<div class="status">Testing login...</div>';
+            
+            try {
+                const response = await api.login('admin@ranbow.com', 'password123');
+                resultDiv.innerHTML = `
+                    <div class="status success">✅ Login successful</div>
+                    Response: ${JSON.stringify(response, null, 2)}
+                `;
+                resultDiv.classList.add('success');
+                resultDiv.classList.remove('error');
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">❌ Login failed</div>
+                    Error: ${error.message}
+                `;
+                resultDiv.classList.add('error');
+                resultDiv.classList.remove('success');
+            }
+        }
+
+        async function testRegistration() {
+            const resultDiv = document.getElementById('auth-result');
+            resultDiv.innerHTML = '<div class="status">Testing user registration...</div>';
+            
+            try {
+                const userData = {
+                    username: 'test_user_' + Date.now(),
+                    email: 'test_' + Date.now() + '@test.com',
+                    phoneNumber: '0987654321',
+                    password: 'password123',
+                    role: 'CUSTOMER'
+                };
+                
+                const response = await api.register(userData);
+                resultDiv.innerHTML = `
+                    <div class="status success">✅ Registration successful</div>
+                    Response: ${JSON.stringify(response, null, 2)}
+                `;
+                resultDiv.classList.add('success');
+                resultDiv.classList.remove('error');
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">❌ Registration failed</div>
+                    Error: ${error.message}
+                `;
+                resultDiv.classList.add('error');
+                resultDiv.classList.remove('success');
+            }
+        }
+
+        async function testOrdersAPI() {
+            const resultDiv = document.getElementById('orders-result');
+            resultDiv.innerHTML = '<div class="status">Testing orders API...</div>';
+            
+            try {
+                const response = await api.get('/orders');
+                resultDiv.innerHTML = `
+                    <div class="status success">✅ Orders API successful</div>
+                    Found ${response.length} orders:
+                    ${JSON.stringify(response, null, 2)}
+                `;
+                resultDiv.classList.add('success');
+                resultDiv.classList.remove('error');
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">❌ Orders API failed</div>
+                    Error: ${error.message}
+                `;
+                resultDiv.classList.add('error');
+                resultDiv.classList.remove('success');
+            }
+        }
+
+        // Auto-run health check on page load
+        window.addEventListener('load', () => {
+            setTimeout(testHealthCheck, 500);
+        });
+    </script>
+</body>
+</html>

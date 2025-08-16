@@ -88,7 +88,7 @@ class API {
     
     // User authentication
     async login(email, password) {
-        return this.post('/users/authenticate', { email, password });
+        return this.post('/users/login', { email, password });
     }
 
     // User registration
@@ -184,38 +184,38 @@ class API {
 
     // === ADMIN ENDPOINTS ===
     
-    // Get dashboard data
+    // Get dashboard data (using health endpoint for now)
     async getDashboardData() {
-        return this.get('/admin/dashboard');
+        return this.get('/health');
     }
 
     // Get all users (admin)
     async getAllUsers() {
-        return this.get('/admin/users');
+        return this.get('/users');
     }
 
     // Create menu item (admin)
     async createMenuItem(itemData) {
-        return this.post('/admin/menu', itemData);
+        return this.post('/menu', itemData);
     }
 
     // Update menu item (admin)
     async updateMenuItem(itemId, itemData) {
-        return this.put(`/admin/menu/${itemId}`, itemData);
+        return this.put(`/menu/${itemId}`, itemData);
     }
 
     // Delete menu item (admin)
     async deleteMenuItem(itemId) {
-        return this.delete(`/admin/menu/${itemId}`);
+        return this.delete(`/menu/${itemId}`);
     }
 
     // Get reports
     async getRevenueReport() {
-        return this.get('/admin/reports/revenue');
+        return this.get('/reports/revenue');
     }
 
     async getPerformanceReport() {
-        return this.get('/admin/reports/performance');
+        return this.get('/reports/performance');
     }
 
     // === HEALTH CHECK ===
