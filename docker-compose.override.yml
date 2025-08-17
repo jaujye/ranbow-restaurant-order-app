@@ -42,7 +42,7 @@ services:
     ports:
       # 開發時暴露 Redis 端口
       - "6379:6379"
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-ranbowredis123} --loglevel verbose
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-password123} --loglevel verbose
 
   # 開發工具 - PostgreSQL 管理界面 (pgAdmin)
   pgadmin:
@@ -70,7 +70,7 @@ services:
     container_name: ranbow-redis-commander
     restart: unless-stopped
     environment:
-      REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD:-ranbowredis123}
+      REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD:-password123}
     ports:
       - "8082:8081"
     depends_on:

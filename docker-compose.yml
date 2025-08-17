@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_DB: ranbow_restaurant
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Patycri3r}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password123}
     ports:
       - "5432:5432"
     volumes:
@@ -28,7 +28,7 @@ services:
     image: redis:7-alpine
     container_name: ranbow-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-ranbowredis123}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-password123}
     ports:
       - "6379:6379"
     volumes:
@@ -57,12 +57,12 @@ services:
       # 資料庫配置
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ranbow_restaurant
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-Patycri3r}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-password123}
       
       # Redis 配置
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
-      SPRING_REDIS_PASSWORD: ${REDIS_PASSWORD:-ranbowredis123}
+      SPRING_REDIS_PASSWORD: ${REDIS_PASSWORD:-password123}
       
       # JVM 配置
       JAVA_OPTS: "-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport"
