@@ -1,0 +1,76 @@
+# Git 相關檔案
+.git
+.gitignore
+.gitattributes
+
+# IDE 相關檔案
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Maven 相關檔案
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# 編譯產出檔案
+*.class
+*.jar
+*.war
+*.ear
+
+# 日誌檔案
+*.log
+logs/
+
+# 暫存檔案
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# OS 相關檔案
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Node.js 相關 (如果有前端部分)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker 相關檔案
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# 文件檔案
+README.md
+CLAUDE.md
+*.md
+
+# 測試覆蓋率報告
+coverage/
+.nyc_output/
+
+# 環境變數檔案
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 資料庫檔案
+*.sqlite
+*.db
+
+# 備份檔案
+*.bak
+*.backup
+
+# 臨時目錄
+tmp/
+temp/

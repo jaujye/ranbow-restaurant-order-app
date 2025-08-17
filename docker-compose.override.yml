@@ -1,0 +1,85 @@
+# Docker Compose 開發環境覆蓋配置
+# 此檔案用於開發環境的特殊配置，會自動與 docker-compose.yml 合併
+
+version: '3.8'
+
+services:
+  # 開發環境下的 Spring Boot 應用程式配置
+  app:
+    volumes:
+      # 掛載源代碼以支援熱重載 (開發模式)
+      - ./src:/app/src:ro
+      - ./target:/app/target
+      - ./logs:/app/logs
+    environment:
+      # 開發環境特定配置
+      SPRING_PROFILES_ACTIVE: docker,dev
+      LOGGING_LEVEL_ROOT: DEBUG
+      LOGGING_LEVEL_COM_RANBOW_RESTAURANT: TRACE
+      
+      # 開發工具配置
+      SPRING_DEVTOOLS_RESTART_ENABLED: true
+      SPRING_DEVTOOLS_LIVERELOAD_ENABLED: true
+    ports:
+      # 額外暴露 LiveReload 端口
+      - "35729:35729"
+
+  # 開發環境下的 PostgreSQL 配置
+  postgres:
+    ports:
+      # 開發時暴露資料庫端口以便直接連接
+      - "5432:5432"
+    environment:
+      # 開發環境可以顯示更多日誌
+      POSTGRES_LOG_STATEMENT: all
+      POSTGRES_LOG_MIN_DURATION_STATEMENT: 0
+    volumes:
+      # 掛載開發用的 SQL 腳本
+      - ./dev-scripts:/docker-entrypoint-initdb.d/dev
+
+  # 開發環境下的 Redis 配置
+  redis:
+    ports:
+      # 開發時暴露 Redis 端口
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-ranbowredis123} --loglevel verbose
+
+  # 開發工具 - PostgreSQL 管理界面 (pgAdmin)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: ranbow-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ranbow.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8081:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - ranbow-network
+    profiles:
+      - dev-tools
+
+  # 開發工具 - Redis 管理界面
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: ranbow-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD:-ranbowredis123}
+    ports:
+      - "8082:8081"
+    depends_on:
+      - redis
+    networks:
+      - ranbow-network
+    profiles:
+      - dev-tools
+
+volumes:
+  pgadmin_data:
+    driver: local

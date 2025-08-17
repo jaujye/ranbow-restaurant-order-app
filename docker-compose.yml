@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 資料庫服務
+  postgres:
+    image: postgres:15-alpine
+    container_name: ranbow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ranbow_restaurant
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Patycri3r}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - ranbow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ranbow_restaurant"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis 快取服務
+  redis:
+    image: redis:7-alpine
+    container_name: ranbow-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-ranbowredis123}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ranbow-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Spring Boot 應用程式服務
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ranbow-restaurant-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Spring Boot 配置
+      SPRING_PROFILES_ACTIVE: docker
+      
+      # 資料庫配置
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ranbow_restaurant
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-Patycri3r}
+      
+      # Redis 配置
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_REDIS_PASSWORD: ${REDIS_PASSWORD:-ranbowredis123}
+      
+      # JVM 配置
+      JAVA_OPTS: "-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport"
+      
+      # 應用程式配置
+      SERVER_PORT: 8080
+      LOGGING_LEVEL_ROOT: INFO
+      LOGGING_LEVEL_COM_RANBOW_RESTAURANT: DEBUG
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ranbow-network
+    volumes:
+      - app_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Nginx 反向代理 (可選)
+  nginx:
+    image: nginx:alpine
+    container_name: ranbow-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - app
+    networks:
+      - ranbow-network
+    profiles:
+      - nginx
+
+# 資料持久化卷
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_logs:
+    driver: local
+  nginx_logs:
+    driver: local
+
+# 網路配置
+networks:
+  ranbow-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
