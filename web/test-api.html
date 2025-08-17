@@ -86,7 +86,7 @@
         
         <div class="test-section">
             <h3>📡 伺服器狀態 <span id="serverStatus" class="status offline">離線</span></h3>
-            <p><strong>後端API:</strong> http://localhost:8080/api</p>
+            <p><strong>後端API:</strong> http://192.168.0.113:8087/api</p>
             <p><strong>前端:</strong> http://localhost:3001</p>
             <button onclick="testConnection()">測試連接</button>
             <div id="connectionResult" class="result" style="display:none;"></div>
@@ -153,7 +153,7 @@
             try {
                 showResult('connectionResult', '正在測試連接...', 'info');
                 
-                const response = await fetch('http://localhost:8080/api/health');
+                const response = await fetch('http://192.168.0.113:8087/api/health');
                 if (response.ok) {
                     const data = await response.json();
                     updateServerStatus(true);
@@ -300,7 +300,7 @@ ${data.map(user => `- ${user.username} (${user.email}) - ${user.role}`).join('\n
                     password: 'admin123'
                 };
                 
-                const response = await fetch('http://localhost:8080/api/users/login', {
+                const response = await fetch('http://192.168.0.113:8087/api/users/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -335,7 +335,7 @@ Redis會話已創建`, 'success');
                 showResult('usersResult', '正在測試會話管理...', 'info');
                 
                 // 測試會話查詢
-                const sessionResponse = await fetch('http://localhost:8080/api/users/sessions', {
+                const sessionResponse = await fetch('http://192.168.0.113:8087/api/users/sessions', {
                     headers: {
                         'Authorization': `Bearer ${currentToken}`
                     }

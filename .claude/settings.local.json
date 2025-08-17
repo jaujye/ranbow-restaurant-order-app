@@ -48,7 +48,9 @@
       "Bash(timeout:*)",
       "Bash(touch:*)",
       "mcp__redis__list",
-      "mcp__redis__get"
+      "mcp__redis__get",
+      "mcp__ssh-server__upload",
+      "mcp__ssh-server__execute-command"
     ],
     "deny": [],
     "ask": [],

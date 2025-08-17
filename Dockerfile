@@ -46,11 +46,11 @@ RUN mkdir -p /app/logs && \
 USER appuser
 
 # 暴露應用程式端口
-EXPOSE 8080
+EXPOSE 8087
 
 # 健康檢查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8080/api/health || exit 1
+    CMD curl -f http://localhost:8087/api/health || exit 1
 
 # 設置JVM參數和應用程式參數
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom"

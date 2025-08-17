@@ -39,7 +39,7 @@
         // 複製前端API邏輯
         class TestAPI {
             constructor() {
-                this.baseURL = 'http://localhost:8080/api';
+                this.baseURL = 'http://192.168.0.113:8087/api';
                 this.token = localStorage.getItem('authToken');
             }
 
@@ -145,7 +145,7 @@
         // 頁面加載時測試API連通性
         window.onload = async function() {
             try {
-                const response = await fetch('http://localhost:8080/api/health');
+                const response = await fetch('http://192.168.0.113:8087/api/health');
                 const data = await response.text();
                 console.log('Health check response:', data);
                 document.getElementById('result').innerHTML = '<div class="success">API服務器連接正常</div>';

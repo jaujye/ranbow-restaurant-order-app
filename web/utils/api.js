@@ -2,7 +2,7 @@
 
 class API {
     constructor() {
-        this.baseURL = 'http://localhost:8080/api';
+        this.baseURL = 'http://192.168.0.113:8087/api';
         this.token = localStorage.getItem('authToken');
     }
 
