@@ -10,7 +10,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://192.168.0.114:5432/ranbow_restaurant}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:password123}
+    password: ${SPRING_DATASOURCE_PASSWORD:Patycri3r}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 30000
@@ -23,9 +23,8 @@ spring:
   # Redis 配置
   data:
     redis:
-      host: ${SPRING_REDIS_HOST:localhost}
+      host: ${SPRING_REDIS_HOST:192.168.0.113}
       port: ${SPRING_REDIS_PORT:6379}
-      password: ${SPRING_REDIS_PASSWORD:password123}
       timeout: 2000ms
       connect-timeout: 2000ms
       jedis:
