@@ -165,8 +165,10 @@ ping localhost
 # 檢查後端服務器狀態
 curl http://localhost:8080/api/health
 
-# 重啟後端服務器
-java -cp ".:postgresql-42.7.1.jar" SimpleRestaurantServer
+# 重啟Spring Boot後端服務器
+mvn spring-boot:run
+# 或者
+java -jar target/restaurant-order-app-1.0.0.jar
 ```
 
 ### 問題2: 手機界面無法載入
