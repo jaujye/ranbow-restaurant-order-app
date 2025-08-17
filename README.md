@@ -57,6 +57,11 @@
 - **GitHub**: 代碼托管與自動備份
 - **Claude Code**: AI開發助手
 
+## 技術文檔
+
+### 🏗️ 後端架構設計
+- [後端架構技術文檔](BACKEND_ARCHITECTURE_DOCUMENTATION.md) - Spring Boot 架構設計、API 規範、資料庫設計和系統整合
+
 ## UI設計文檔
 
 詳細的前端UI設計規範請參考以下文檔：
