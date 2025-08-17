@@ -181,7 +181,7 @@ server:
 **2️⃣ 使用SSH-Server工具部署**
 ```bash
 # 1. 創建遠程目錄
-mkdir -p /home/app
+mkdir -p /root/ranbow-restaurant-backend
 
 # 2. 上傳項目文件到Ubuntu Server
 - 上傳Dockerfile
@@ -190,7 +190,7 @@ mkdir -p /home/app
 - 上傳application.yml配置文件
 
 # 3. 在Ubuntu Server執行Docker構建
-docker build -t ranbow-restaurant-backend:latest /home/app
+docker build -t ranbow-restaurant-backend:latest /root/ranbow-restaurant-backend
 
 # 4. 停止舊容器(如果存在)
 docker stop ranbow-restaurant-backend
@@ -221,8 +221,8 @@ curl http://localhost:8087/api/health
 3. git push origin main
 
 # 步驟2: 部署到Ubuntu Server  
-1. 使用ssh-server工具上傳修改的文件到/home/app/
-2. 在Ubuntu server執行: docker build -t ranbow-restaurant-backend:latest /home/app
+1. 使用ssh-server工具上傳修改的文件到/root/ranbow-restaurant-backend/
+2. 在Ubuntu server執行: docker build -t ranbow-restaurant-backend:latest /root/ranbow-restaurant-backend
 3. 重啟容器: docker stop ranbow-restaurant-backend && docker rm ranbow-restaurant-backend
 4. 運行新容器: docker run -d --name ranbow-restaurant-backend -p 8087:8087 ranbow-restaurant-backend:latest
 
@@ -247,7 +247,7 @@ docker exec -it ranbow-restaurant-backend sh
 # 重建並重啟(完整更新流程)
 docker stop ranbow-restaurant-backend
 docker rm ranbow-restaurant-backend  
-docker build -t ranbow-restaurant-backend:latest /home/app
+docker build -t ranbow-restaurant-backend:latest /root/ranbow-restaurant-backend
 docker run -d --name ranbow-restaurant-backend -p 8087:8087 ranbow-restaurant-backend:latest
 
 # 清理舊映像(節省空間)
@@ -312,3 +312,195 @@ Edit(file_path="src/main/java/com/ranbow/restaurant/services/OrderService.java",
 **⚠️ Prevention is better than consolidation - build clean from the start.**  
 **🎯 Focus on single source of truth and extending existing functionality.**  
 **📈 Each task should maintain clean architecture and prevent technical debt.**
+
+## 🗄️ DATABASE & CACHE TOOLS INTEGRATION
+
+### 🐘 **POSTGRESQL DATABASE OPERATIONS**
+
+**Claude Code已配置PostgreSQL MCP工具，可直接進行數據庫操作:**
+
+**🔍 基本查詢指令:**
+```bash
+# 列出所有資料庫架構
+mcp__postgres__list_schemas
+
+# 列出指定架構的資料表
+mcp__postgres__list_objects --schema_name public --object_type table
+
+# 查看資料表詳細資訊
+mcp__postgres__get_object_details --schema_name public --object_name orders --object_type table
+
+# 執行SQL查詢
+mcp__postgres__execute_sql --sql "SELECT * FROM orders LIMIT 10"
+```
+
+**💾 CRUD操作工作流:**
+```bash
+# 創建資料表
+mcp__postgres__execute_sql --sql "
+CREATE TABLE test_menu_items (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  price DECIMAL(10,2) NOT NULL,
+  category VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)"
+
+# 新增資料
+mcp__postgres__execute_sql --sql "
+INSERT INTO test_menu_items (name, price, category) 
+VALUES ('測試漢堡', 299.00, '主餐')"
+
+# 查詢資料
+mcp__postgres__execute_sql --sql "SELECT * FROM test_menu_items WHERE category = '主餐'"
+
+# 修改資料
+mcp__postgres__execute_sql --sql "
+UPDATE test_menu_items SET price = 279.00 WHERE name = '測試漢堡'"
+
+# 刪除資料
+mcp__postgres__execute_sql --sql "DELETE FROM test_menu_items WHERE id = 1"
+
+# 刪除資料表
+mcp__postgres__execute_sql --sql "DROP TABLE test_menu_items"
+```
+
+**🔍 效能分析與最佳化:**
+```bash
+# 分析查詢執行計劃
+mcp__postgres__explain_query --sql "SELECT * FROM orders WHERE user_id = 123" --analyze true
+
+# 分析工作負載並推薦索引
+mcp__postgres__analyze_workload_indexes --method dta --max_index_size_mb 1000
+
+# 分析特定查詢的索引需求
+mcp__postgres__analyze_query_indexes --queries ["SELECT * FROM orders WHERE status = 'pending'"] --method dta
+
+# 資料庫健康檢查
+mcp__postgres__analyze_db_health --health_type all
+
+# 查看最耗時的查詢
+mcp__postgres__get_top_queries --sort_by total_time --limit 10
+```
+
+### 🔴 **REDIS CACHE OPERATIONS**
+
+**Claude Code已配置Redis MCP工具，可直接進行緩存操作:**
+
+**🔑 基本操作指令:**
+```bash
+# 設置鍵值對
+mcp__redis__set --key "user:123:session" --value "active" --expireSeconds 3600
+
+# 獲取值
+mcp__redis__get --key "user:123:session"
+
+# 列出所有鍵
+mcp__redis__list --pattern "*"
+
+# 列出特定模式的鍵
+mcp__redis__list --pattern "user:*:session"
+
+# 刪除單個鍵
+mcp__redis__delete --key "user:123:session"
+
+# 刪除多個鍵
+mcp__redis__delete --key ["user:123:session", "user:456:session"]
+```
+
+**💡 緩存策略測試工作流:**
+```bash
+# 1. 設置測試數據
+mcp__redis__set --key "menu:items:cache" --value '{"burgers":5,"drinks":10}' --expireSeconds 300
+
+# 2. 驗證緩存存在
+mcp__redis__get --key "menu:items:cache"
+
+# 3. 測試會話管理
+mcp__redis__set --key "session:test123" --value "user_data" --expireSeconds 1800
+
+# 4. 檢查所有會話
+mcp__redis__list --pattern "session:*"
+
+# 5. 清理測試數據
+mcp__redis__delete --key ["menu:items:cache", "session:test123"]
+```
+
+### 🔄 **整合開發測試工作流**
+
+**完整的資料庫與緩存測試流程:**
+
+**1️⃣ 開發準備階段:**
+```bash
+# 檢查資料庫連線狀態
+mcp__postgres__list_schemas
+
+# 檢查Redis服務狀態
+mcp__redis__list --pattern "*"
+
+# 清理舊的測試數據
+mcp__redis__delete --key ["test:*"]
+mcp__postgres__execute_sql --sql "DELETE FROM test_orders WHERE id < 0"
+```
+
+**2️⃣ 功能開發測試:**
+```bash
+# 測試數據庫寫入操作
+mcp__postgres__execute_sql --sql "
+INSERT INTO orders (user_id, total_amount, status) 
+VALUES (999, 199.00, 'pending') RETURNING id"
+
+# 測試緩存寫入操作
+mcp__redis__set --key "order:999:cache" --value '{"status":"pending","amount":199}' --expireSeconds 600
+
+# 驗證數據一致性
+mcp__postgres__execute_sql --sql "SELECT * FROM orders WHERE user_id = 999"
+mcp__redis__get --key "order:999:cache"
+
+# 測試數據更新
+mcp__postgres__execute_sql --sql "UPDATE orders SET status = 'completed' WHERE user_id = 999"
+mcp__redis__set --key "order:999:cache" --value '{"status":"completed","amount":199}' --expireSeconds 600
+```
+
+**3️⃣ 效能測試與最佳化:**
+```bash
+# 分析資料庫查詢效能
+mcp__postgres__explain_query --sql "SELECT o.*, u.name FROM orders o JOIN users u ON o.user_id = u.id WHERE o.status = 'pending'" --analyze true
+
+# 檢查緩存命中率（透過模擬多次讀取）
+mcp__redis__get --key "menu:popular:items"
+mcp__redis__get --key "menu:popular:items"
+
+# 推薦索引最佳化
+mcp__postgres__analyze_query_indexes --queries ["SELECT * FROM orders WHERE status = 'pending'", "SELECT * FROM menu_items WHERE category = 'beverage'"] --method dta
+```
+
+**4️⃣ 清理測試數據:**
+```bash
+# 清理測試資料庫數據
+mcp__postgres__execute_sql --sql "DELETE FROM orders WHERE user_id = 999"
+
+# 清理測試緩存數據
+mcp__redis__delete --key ["order:999:cache", "test:*"]
+
+# 驗證清理完成
+mcp__postgres__execute_sql --sql "SELECT COUNT(*) FROM orders WHERE user_id = 999"
+mcp__redis__list --pattern "*999*"
+```
+
+### 🚀 **開發整合建議**
+
+**在進行以下開發時，使用上述工具進行測試:**
+
+1. **新增API端點時** → 使用PostgreSQL工具驗證資料寫入/讀取
+2. **修改資料模型時** → 使用PostgreSQL工具測試資料表結構變更
+3. **實現緩存邏輯時** → 使用Redis工具驗證緩存讀寫操作
+4. **效能最佳化時** → 使用PostgreSQL分析工具檢查查詢效能
+5. **部署前測試時** → 使用完整工作流驗證資料庫和緩存一致性
+
+**📋 開發檢查清單:**
+- [ ] 資料庫操作通過PostgreSQL工具測試
+- [ ] 緩存邏輯通過Redis工具驗證
+- [ ] 查詢效能通過explain_query分析
+- [ ] 測試數據清理完成
+- [ ] 生產環境配置正確
