@@ -174,14 +174,16 @@ class Helpers {
     static getOrderStatusInfo(status) {
         const statusMap = {
             'PENDING': { text: '待處理', color: '#2196F3', icon: 'clock' },
+            'PENDING_PAYMENT': { text: '待付款', color: '#FF5722', icon: 'credit-card' },
             'CONFIRMED': { text: '已確認', color: '#FF9800', icon: 'check-circle' },
             'PREPARING': { text: '準備中', color: '#FF6B35', icon: 'utensils' },
             'READY': { text: '製作完成', color: '#4CAF50', icon: 'bell' },
             'DELIVERED': { text: '已送達', color: '#2E8B57', icon: 'check-double' },
+            'COMPLETED': { text: '已完成', color: '#4CAF50', icon: 'check-double' },
             'CANCELLED': { text: '已取消', color: '#999999', icon: 'times-circle' }
         };
         
-        return statusMap[status] || { text: '未知', color: '#999999', icon: 'question' };
+        return statusMap[status] || { text: '未知狀態', color: '#999999', icon: 'question' };
     }
 
     // Get payment status info

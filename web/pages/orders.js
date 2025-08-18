@@ -217,7 +217,7 @@ class OrdersPage {
     }
 
     getHistoryOrders() {
-        const inactiveStatuses = ['DELIVERED', 'CANCELLED'];
+        const inactiveStatuses = ['DELIVERED', 'COMPLETED', 'CANCELLED'];
         return this.orders.filter(order => inactiveStatuses.includes(order.status));
     }
 
@@ -360,18 +360,20 @@ class OrdersPage {
 
     getStatusClass(status) {
         const statusMap = {
+            'PENDING_PAYMENT': 'status-pending-payment',
             'PENDING': 'status-pending',
             'CONFIRMED': 'status-confirmed', 
             'PREPARING': 'status-preparing',
             'READY': 'status-ready',
             'DELIVERED': 'status-delivered',
+            'COMPLETED': 'status-completed',
             'CANCELLED': 'status-cancelled'
         };
         return statusMap[status] || 'status-default';
     }
 
     renderOrderActions(order) {
-        const canCancel = ['PENDING', 'CONFIRMED'].includes(order.status);
+        const canCancel = ['PENDING_PAYMENT', 'PENDING', 'CONFIRMED'].includes(order.status);
         const canTrack = ['PREPARING', 'READY'].includes(order.status);
         
         if (!canCancel && !canTrack) return '';
@@ -565,6 +567,7 @@ class OrdersPage {
 
     renderOrderProgress(status) {
         const steps = [
+            { key: 'PENDING_PAYMENT', text: '等待付款', icon: 'credit-card' },
             { key: 'PENDING', text: '訂單確認', icon: 'clock' },
             { key: 'CONFIRMED', text: '廚房接單', icon: 'check' },
             { key: 'PREPARING', text: '正在製作', icon: 'utensils' },
@@ -596,8 +599,8 @@ class OrdersPage {
     }
 
     renderDetailActions(order) {
-        const canCancel = ['PENDING', 'CONFIRMED'].includes(order.status);
-        const canReorder = ['DELIVERED', 'CANCELLED'].includes(order.status);
+        const canCancel = ['PENDING_PAYMENT', 'PENDING', 'CONFIRMED'].includes(order.status);
+        const canReorder = ['DELIVERED', 'COMPLETED', 'CANCELLED'].includes(order.status);
         
         if (!canCancel && !canReorder) return '';
 
