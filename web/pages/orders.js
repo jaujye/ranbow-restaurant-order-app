@@ -212,7 +212,7 @@ class OrdersPage {
     }
 
     getCurrentOrders() {
-        const activeStatuses = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY'];
+        const activeStatuses = ['PENDING_PAYMENT', 'PENDING', 'CONFIRMED', 'PREPARING', 'READY'];
         return this.orders.filter(order => activeStatuses.includes(order.status));
     }
 

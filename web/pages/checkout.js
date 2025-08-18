@@ -359,37 +359,54 @@ class CheckoutPage {
         try {
             this.isProcessing = true;
             this.showProcessingModal();
-            this.updateProcessingMessage('正在建立訂單...');
+            this.updateProcessingMessage('正在檢查訂單狀態...');
             
-            // Create order data
-            const specialInstructions = document.getElementById('special-instructions')?.value || '';
-            const summary = cart.getSummary();
-            const serviceFee = Math.round(summary.subtotal * 0.1);
-            const tax = Math.round((summary.subtotal + serviceFee) * 0.05);
-            const totalAmount = summary.subtotal + serviceFee + tax;
+            // Check for existing pending orders for this customer
+            const existingOrders = await api.getCustomerOrders(this.currentUser.userId);
+            const pendingOrder = existingOrders.find(o => 
+                o.status === 'PENDING_PAYMENT' && 
+                o.customerId === this.currentUser.userId
+            );
             
-            const orderData = {
-                customerId: this.currentUser.userId,
-                tableNumber: 1,
-                items: this.cartItems.map(item => ({
-                    menuItemId: item.itemId || item.id,
-                    quantity: item.quantity,
-                    price: item.price,
-                    specialRequests: item.specialRequests || null
-                })),
-                specialInstructions: specialInstructions,
-                paymentMethod: this.selectedPaymentMethod,
-                subtotal: summary.subtotal,
-                serviceFee: serviceFee,
-                tax: tax,
-                totalAmount: totalAmount,
-                status: 'PENDING_PAYMENT' // Initial status before payment
-            };
+            if (pendingOrder) {
+                console.log('Found existing pending order:', pendingOrder);
+                order = pendingOrder;
+                this.updateProcessingMessage('發現未完成訂單，繼續付款流程...');
+            } else {
+                this.updateProcessingMessage('正在建立訂單...');
+                
+                // Create order data
+                const specialInstructions = document.getElementById('special-instructions')?.value || '';
+                const summary = cart.getSummary();
+                const serviceFee = Math.round(summary.subtotal * 0.1);
+                const tax = Math.round((summary.subtotal + serviceFee) * 0.05);
+                
+                const orderData = {
+                    customerId: this.currentUser.userId,
+                    tableNumber: 1,
+                    items: this.cartItems.map(item => ({
+                        menuItemId: item.itemId || item.id,
+                        quantity: item.quantity,
+                        price: item.price,
+                        specialRequests: item.specialRequests || null
+                    })),
+                    specialInstructions: specialInstructions,
+                    paymentMethod: this.selectedPaymentMethod,
+                    subtotal: summary.subtotal,
+                    serviceFee: serviceFee,
+                    tax: tax,
+                    totalAmount: summary.subtotal + serviceFee + tax,
+                    status: 'PENDING_PAYMENT' // Initial status before payment
+                };
+                
+                // Create order with pending payment status
+                console.log('Creating order with data:', orderData);
+                order = await api.createOrder(orderData);
+                console.log('Order created successfully:', order);
+            }
             
-            // Create order with pending payment status
-            console.log('Creating order with data:', orderData);
-            order = await api.createOrder(orderData);
-            console.log('Order created successfully:', order);
+            // Calculate total amount for payment processing
+            const totalAmount = order.totalAmount;
             
             // Process payment based on method
             try {
@@ -438,10 +455,21 @@ class CheckoutPage {
         
         switch (this.selectedPaymentMethod) {
             case 'CASH':
-                // Cash payment - no additional processing needed, just confirm
+                // Cash payment - create payment record and confirm
                 console.log('Cash payment selected - order will be processed at table');
                 this.updateProcessingMessage('現金付款確認中...');
                 await this.delay(1000);
+                
+                // Create payment record for cash payment
+                const cashPaymentData = {
+                    orderId: order.orderId,
+                    customerId: this.currentUser.userId,
+                    paymentMethod: 'CASH'
+                };
+                
+                this.updateProcessingMessage('正在建立付款記錄...');
+                const payment = await api.createPayment(cashPaymentData);
+                console.log('Cash payment record created:', payment);
                 
                 paymentResult = {
                     success: true,
@@ -476,8 +504,8 @@ class CheckoutPage {
         try {
             console.log('Processing credit card payment for order:', order.orderId);
             
-            this.updateProcessingMessage('正在連接綠界金流中心...');
-            await this.delay(1000);
+            // Hide processing modal and show payment gateway modal
+            this.hideProcessingModal();
             
             // Use ECPay for credit card processing
             const orderData = {
@@ -487,17 +515,14 @@ class CheckoutPage {
                 items: this.cartItems
             };
             
-            this.updateProcessingMessage('正在建立支付頁面...');
-            const paymentResult = await paymentAPI.processECPayPayment(orderData);
+            // Show ECPay payment modal
+            const paymentResult = await this.showECPayModal(orderData);
             
             // Validate payment result
             const validation = paymentAPI.validatePaymentResult(paymentResult);
             if (!validation.isValid) {
                 throw new Error(validation.message);
             }
-            
-            this.updateProcessingMessage('正在確認交易結果...');
-            await this.delay(1000);
             
             // Create payment record with backend-compatible format
             const paymentData = {
@@ -509,12 +534,10 @@ class CheckoutPage {
             const payment = await api.createPayment(paymentData);
             console.log('Payment record created:', payment);
             
-            toast.success('信用卡付款成功！');
             return paymentResult;
             
         } catch (error) {
             console.error('Credit card payment failed:', error);
-            // Don't create order if payment fails
             throw new Error(error.message || '信用卡付款失敗，請檢查卡片資訊或選擇其他付款方式');
         }
     }
@@ -523,8 +546,8 @@ class CheckoutPage {
         try {
             console.log('Processing LINE Pay payment for order:', order.orderId);
             
-            this.updateProcessingMessage('正在連接 LINE Pay Sandbox...');
-            await this.delay(1000);
+            // Hide processing modal and show payment gateway modal
+            this.hideProcessingModal();
             
             // Use LINE Pay API for processing
             const orderData = {
@@ -534,16 +557,14 @@ class CheckoutPage {
                 items: this.cartItems
             };
             
-            const paymentResult = await paymentAPI.processLinePayPayment(orderData);
+            // Show LINE Pay payment modal
+            const paymentResult = await this.showLinePayModal(orderData);
             
             // Validate payment result
             const validation = paymentAPI.validatePaymentResult(paymentResult);
             if (!validation.isValid) {
                 throw new Error(validation.message);
             }
-            
-            this.updateProcessingMessage('正在確認付款狀態...');
-            await this.delay(1000);
             
             // Create payment record with backend-compatible format
             const paymentData = {
@@ -555,7 +576,6 @@ class CheckoutPage {
             const payment = await api.createPayment(paymentData);
             console.log('Payment record created:', payment);
             
-            toast.success('LINE Pay 付款成功！');
             return paymentResult;
             
         } catch (error) {
@@ -568,8 +588,8 @@ class CheckoutPage {
         try {
             console.log('Processing Apple Pay payment for order:', order.orderId);
             
-            this.updateProcessingMessage('正在檢查 Apple Pay 支援...');
-            await this.delay(1000);
+            // Hide processing modal and show payment gateway modal
+            this.hideProcessingModal();
             
             // Use Apple Pay API for processing
             const orderData = {
@@ -579,16 +599,14 @@ class CheckoutPage {
                 items: this.cartItems
             };
             
-            const paymentResult = await paymentAPI.processApplePayPayment(orderData);
+            // Show Apple Pay payment modal
+            const paymentResult = await this.showApplePayModal(orderData);
             
             // Validate payment result
             const validation = paymentAPI.validatePaymentResult(paymentResult);
             if (!validation.isValid) {
                 throw new Error(validation.message);
             }
-            
-            this.updateProcessingMessage('正在完成 Apple Pay 交易...');
-            await this.delay(1000);
             
             // Create payment record with backend-compatible format
             const paymentData = {
@@ -600,7 +618,6 @@ class CheckoutPage {
             const payment = await api.createPayment(paymentData);
             console.log('Payment record created:', payment);
             
-            toast.success('Apple Pay 付款成功！');
             return paymentResult;
             
         } catch (error) {
@@ -646,48 +663,92 @@ class CheckoutPage {
         toast.error(errorMessage);
     }
 
-    showSuccessModal(order) {
-        // Create success modal HTML
-        const successModalHTML = `
-            <div class="modal-overlay" id="success-modal">
-                <div class="success-modal">
-                    <div class="success-content">
-                        <div class="success-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <h3>訂單建立成功！</h3>
-                        <p>您的訂單編號是：<strong>#${order.orderId}</strong></p>
-                        <div class="success-details">
-                            <div class="detail-item">
-                                <i class="fas fa-table"></i>
-                                <span>桌號：${this.tableNumber}</span>
+    showSuccessModal(order, paymentResult) {
+        // Navigate to success page immediately
+        this.showPaymentSuccessPage(order, paymentResult);
+    }
+
+    showPaymentSuccessPage(order, paymentResult) {
+        // Clear checkout page and show success page
+        const mainContent = document.querySelector('.checkout-page');
+        if (mainContent) {
+            const successPageHTML = `
+                <div class="payment-success-page">
+                    <div class="success-container">
+                        <div class="success-animation">
+                            <div class="success-icon">
+                                <i class="fas fa-check-circle"></i>
                             </div>
-                            <div class="detail-item">
-                                <i class="fas fa-credit-card"></i>
-                                <span>付款方式：${this.getPaymentMethodText(this.selectedPaymentMethod)}</span>
-                            </div>
+                            <div class="success-ripple"></div>
+                            <div class="success-ripple"></div>
                         </div>
-                        <div class="success-actions">
-                            <button class="btn btn-outline" onclick="checkoutPage.viewOrderDetails('${order.orderId}')">
-                                查看訂單
-                            </button>
-                            <button class="btn btn-primary" onclick="checkoutPage.goToOrders()">
-                                我的訂單
-                            </button>
+                        
+                        <div class="success-content">
+                            <h2>🎉 付款成功！</h2>
+                            <p class="success-message">您的訂單已確認，感謝您的購買！</p>
+                            
+                            <div class="order-summary">
+                                <div class="summary-item">
+                                    <span class="label">訂單編號</span>
+                                    <span class="value">#${order.orderId}</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="label">付款方式</span>
+                                    <span class="value">${this.getPaymentMethodText(this.selectedPaymentMethod)}</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="label">付款金額</span>
+                                    <span class="value">NT$ ${paymentResult.amount || this.getTotalAmount()}</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="label">桌號</span>
+                                    <span class="value">${this.tableNumber}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="countdown-timer">
+                                <p>將在 <span id="countdown">3</span> 秒後自動返回首頁</p>
+                            </div>
+                            
+                            <div class="success-actions">
+                                <button class="btn btn-outline" onclick="checkoutPage.goToOrders()">
+                                    <i class="fas fa-list"></i> 查看我的訂單
+                                </button>
+                                <button class="btn btn-primary" onclick="checkoutPage.goToHome()">
+                                    <i class="fas fa-home"></i> 返回首頁
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+            
+            mainContent.innerHTML = successPageHTML;
+            
+            // Start countdown timer
+            this.startCountdownTimer();
+        }
+    }
+
+    startCountdownTimer() {
+        let seconds = 3;
+        const countdownElement = document.getElementById('countdown');
         
-        // Add modal to page
-        document.body.insertAdjacentHTML('beforeend', successModalHTML);
-        document.body.style.overflow = 'hidden';
-        
-        // Auto hide after 5 seconds
-        setTimeout(() => {
-            this.hideSuccessModal();
-        }, 5000);
+        const timer = setInterval(() => {
+            seconds--;
+            if (countdownElement) {
+                countdownElement.textContent = seconds;
+            }
+            
+            if (seconds <= 0) {
+                clearInterval(timer);
+                this.goToHome();
+            }
+        }, 1000);
+    }
+
+    goToHome() {
+        app.navigateTo('home');
     }
 
     hideSuccessModal() {
@@ -733,6 +794,205 @@ class CheckoutPage {
             modal.classList.add('hidden');
             document.body.style.overflow = '';
         }
+    }
+
+    // === Payment Gateway Modals ===
+
+    async showECPayModal(orderData) {
+        return new Promise((resolve, reject) => {
+            const modalHTML = `
+                <div class="modal-overlay" id="ecpay-modal">
+                    <div class="payment-modal">
+                        <div class="payment-header">
+                            <h3><i class="fas fa-credit-card"></i> 綠界金流 ECPay</h3>
+                            <button class="modal-close" onclick="checkoutPage.closePaymentModal('ecpay-modal')">&times;</button>
+                        </div>
+                        <div class="payment-content">
+                            <div class="payment-info">
+                                <p><strong>訂單編號：</strong>${orderData.orderId}</p>
+                                <p><strong>付款金額：</strong>NT$ ${orderData.totalAmount}</p>
+                            </div>
+                            <div class="payment-simulator">
+                                <h4>模擬信用卡付款</h4>
+                                <div class="card-input">
+                                    <input type="text" placeholder="卡號：**** **** **** 1234" readonly>
+                                    <input type="text" placeholder="有效期限：12/28" readonly>
+                                    <input type="text" placeholder="安全碼：***" readonly>
+                                </div>
+                                <div class="payment-actions">
+                                    <button class="btn btn-outline" onclick="checkoutPage.simulatePaymentFailure('ecpay-modal')">
+                                        模擬付款失敗
+                                    </button>
+                                    <button class="btn btn-primary" onclick="checkoutPage.simulatePaymentSuccess('ecpay-modal', '${orderData.orderId}')">
+                                        <i class="fas fa-check"></i> 確認付款
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            document.body.style.overflow = 'hidden';
+            
+            // Store resolve/reject for later use
+            this.currentPaymentResolve = resolve;
+            this.currentPaymentReject = reject;
+        });
+    }
+
+    async showLinePayModal(orderData) {
+        return new Promise((resolve, reject) => {
+            const modalHTML = `
+                <div class="modal-overlay" id="linepay-modal">
+                    <div class="payment-modal">
+                        <div class="payment-header">
+                            <h3><i class="fab fa-line"></i> LINE Pay</h3>
+                            <button class="modal-close" onclick="checkoutPage.closePaymentModal('linepay-modal')">&times;</button>
+                        </div>
+                        <div class="payment-content">
+                            <div class="payment-info">
+                                <p><strong>訂單編號：</strong>${orderData.orderId}</p>
+                                <p><strong>付款金額：</strong>NT$ ${orderData.totalAmount}</p>
+                            </div>
+                            <div class="payment-simulator">
+                                <div class="qr-code-section">
+                                    <div class="qr-placeholder">
+                                        <i class="fas fa-qrcode"></i>
+                                        <p>請使用 LINE App 掃描 QR Code</p>
+                                    </div>
+                                </div>
+                                <div class="payment-actions">
+                                    <button class="btn btn-outline" onclick="checkoutPage.simulatePaymentFailure('linepay-modal')">
+                                        模擬用戶取消
+                                    </button>
+                                    <button class="btn btn-primary" onclick="checkoutPage.simulatePaymentSuccess('linepay-modal', '${orderData.orderId}')">
+                                        <i class="fas fa-check"></i> 模擬付款成功
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            document.body.style.overflow = 'hidden';
+            
+            // Store resolve/reject for later use
+            this.currentPaymentResolve = resolve;
+            this.currentPaymentReject = reject;
+        });
+    }
+
+    async showApplePayModal(orderData) {
+        return new Promise((resolve, reject) => {
+            const modalHTML = `
+                <div class="modal-overlay" id="applepay-modal">
+                    <div class="payment-modal">
+                        <div class="payment-header">
+                            <h3><i class="fab fa-apple-pay"></i> Apple Pay</h3>
+                            <button class="modal-close" onclick="checkoutPage.closePaymentModal('applepay-modal')">&times;</button>
+                        </div>
+                        <div class="payment-content">
+                            <div class="payment-info">
+                                <p><strong>訂單編號：</strong>${orderData.orderId}</p>
+                                <p><strong>付款金額：</strong>NT$ ${orderData.totalAmount}</p>
+                            </div>
+                            <div class="payment-simulator">
+                                <div class="biometric-section">
+                                    <div class="biometric-placeholder">
+                                        <i class="fas fa-fingerprint"></i>
+                                        <p>請使用 Touch ID 或 Face ID 驗證</p>
+                                    </div>
+                                </div>
+                                <div class="payment-actions">
+                                    <button class="btn btn-outline" onclick="checkoutPage.simulatePaymentFailure('applepay-modal')">
+                                        模擬驗證失敗
+                                    </button>
+                                    <button class="btn btn-primary" onclick="checkoutPage.simulatePaymentSuccess('applepay-modal', '${orderData.orderId}')">
+                                        <i class="fas fa-check"></i> 模擬驗證成功
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            document.body.style.overflow = 'hidden';
+            
+            // Store resolve/reject for later use
+            this.currentPaymentResolve = resolve;
+            this.currentPaymentReject = reject;
+        });
+    }
+
+    closePaymentModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.remove();
+            document.body.style.overflow = '';
+        }
+        
+        // Reject the payment if modal is closed without completion
+        if (this.currentPaymentReject) {
+            this.currentPaymentReject(new Error('用戶取消付款'));
+            this.currentPaymentReject = null;
+            this.currentPaymentResolve = null;
+        }
+    }
+
+    simulatePaymentSuccess(modalId, orderId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.remove();
+            document.body.style.overflow = '';
+        }
+        
+        if (this.currentPaymentResolve) {
+            const paymentType = modalId.includes('ecpay') ? 'CREDIT_CARD' : 
+                               modalId.includes('linepay') ? 'LINE_PAY' : 'APPLE_PAY';
+            
+            const result = {
+                success: true,
+                paymentType: paymentType,
+                transactionId: `${paymentType}${Date.now()}`,
+                paymentDate: new Date().toISOString(),
+                amount: this.getTotalAmount(),
+                message: `${paymentType} 付款成功`
+            };
+            
+            this.currentPaymentResolve(result);
+            this.currentPaymentResolve = null;
+            this.currentPaymentReject = null;
+        }
+    }
+
+    simulatePaymentFailure(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.remove();
+            document.body.style.overflow = '';
+        }
+        
+        if (this.currentPaymentReject) {
+            const paymentType = modalId.includes('ecpay') ? '信用卡' : 
+                               modalId.includes('linepay') ? 'LINE Pay' : 'Apple Pay';
+            
+            this.currentPaymentReject(new Error(`${paymentType} 付款失敗`));
+            this.currentPaymentReject = null;
+            this.currentPaymentResolve = null;
+        }
+    }
+
+    getTotalAmount() {
+        const summary = cart.getSummary();
+        const serviceFee = Math.round(summary.subtotal * 0.1);
+        const tax = Math.round((summary.subtotal + serviceFee) * 0.05);
+        return summary.subtotal + serviceFee + tax;
     }
 }
 
