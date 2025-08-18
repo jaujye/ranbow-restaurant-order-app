@@ -87,7 +87,7 @@ public class PaymentService {
                 paymentDAO.update(payment);
                 
                 // Update order status after successful payment
-                orderService.updateOrderStatus(payment.getOrderId(), OrderStatus.PREPARING);
+                orderService.updateOrderStatus(payment.getOrderId(), OrderStatus.CONFIRMED);
                 
                 return true;
             } else {

@@ -412,10 +412,10 @@ class CheckoutPage {
             try {
                 paymentResult = await this.processPayment(order, totalAmount);
                 
-                // Payment successful - update order status
-                this.updateProcessingMessage('正在確認訂單...');
-                await api.updateOrderStatus(order.orderId, 'CONFIRMED');
-                console.log('Order confirmed after successful payment');
+                // Payment successful - process the payment on backend
+                this.updateProcessingMessage('正在處理付款...');
+                const processResult = await api.processPayment(paymentResult.paymentId);
+                console.log('Payment processed successfully:', processResult);
                 
                 // Clear cart and navigate to success page
                 cart.clear();
@@ -480,7 +480,9 @@ class CheckoutPage {
                     transactionId: `CASH${Date.now()}`,
                     paymentDate: new Date().toISOString(),
                     amount: totalAmount,
-                    message: '現金付款 - 將由服務員收款'
+                    message: '現金付款 - 將由服務員收款',
+                    paymentId: payment.paymentId,
+                    orderId: order.orderId
                 };
                 break;
                 
@@ -537,7 +539,13 @@ class CheckoutPage {
             const payment = await api.createPayment(paymentData);
             console.log('Payment record created:', payment);
             
-            return paymentResult;
+            // Return payment info including paymentId for processing
+            return {
+                ...paymentResult,
+                paymentId: payment.paymentId,
+                orderId: order.orderId,
+                amount: totalAmount
+            };
             
         } catch (error) {
             console.error('Credit card payment failed:', error);
@@ -579,7 +587,13 @@ class CheckoutPage {
             const payment = await api.createPayment(paymentData);
             console.log('Payment record created:', payment);
             
-            return paymentResult;
+            // Return payment info including paymentId for processing
+            return {
+                ...paymentResult,
+                paymentId: payment.paymentId,
+                orderId: order.orderId,
+                amount: totalAmount
+            };
             
         } catch (error) {
             console.error('LINE Pay payment failed:', error);
@@ -621,7 +635,13 @@ class CheckoutPage {
             const payment = await api.createPayment(paymentData);
             console.log('Payment record created:', payment);
             
-            return paymentResult;
+            // Return payment info including paymentId for processing
+            return {
+                ...paymentResult,
+                paymentId: payment.paymentId,
+                orderId: order.orderId,
+                amount: totalAmount
+            };
             
         } catch (error) {
             console.error('Apple Pay payment failed:', error);

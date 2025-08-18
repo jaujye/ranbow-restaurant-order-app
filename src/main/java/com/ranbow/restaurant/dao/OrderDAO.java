@@ -318,6 +318,21 @@ public class OrderDAO {
         if (updated == 0) {
             throw new RuntimeException("Order not found: " + order.getOrderId());
         }
+        
+        // Update order items - delete existing and insert new ones
+        jdbcTemplate.update("DELETE FROM order_items WHERE order_id = ?", order.getOrderId());
+        
+        // Insert updated order items
+        for (OrderItem item : order.getOrderItems()) {
+            jdbcTemplate.update(INSERT_ORDER_ITEM,
+                    item.getOrderItemId(),
+                    order.getOrderId(),
+                    item.getMenuItem().getItemId(),
+                    item.getQuantity(),
+                    item.getSpecialRequests(),
+                    item.getItemTotal());
+        }
+        
         return order;
     }
     

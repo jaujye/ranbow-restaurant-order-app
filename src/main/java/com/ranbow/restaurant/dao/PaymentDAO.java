@@ -37,7 +37,8 @@ public class PaymentDAO {
     private static final String SELECT_PAYMENT_BY_ORDER_ID = """
         SELECT payment_id, order_id, customer_id, amount, payment_method, status, 
                transaction_id, payment_time, processed_time, failure_reason 
-        FROM payments WHERE order_id = ?
+        FROM payments WHERE order_id = ? 
+        ORDER BY payment_time DESC
         """;
     
     private static final String SELECT_ALL_PAYMENTS = """
@@ -151,9 +152,13 @@ public class PaymentDAO {
     
     public Optional<Payment> findByOrderId(String orderId) {
         try {
-            Payment payment = jdbcTemplate.queryForObject(SELECT_PAYMENT_BY_ORDER_ID, paymentRowMapper, orderId);
-            return Optional.of(payment);
-        } catch (EmptyResultDataAccessException e) {
+            List<Payment> payments = jdbcTemplate.query(SELECT_PAYMENT_BY_ORDER_ID, paymentRowMapper, orderId);
+            if (payments.isEmpty()) {
+                return Optional.empty();
+            }
+            // Return the most recent payment (last in list, ordered by payment_time DESC)
+            return Optional.of(payments.get(0));
+        } catch (DataAccessException e) {
             return Optional.empty();
         }
     }
