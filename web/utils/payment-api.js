@@ -79,9 +79,9 @@ class PaymentAPI {
 
     buildItemName(items) {
         if (items.length === 1) {
-            return items[0].menuItem.name;
+            return items[0].menuItem?.name || items[0].name || '商品';
         }
-        const firstItem = items[0].menuItem.name;
+        const firstItem = items[0].menuItem?.name || items[0].name || '商品';
         const otherCount = items.length - 1;
         return `${firstItem}等${items.length}項商品`;
     }
@@ -242,7 +242,7 @@ class PaymentAPI {
                 amount: orderData.totalAmount.toString()
             },
             lineItems: orderData.items.map(item => ({
-                label: item.menuItem.name,
+                label: item.menuItem?.name || item.name || '商品',
                 amount: (item.price * item.quantity).toString()
             }))
         };
