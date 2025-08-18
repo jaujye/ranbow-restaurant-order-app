@@ -370,9 +370,9 @@ class CheckoutPage {
             
             const orderData = {
                 customerId: this.currentUser.userId,
-                tableNumber: this.tableNumber,
+                tableNumber: 1,
                 items: this.cartItems.map(item => ({
-                    menuItemId: item.id,
+                    menuItemId: item.itemId || item.id,
                     quantity: item.quantity,
                     price: item.price,
                     specialRequests: item.specialRequests || null
@@ -499,16 +499,11 @@ class CheckoutPage {
             this.updateProcessingMessage('正在確認交易結果...');
             await this.delay(1000);
             
-            // Create payment record with real transaction data
+            // Create payment record with backend-compatible format
             const paymentData = {
                 orderId: order.orderId,
                 customerId: this.currentUser.userId,
-                paymentMethod: 'CREDIT_CARD',
-                amount: totalAmount,
-                currency: 'TWD',
-                transactionId: paymentResult.transactionId,
-                paymentProvider: 'ECPAY',
-                paymentStatus: 'SUCCESS'
+                paymentMethod: 'CREDIT_CARD'
             };
             
             const payment = await api.createPayment(paymentData);
@@ -550,16 +545,11 @@ class CheckoutPage {
             this.updateProcessingMessage('正在確認付款狀態...');
             await this.delay(1000);
             
-            // Create payment record with real transaction data
+            // Create payment record with backend-compatible format
             const paymentData = {
                 orderId: order.orderId,
                 customerId: this.currentUser.userId,
-                paymentMethod: 'LINE_PAY',
-                amount: totalAmount,
-                currency: 'TWD',
-                transactionId: paymentResult.transactionId,
-                paymentProvider: 'LINE_PAY',
-                paymentStatus: 'SUCCESS'
+                paymentMethod: 'LINE_PAY'
             };
             
             const payment = await api.createPayment(paymentData);
@@ -600,16 +590,11 @@ class CheckoutPage {
             this.updateProcessingMessage('正在完成 Apple Pay 交易...');
             await this.delay(1000);
             
-            // Create payment record with real transaction data
+            // Create payment record with backend-compatible format
             const paymentData = {
                 orderId: order.orderId,
                 customerId: this.currentUser.userId,
-                paymentMethod: 'APPLE_PAY',
-                amount: totalAmount,
-                currency: 'TWD',
-                transactionId: paymentResult.transactionId,
-                paymentProvider: 'APPLE_PAY',
-                paymentStatus: 'SUCCESS'
+                paymentMethod: 'APPLE_PAY'
             };
             
             const payment = await api.createPayment(paymentData);
