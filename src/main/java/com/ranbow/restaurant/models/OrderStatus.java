@@ -2,6 +2,7 @@ package com.ranbow.restaurant.models;
 
 public enum OrderStatus {
     PENDING("等待確認"),
+    PENDING_PAYMENT("等待付款"),
     CONFIRMED("已確認"),
     PREPARING("準備中"),
     READY("準備完成"),

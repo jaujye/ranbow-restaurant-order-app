@@ -145,6 +145,11 @@ class API {
         return this.post('/orders', orderData);
     }
 
+    // Create complete order with items
+    async createCompleteOrder(orderData) {
+        return this.post('/orders/complete', orderData);
+    }
+
     // Get order by ID
     async getOrder(orderId) {
         return this.get(`/orders/${orderId}`);

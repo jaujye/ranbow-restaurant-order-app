@@ -63,7 +63,9 @@
       "mcp__playwright__browser_console_messages",
       "WebSearch",
       "WebFetch(domain:developers-pay.line.me)",
-      "WebFetch(domain:developers.ecpay.com.tw)"
+      "WebFetch(domain:developers.ecpay.com.tw)",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_type"
     ],
     "deny": [],
     "ask": [],

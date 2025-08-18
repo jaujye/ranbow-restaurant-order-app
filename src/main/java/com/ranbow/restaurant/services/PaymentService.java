@@ -26,7 +26,9 @@ public class PaymentService {
         }
         
         Order order = orderOpt.get();
-        if (order.getStatus() != OrderStatus.CONFIRMED && order.getStatus() != OrderStatus.READY) {
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT && 
+            order.getStatus() != OrderStatus.CONFIRMED && 
+            order.getStatus() != OrderStatus.READY) {
             throw new IllegalStateException("訂單狀態不允許付款: " + order.getStatus());
         }
         

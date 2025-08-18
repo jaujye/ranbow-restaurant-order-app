@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,9 +23,30 @@ public class OrderController {
     private OrderService orderService;
     
     @PostMapping
-    public ResponseEntity<?> createOrder(@Valid @RequestBody CreateOrderRequest request) {
+    public ResponseEntity<?> createOrder(@RequestBody Map<String, Object> request) {
         try {
-            Order order = orderService.createOrder(request.getCustomerId(), request.getTableNumber());
+            // Check if this is a simple order (legacy) or complete order (new format)
+            if (request.containsKey("items") && request.get("items") != null) {
+                // New format with items - create complete order
+                CreateCompleteOrderRequest completeRequest = mapToCompleteOrderRequest(request);
+                Order order = orderService.createCompleteOrder(completeRequest);
+                return ResponseEntity.status(HttpStatus.CREATED).body(order);
+            } else {
+                // Legacy format - create simple order
+                String customerId = (String) request.get("customerId");
+                Integer tableNumber = (Integer) request.get("tableNumber");
+                Order order = orderService.createOrder(customerId, tableNumber);
+                return ResponseEntity.status(HttpStatus.CREATED).body(order);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    @PostMapping("/complete")
+    public ResponseEntity<?> createCompleteOrder(@Valid @RequestBody CreateCompleteOrderRequest request) {
+        try {
+            Order order = orderService.createCompleteOrder(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(order);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -232,5 +254,111 @@ public class OrderController {
         
         public String getReason() { return reason; }
         public void setReason(String reason) { this.reason = reason; }
+    }
+    
+    // Helper method to map request to CreateCompleteOrderRequest
+    private CreateCompleteOrderRequest mapToCompleteOrderRequest(Map<String, Object> request) {
+        CreateCompleteOrderRequest completeRequest = new CreateCompleteOrderRequest();
+        
+        completeRequest.setCustomerId((String) request.get("customerId"));
+        completeRequest.setTableNumber(((Number) request.get("tableNumber")).intValue());
+        completeRequest.setSpecialInstructions((String) request.get("specialInstructions"));
+        completeRequest.setPaymentMethod((String) request.get("paymentMethod"));
+        completeRequest.setStatus((String) request.get("status"));
+        
+        if (request.get("subtotal") != null) {
+            completeRequest.setSubtotal(((Number) request.get("subtotal")).doubleValue());
+        }
+        if (request.get("serviceFee") != null) {
+            completeRequest.setServiceFee(((Number) request.get("serviceFee")).doubleValue());
+        }
+        if (request.get("tax") != null) {
+            completeRequest.setTax(((Number) request.get("tax")).doubleValue());
+        }
+        if (request.get("totalAmount") != null) {
+            completeRequest.setTotalAmount(((Number) request.get("totalAmount")).doubleValue());
+        }
+        
+        // Map items
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> itemMaps = (List<Map<String, Object>>) request.get("items");
+        if (itemMaps != null) {
+            List<OrderItemRequest> items = new ArrayList<>();
+            for (Map<String, Object> itemMap : itemMaps) {
+                OrderItemRequest item = new OrderItemRequest();
+                item.setMenuItemId((String) itemMap.get("menuItemId"));
+                item.setQuantity(((Number) itemMap.get("quantity")).intValue());
+                if (itemMap.get("price") != null) {
+                    item.setPrice(((Number) itemMap.get("price")).doubleValue());
+                }
+                item.setSpecialRequests((String) itemMap.get("specialRequests"));
+                items.add(item);
+            }
+            completeRequest.setItems(items);
+        }
+        
+        return completeRequest;
+    }
+    
+    public static class CreateCompleteOrderRequest {
+        private String customerId;
+        private int tableNumber;
+        private List<OrderItemRequest> items;
+        private String specialInstructions;
+        private String paymentMethod;
+        private double subtotal;
+        private double serviceFee;
+        private double tax;
+        private double totalAmount;
+        private String status;
+        
+        public String getCustomerId() { return customerId; }
+        public void setCustomerId(String customerId) { this.customerId = customerId; }
+        
+        public int getTableNumber() { return tableNumber; }
+        public void setTableNumber(int tableNumber) { this.tableNumber = tableNumber; }
+        
+        public List<OrderItemRequest> getItems() { return items; }
+        public void setItems(List<OrderItemRequest> items) { this.items = items; }
+        
+        public String getSpecialInstructions() { return specialInstructions; }
+        public void setSpecialInstructions(String specialInstructions) { this.specialInstructions = specialInstructions; }
+        
+        public String getPaymentMethod() { return paymentMethod; }
+        public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+        
+        public double getSubtotal() { return subtotal; }
+        public void setSubtotal(double subtotal) { this.subtotal = subtotal; }
+        
+        public double getServiceFee() { return serviceFee; }
+        public void setServiceFee(double serviceFee) { this.serviceFee = serviceFee; }
+        
+        public double getTax() { return tax; }
+        public void setTax(double tax) { this.tax = tax; }
+        
+        public double getTotalAmount() { return totalAmount; }
+        public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
+        
+        public String getStatus() { return status; }
+        public void setStatus(String status) { this.status = status; }
+    }
+    
+    public static class OrderItemRequest {
+        private String menuItemId;
+        private int quantity;
+        private double price;
+        private String specialRequests;
+        
+        public String getMenuItemId() { return menuItemId; }
+        public void setMenuItemId(String menuItemId) { this.menuItemId = menuItemId; }
+        
+        public int getQuantity() { return quantity; }
+        public void setQuantity(int quantity) { this.quantity = quantity; }
+        
+        public double getPrice() { return price; }
+        public void setPrice(double price) { this.price = price; }
+        
+        public String getSpecialRequests() { return specialRequests; }
+        public void setSpecialRequests(String specialRequests) { this.specialRequests = specialRequests; }
     }
 }

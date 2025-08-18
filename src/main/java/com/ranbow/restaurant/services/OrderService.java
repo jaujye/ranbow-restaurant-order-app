@@ -2,9 +2,11 @@ package com.ranbow.restaurant.services;
 
 import com.ranbow.restaurant.dao.OrderDAO;
 import com.ranbow.restaurant.models.*;
+import com.ranbow.restaurant.api.OrderController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +23,55 @@ public class OrderService {
     public Order createOrder(String customerId, int tableNumber) {
         Order newOrder = new Order(customerId, tableNumber);
         return orderDAO.save(newOrder);
+    }
+    
+    public Order createCompleteOrder(OrderController.CreateCompleteOrderRequest request) {
+        // Create the order
+        Order order = new Order(request.getCustomerId(), request.getTableNumber());
+        
+        // Set special instructions
+        if (request.getSpecialInstructions() != null && !request.getSpecialInstructions().trim().isEmpty()) {
+            order.setSpecialInstructions(request.getSpecialInstructions());
+        }
+        
+        // Set initial status based on request
+        if (request.getStatus() != null) {
+            try {
+                OrderStatus status = OrderStatus.valueOf(request.getStatus());
+                order.setStatus(status);
+            } catch (IllegalArgumentException e) {
+                // Default to PENDING if invalid status provided
+                order.setStatus(OrderStatus.PENDING);
+            }
+        }
+        
+        // Save the order first to get an ID
+        order = orderDAO.save(order);
+        
+        // Add items to the order
+        if (request.getItems() != null) {
+            for (OrderController.OrderItemRequest itemRequest : request.getItems()) {
+                Optional<MenuItem> menuItemOpt = menuService.findMenuItemById(itemRequest.getMenuItemId());
+                if (menuItemOpt.isPresent()) {
+                    MenuItem menuItem = menuItemOpt.get();
+                    OrderItem orderItem = new OrderItem(menuItem, itemRequest.getQuantity(), itemRequest.getSpecialRequests());
+                    order.addOrderItem(orderItem);
+                } else {
+                    throw new IllegalArgumentException("菜單項目不存在: " + itemRequest.getMenuItemId());
+                }
+            }
+        }
+        
+        // Set custom totals if provided (for cases where frontend calculates with service fees)
+        if (request.getTotalAmount() > 0) {
+            order.setSubtotal(BigDecimal.valueOf(request.getSubtotal()));
+            order.setTax(BigDecimal.valueOf(request.getTax()));
+            order.setTotalAmount(BigDecimal.valueOf(request.getTotalAmount()));
+        }
+        
+        // Update the order with items and totals
+        orderDAO.update(order);
+        return order;
     }
     
     public Optional<Order> findOrderById(String orderId) {
@@ -159,7 +210,8 @@ public class OrderService {
     
     private boolean isValidStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
         return switch (currentStatus) {
-            case PENDING -> newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.CANCELLED;
+            case PENDING -> newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.PENDING_PAYMENT || newStatus == OrderStatus.CANCELLED;
+            case PENDING_PAYMENT -> newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.CANCELLED;
             case CONFIRMED -> newStatus == OrderStatus.PREPARING || newStatus == OrderStatus.CANCELLED;
             case PREPARING -> newStatus == OrderStatus.READY || newStatus == OrderStatus.CANCELLED;
             case READY -> newStatus == OrderStatus.DELIVERED;
