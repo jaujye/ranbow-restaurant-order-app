@@ -14,19 +14,30 @@ class CheckoutPage {
         <div class="checkout-page">
             <!-- Checkout Header -->
             <div class="checkout-header">
-                <h2>確認訂單</h2>
+                <div class="checkout-title-section">
+                    <h2><i class="fas fa-clipboard-check"></i> 確認訂單</h2>
+                    <p class="checkout-subtitle">請仔細檢查您的訂單內容</p>
+                </div>
                 <div class="checkout-progress">
                     <div class="progress-step active">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span>確認商品</span>
+                        <div class="step-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <span class="step-text">確認商品</span>
                     </div>
+                    <div class="progress-connector"></div>
                     <div class="progress-step">
-                        <i class="fas fa-credit-card"></i>
-                        <span>選擇付款</span>
+                        <div class="step-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <span class="step-text">選擇付款</span>
                     </div>
+                    <div class="progress-connector"></div>
                     <div class="progress-step">
-                        <i class="fas fa-check"></i>
-                        <span>完成訂單</span>
+                        <div class="step-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <span class="step-text">完成訂單</span>
                     </div>
                 </div>
             </div>
@@ -64,23 +75,37 @@ class CheckoutPage {
 
             <!-- Order Summary -->
             <div class="order-summary-section">
-                <h3>費用明細</h3>
+                <div class="summary-header">
+                    <h3><i class="fas fa-calculator"></i> 費用明細</h3>
+                </div>
                 <div class="summary-details">
                     <div class="summary-row">
-                        <span>小計</span>
-                        <span id="checkout-subtotal">NT$ 0</span>
+                        <div class="summary-label">
+                            <i class="fas fa-list-ul"></i>
+                            <span>小計</span>
+                        </div>
+                        <span class="summary-value" id="checkout-subtotal">NT$ 0</span>
                     </div>
                     <div class="summary-row">
-                        <span>服務費 (10%)</span>
-                        <span id="checkout-service-fee">NT$ 0</span>
+                        <div class="summary-label">
+                            <i class="fas fa-concierge-bell"></i>
+                            <span>服務費 (10%)</span>
+                        </div>
+                        <span class="summary-value" id="checkout-service-fee">NT$ 0</span>
                     </div>
                     <div class="summary-row">
-                        <span>稅金 (5%)</span>
-                        <span id="checkout-tax">NT$ 0</span>
+                        <div class="summary-label">
+                            <i class="fas fa-receipt"></i>
+                            <span>稅金 (5%)</span>
+                        </div>
+                        <span class="summary-value" id="checkout-tax">NT$ 0</span>
                     </div>
                     <div class="summary-row total-row">
-                        <span>總計</span>
-                        <span id="checkout-total">NT$ 0</span>
+                        <div class="summary-label">
+                            <i class="fas fa-coins"></i>
+                            <span>總計</span>
+                        </div>
+                        <span class="summary-value total-amount" id="checkout-total">NT$ 0</span>
                     </div>
                 </div>
             </div>
@@ -237,20 +262,36 @@ class CheckoutPage {
         
         return `
             <div class="checkout-item">
-                <div class="item-image">
+                <div class="checkout-item-image">
                     <img src="${item.imageUrl || 'assets/images/placeholder.svg'}" 
                          alt="${item.name}"
                          onerror="Helpers.handleImageError(this)">
+                    <div class="quantity-badge">${item.quantity}</div>
                 </div>
                 
-                <div class="item-details">
-                    <h4 class="item-name">${item.name}</h4>
-                    ${item.description ? `<p class="item-description">${Helpers.truncate(item.description, 60)}</p>` : ''}
-                    ${item.specialRequests ? `<p class="item-requests"><i class="fas fa-comment"></i> ${item.specialRequests}</p>` : ''}
+                <div class="checkout-item-details">
+                    <div class="item-header">
+                        <h4 class="checkout-item-name">${item.name}</h4>
+                        <span class="checkout-item-total">${Helpers.formatCurrency(itemTotal)}</span>
+                    </div>
                     
-                    <div class="item-pricing">
-                        <span class="item-price">${Helpers.formatCurrency(item.price)} × ${item.quantity}</span>
-                        <span class="item-total">${Helpers.formatCurrency(itemTotal)}</span>
+                    ${item.description ? `<p class="checkout-item-description">${Helpers.truncate(item.description, 60)}</p>` : ''}
+                    ${item.specialRequests ? `
+                        <div class="checkout-item-requests">
+                            <i class="fas fa-comment-dots"></i> 
+                            <span>${item.specialRequests}</span>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="checkout-item-pricing">
+                        <div class="unit-price">
+                            <span class="price-label">單價</span>
+                            <span class="price-value">${Helpers.formatCurrency(item.price)}</span>
+                        </div>
+                        <div class="quantity-info">
+                            <span class="quantity-label">數量</span>
+                            <span class="quantity-value">×${item.quantity}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -315,9 +356,14 @@ class CheckoutPage {
         try {
             this.isProcessing = true;
             this.showProcessingModal();
+            this.updateProcessingMessage('正在建立訂單...');
             
             // Create order data
             const specialInstructions = document.getElementById('special-instructions')?.value || '';
+            const summary = cart.getSummary();
+            const serviceFee = Math.round(summary.subtotal * 0.1);
+            const tax = Math.round((summary.subtotal + serviceFee) * 0.05);
+            const totalAmount = summary.subtotal + serviceFee + tax;
             
             const orderData = {
                 customerId: this.currentUser.userId,
@@ -325,43 +371,290 @@ class CheckoutPage {
                 items: this.cartItems.map(item => ({
                     menuItemId: item.id,
                     quantity: item.quantity,
+                    price: item.price,
                     specialRequests: item.specialRequests || null
                 })),
                 specialInstructions: specialInstructions,
-                paymentMethod: this.selectedPaymentMethod
+                paymentMethod: this.selectedPaymentMethod,
+                subtotal: summary.subtotal,
+                serviceFee: serviceFee,
+                tax: tax,
+                totalAmount: totalAmount
             };
             
             // Create order
+            console.log('Creating order with data:', orderData);
             const order = await api.createOrder(orderData);
+            console.log('Order created successfully:', order);
             
-            // Create payment if needed
-            if (this.selectedPaymentMethod !== 'CASH') {
-                const paymentData = {
-                    orderId: order.orderId,
-                    customerId: this.currentUser.userId,
-                    paymentMethod: this.selectedPaymentMethod
-                };
-                
-                await api.createPayment(paymentData);
-            }
+            // Process payment based on method
+            await this.processPayment(order, totalAmount);
             
             // Clear cart and navigate to success page
             cart.clear();
             Storage.clearTableNumber();
             
             this.hideProcessingModal();
-            toast.success('訂單已成功建立！');
-            
-            // Navigate to order confirmation or orders page
-            app.navigateTo('orders');
+            this.showSuccessModal(order);
             
         } catch (error) {
             console.error('Failed to submit order:', error);
             this.hideProcessingModal();
-            toast.error('建立訂單失敗，請稍後再試');
+            this.handleOrderError(error);
         } finally {
             this.isProcessing = false;
         }
+    }
+
+    async processPayment(order, totalAmount) {
+        this.updateProcessingMessage('正在處理付款...');
+        
+        switch (this.selectedPaymentMethod) {
+            case 'CASH':
+                // Cash payment - no additional processing needed
+                console.log('Cash payment selected - order will be processed at table');
+                break;
+                
+            case 'CREDIT_CARD':
+                await this.processCreditCardPayment(order, totalAmount);
+                break;
+                
+            case 'LINE_PAY':
+                await this.processLinePayPayment(order, totalAmount);
+                break;
+                
+            case 'APPLE_PAY':
+                await this.processApplePayPayment(order, totalAmount);
+                break;
+                
+            default:
+                throw new Error('不支援的付款方式');
+        }
+    }
+
+    async processCreditCardPayment(order, totalAmount) {
+        try {
+            console.log('Processing credit card payment for order:', order.orderId);
+            
+            // Simulate credit card processing
+            this.updateProcessingMessage('正在連接信用卡處理中心...');
+            await this.delay(1500);
+            
+            const paymentData = {
+                orderId: order.orderId,
+                customerId: this.currentUser.userId,
+                paymentMethod: 'CREDIT_CARD',
+                amount: totalAmount,
+                currency: 'TWD',
+                transactionId: this.generateTransactionId()
+            };
+            
+            this.updateProcessingMessage('正在驗證信用卡資訊...');
+            await this.delay(2000);
+            
+            // Create payment record
+            const payment = await api.createPayment(paymentData);
+            console.log('Payment created:', payment);
+            
+            this.updateProcessingMessage('正在完成交易...');
+            await this.delay(1000);
+            
+            // Process payment
+            await api.processPayment(payment.paymentId);
+            console.log('Credit card payment processed successfully');
+            
+            toast.success('信用卡付款成功！');
+            
+        } catch (error) {
+            console.error('Credit card payment failed:', error);
+            throw new Error('信用卡付款失敗，請檢查卡片資訊或選擇其他付款方式');
+        }
+    }
+
+    async processLinePayPayment(order, totalAmount) {
+        try {
+            console.log('Processing LINE Pay payment for order:', order.orderId);
+            
+            this.updateProcessingMessage('正在連接 LINE Pay...');
+            await this.delay(1000);
+            
+            const paymentData = {
+                orderId: order.orderId,
+                customerId: this.currentUser.userId,
+                paymentMethod: 'LINE_PAY',
+                amount: totalAmount,
+                currency: 'TWD',
+                transactionId: this.generateTransactionId()
+            };
+            
+            this.updateProcessingMessage('正在生成 LINE Pay 付款連結...');
+            await this.delay(1500);
+            
+            // Create payment record
+            const payment = await api.createPayment(paymentData);
+            console.log('LINE Pay payment created:', payment);
+            
+            this.updateProcessingMessage('正在確認付款狀態...');
+            await this.delay(2000);
+            
+            // Simulate LINE Pay processing
+            await api.processPayment(payment.paymentId);
+            console.log('LINE Pay payment processed successfully');
+            
+            toast.success('LINE Pay 付款成功！');
+            
+        } catch (error) {
+            console.error('LINE Pay payment failed:', error);
+            throw new Error('LINE Pay 付款失敗，請稍後再試');
+        }
+    }
+
+    async processApplePayPayment(order, totalAmount) {
+        try {
+            console.log('Processing Apple Pay payment for order:', order.orderId);
+            
+            this.updateProcessingMessage('正在連接 Apple Pay...');
+            await this.delay(1000);
+            
+            const paymentData = {
+                orderId: order.orderId,
+                customerId: this.currentUser.userId,
+                paymentMethod: 'APPLE_PAY',
+                amount: totalAmount,
+                currency: 'TWD',
+                transactionId: this.generateTransactionId()
+            };
+            
+            this.updateProcessingMessage('正在驗證生物識別...');
+            await this.delay(2500);
+            
+            // Create payment record
+            const payment = await api.createPayment(paymentData);
+            console.log('Apple Pay payment created:', payment);
+            
+            this.updateProcessingMessage('正在完成 Apple Pay 交易...');
+            await this.delay(1500);
+            
+            // Process payment
+            await api.processPayment(payment.paymentId);
+            console.log('Apple Pay payment processed successfully');
+            
+            toast.success('Apple Pay 付款成功！');
+            
+        } catch (error) {
+            console.error('Apple Pay payment failed:', error);
+            throw new Error('Apple Pay 付款失敗，請檢查設備設定');
+        }
+    }
+
+    generateTransactionId() {
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(2, 8);
+        return `TXN${timestamp}${random}`.toUpperCase();
+    }
+
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    updateProcessingMessage(message) {
+        const processingText = document.querySelector('.processing-content p');
+        if (processingText) {
+            processingText.textContent = message;
+        }
+    }
+
+    handleOrderError(error) {
+        let errorMessage = '建立訂單失敗，請稍後再試';
+        
+        if (error.message.includes('Credit card')) {
+            errorMessage = error.message;
+        } else if (error.message.includes('LINE Pay')) {
+            errorMessage = error.message;
+        } else if (error.message.includes('Apple Pay')) {
+            errorMessage = error.message;
+        } else if (error.message.includes('400')) {
+            errorMessage = '訂單資料有誤，請檢查後重新送出';
+        } else if (error.message.includes('401')) {
+            errorMessage = '用戶身份驗證失敗，請重新登入';
+        } else if (error.message.includes('500')) {
+            errorMessage = '伺服器忙碌中，請稍後再試';
+        }
+        
+        toast.error(errorMessage);
+    }
+
+    showSuccessModal(order) {
+        // Create success modal HTML
+        const successModalHTML = `
+            <div class="modal-overlay" id="success-modal">
+                <div class="success-modal">
+                    <div class="success-content">
+                        <div class="success-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3>訂單建立成功！</h3>
+                        <p>您的訂單編號是：<strong>#${order.orderId}</strong></p>
+                        <div class="success-details">
+                            <div class="detail-item">
+                                <i class="fas fa-table"></i>
+                                <span>桌號：${this.tableNumber}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-credit-card"></i>
+                                <span>付款方式：${this.getPaymentMethodText(this.selectedPaymentMethod)}</span>
+                            </div>
+                        </div>
+                        <div class="success-actions">
+                            <button class="btn btn-outline" onclick="checkoutPage.viewOrderDetails('${order.orderId}')">
+                                查看訂單
+                            </button>
+                            <button class="btn btn-primary" onclick="checkoutPage.goToOrders()">
+                                我的訂單
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add modal to page
+        document.body.insertAdjacentHTML('beforeend', successModalHTML);
+        document.body.style.overflow = 'hidden';
+        
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+            this.hideSuccessModal();
+        }, 5000);
+    }
+
+    hideSuccessModal() {
+        const modal = document.getElementById('success-modal');
+        if (modal) {
+            modal.remove();
+            document.body.style.overflow = '';
+        }
+    }
+
+    getPaymentMethodText(method) {
+        const methodMap = {
+            'CASH': '現金付款',
+            'CREDIT_CARD': '信用卡',
+            'LINE_PAY': 'LINE Pay',
+            'APPLE_PAY': 'Apple Pay'
+        };
+        return methodMap[method] || method;
+    }
+
+    viewOrderDetails(orderId) {
+        this.hideSuccessModal();
+        // Navigate to order detail (could implement a detail view)
+        app.navigateTo('orders');
+    }
+
+    goToOrders() {
+        this.hideSuccessModal();
+        app.navigateTo('orders');
     }
 
     showProcessingModal() {

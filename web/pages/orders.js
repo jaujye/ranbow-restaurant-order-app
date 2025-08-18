@@ -14,23 +14,35 @@ class OrdersPage {
         <div class="orders-page">
             <!-- Orders Header -->
             <div class="orders-header">
-                <h2>我的訂單</h2>
-                <button class="refresh-btn" onclick="ordersPage.refreshOrders()">
+                <div class="header-content">
+                    <h2><i class="fas fa-receipt"></i> 我的訂單</h2>
+                    <p class="header-subtitle">查看您的訂單狀態與歷史記錄</p>
+                </div>
+                <button class="refresh-btn" onclick="ordersPage.refreshOrders()" title="重新整理">
                     <i class="fas fa-sync-alt"></i>
+                    <span>更新</span>
                 </button>
             </div>
 
             <!-- Order Tabs -->
             <div class="order-tabs">
-                <button class="tab-btn active" data-tab="current" onclick="ordersPage.switchTab('current')">
-                    <i class="fas fa-clock"></i>
-                    進行中
-                    <span class="tab-badge" id="current-count">0</span>
+                <button class="order-tab active" data-tab="current" onclick="ordersPage.switchTab('current')">
+                    <div class="tab-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="tab-content">
+                        <span class="tab-label">進行中</span>
+                        <span class="tab-badge" id="current-count">0</span>
+                    </div>
                 </button>
-                <button class="tab-btn" data-tab="history" onclick="ordersPage.switchTab('history')">
-                    <i class="fas fa-history"></i>
-                    歷史訂單
-                    <span class="tab-badge" id="history-count">0</span>
+                <button class="order-tab" data-tab="history" onclick="ordersPage.switchTab('history')">
+                    <div class="tab-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div class="tab-content">
+                        <span class="tab-label">歷史訂單</span>
+                        <span class="tab-badge" id="history-count">0</span>
+                    </div>
                 </button>
             </div>
 
@@ -270,44 +282,87 @@ class OrdersPage {
             estimatedTime = Helpers.formatTime(order.estimatedCompletionTime);
         }
 
+        // Get status theme color
+        const statusClass = this.getStatusClass(order.status);
+
         return `
-            <div class="order-card ${order.status.toLowerCase()}" onclick="ordersPage.showOrderDetail('${order.orderId}')">
-                <div class="order-header">
-                    <div class="order-id">
-                        <span class="order-number">#${order.orderId}</span>
-                        <span class="table-number">桌號 ${order.tableNumber}</span>
-                    </div>
-                    <div class="order-status" style="color: ${statusInfo.color}">
-                        <i class="fas fa-${statusInfo.icon}"></i>
-                        ${statusInfo.text}
-                    </div>
-                </div>
-
-                <div class="order-items">
-                    ${order.items.slice(0, 3).map(item => `
-                        <div class="order-item-summary">
-                            <span class="item-name">${item.menuItem.name}</span>
-                            <span class="item-quantity">×${item.quantity}</span>
+            <div class="enhanced-order-card ${statusClass}" onclick="ordersPage.showOrderDetail('${order.orderId}')">
+                <div class="order-status-indicator"></div>
+                
+                <div class="order-card-header">
+                    <div class="order-primary-info">
+                        <div class="order-number-section">
+                            <i class="fas fa-hashtag"></i>
+                            <span class="order-number">${order.orderId}</span>
                         </div>
-                    `).join('')}
-                    ${order.items.length > 3 ? `<div class="more-items">還有 ${order.items.length - 3} 道菜...</div>` : ''}
+                        <div class="table-info-section">
+                            <i class="fas fa-table"></i>
+                            <span class="table-number">桌號 ${order.tableNumber}</span>
+                        </div>
+                    </div>
+                    <div class="order-status-badge ${order.status.toLowerCase()}">
+                        <i class="fas fa-${statusInfo.icon}"></i>
+                        <span>${statusInfo.text}</span>
+                    </div>
                 </div>
 
-                <div class="order-footer">
-                    <div class="order-time">
-                        <div class="created-time">${orderTime}</div>
-                        <div class="time-ago">${timeAgo}</div>
-                        ${estimatedTime ? `<div class="estimated-time">預計完成: ${estimatedTime}</div>` : ''}
+                <div class="order-items-preview">
+                    <div class="items-header">
+                        <i class="fas fa-utensils"></i>
+                        <span>訂單內容</span>
+                    </div>
+                    <div class="items-list">
+                        ${order.items.slice(0, 3).map(item => `
+                            <div class="order-item-preview">
+                                <span class="item-name">${item.menuItem.name}</span>
+                                <span class="item-quantity">×${item.quantity}</span>
+                            </div>
+                        `).join('')}
+                        ${order.items.length > 3 ? `
+                            <div class="more-items-indicator">
+                                <i class="fas fa-ellipsis-h"></i>
+                                <span>還有 ${order.items.length - 3} 道菜</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <div class="order-card-footer">
+                    <div class="order-time-info">
+                        <div class="time-primary">
+                            <i class="fas fa-clock"></i>
+                            <span>${orderTime}</span>
+                        </div>
+                        <div class="time-secondary">${timeAgo}</div>
+                        ${estimatedTime ? `
+                            <div class="estimated-time">
+                                <i class="fas fa-hourglass-half"></i>
+                                <span>預計完成: ${estimatedTime}</span>
+                            </div>
+                        ` : ''}
                     </div>
                     
-                    <div class="order-amount">
-                        ${Helpers.formatCurrency(order.totalAmount)}
+                    <div class="order-amount-section">
+                        <span class="amount-label">總計</span>
+                        <span class="order-amount">${Helpers.formatCurrency(order.totalAmount)}</span>
                     </div>
                 </div>
 
                 ${isCurrent ? this.renderOrderActions(order) : ''}
             </div>
         `;
+    }
+
+    getStatusClass(status) {
+        const statusMap = {
+            'PENDING': 'status-pending',
+            'CONFIRMED': 'status-confirmed', 
+            'PREPARING': 'status-preparing',
+            'READY': 'status-ready',
+            'DELIVERED': 'status-delivered',
+            'CANCELLED': 'status-cancelled'
+        };
+        return statusMap[status] || 'status-default';
     }
 
     renderOrderActions(order) {
@@ -357,7 +412,7 @@ class OrdersPage {
         this.activeTab = tabName;
         
         // Update tab buttons
-        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabBtns = document.querySelectorAll('.order-tab');
         tabBtns.forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
         });
