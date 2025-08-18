@@ -182,9 +182,14 @@ public class OrderService {
             }
             
             if (order.getStatus() == OrderStatus.PENDING) {
-                order.setStatus(OrderStatus.CONFIRMED);
-                orderDAO.update(order);
-                return true;
+                // Use updateStatus method to properly update the status in database
+                boolean updated = orderDAO.updateStatus(orderId, OrderStatus.CONFIRMED);
+                if (updated) {
+                    order.setStatus(OrderStatus.CONFIRMED); // Update local object status
+                    return true;
+                } else {
+                    throw new RuntimeException("Failed to update order status in database");
+                }
             }
         }
         return false;
@@ -197,9 +202,14 @@ public class OrderService {
             
             // Validate status transition
             if (isValidStatusTransition(order.getStatus(), newStatus)) {
-                order.setStatus(newStatus);
-                orderDAO.update(order);
-                return true;
+                // Use updateStatus method to properly update the status in database
+                boolean updated = orderDAO.updateStatus(orderId, newStatus);
+                if (updated) {
+                    order.setStatus(newStatus); // Update local object status
+                    return true;
+                } else {
+                    throw new RuntimeException("Failed to update order status in database");
+                }
             } else {
                 throw new IllegalStateException("無效的狀態轉換: " + 
                         order.getStatus() + " -> " + newStatus);
@@ -229,10 +239,17 @@ public class OrderService {
                 throw new IllegalStateException("無法取消已完成的訂單");
             }
             
+            // Update order status first
+            boolean statusUpdated = orderDAO.updateStatus(orderId, OrderStatus.CANCELLED);
+            if (!statusUpdated) {
+                throw new RuntimeException("Failed to update order status to CANCELLED");
+            }
+            
+            // Update special instructions
             order.setStatus(OrderStatus.CANCELLED);
             order.setSpecialInstructions((order.getSpecialInstructions() != null ? 
                     order.getSpecialInstructions() + " | " : "") + "取消原因: " + reason);
-            orderDAO.update(order);
+            orderDAO.update(order); // This will update other fields like special_instructions
             return true;
         }
         return false;
