@@ -353,6 +353,9 @@ class CheckoutPage {
         
         if (this.isProcessing) return;
         
+        let order = null;
+        let paymentResult = null;
+        
         try {
             this.isProcessing = true;
             this.showProcessingModal();
@@ -379,28 +382,50 @@ class CheckoutPage {
                 subtotal: summary.subtotal,
                 serviceFee: serviceFee,
                 tax: tax,
-                totalAmount: totalAmount
+                totalAmount: totalAmount,
+                status: 'PENDING_PAYMENT' // Initial status before payment
             };
             
-            // Create order
+            // Create order with pending payment status
             console.log('Creating order with data:', orderData);
-            const order = await api.createOrder(orderData);
+            order = await api.createOrder(orderData);
             console.log('Order created successfully:', order);
             
             // Process payment based on method
-            await this.processPayment(order, totalAmount);
-            
-            // Clear cart and navigate to success page
-            cart.clear();
-            Storage.clearTableNumber();
-            
-            this.hideProcessingModal();
-            this.showSuccessModal(order);
+            try {
+                paymentResult = await this.processPayment(order, totalAmount);
+                
+                // Payment successful - update order status
+                this.updateProcessingMessage('正在確認訂單...');
+                await api.updateOrderStatus(order.orderId, 'CONFIRMED');
+                console.log('Order confirmed after successful payment');
+                
+                // Clear cart and navigate to success page
+                cart.clear();
+                Storage.clearTableNumber();
+                
+                this.hideProcessingModal();
+                this.showSuccessModal(order, paymentResult);
+                
+            } catch (paymentError) {
+                // Payment failed - cancel the order
+                console.error('Payment failed, cancelling order:', paymentError);
+                
+                this.updateProcessingMessage('付款失敗，正在取消訂單...');
+                try {
+                    await api.updateOrderStatus(order.orderId, 'CANCELLED');
+                    console.log('Order cancelled due to payment failure');
+                } catch (cancelError) {
+                    console.error('Failed to cancel order:', cancelError);
+                }
+                
+                throw paymentError;
+            }
             
         } catch (error) {
             console.error('Failed to submit order:', error);
             this.hideProcessingModal();
-            this.handleOrderError(error);
+            this.handleOrderError(error, order);
         } finally {
             this.isProcessing = false;
         }
@@ -409,65 +434,93 @@ class CheckoutPage {
     async processPayment(order, totalAmount) {
         this.updateProcessingMessage('正在處理付款...');
         
+        let paymentResult = null;
+        
         switch (this.selectedPaymentMethod) {
             case 'CASH':
-                // Cash payment - no additional processing needed
+                // Cash payment - no additional processing needed, just confirm
                 console.log('Cash payment selected - order will be processed at table');
+                this.updateProcessingMessage('現金付款確認中...');
+                await this.delay(1000);
+                
+                paymentResult = {
+                    success: true,
+                    paymentType: 'CASH',
+                    transactionId: `CASH${Date.now()}`,
+                    paymentDate: new Date().toISOString(),
+                    amount: totalAmount,
+                    message: '現金付款 - 將由服務員收款'
+                };
                 break;
                 
             case 'CREDIT_CARD':
-                await this.processCreditCardPayment(order, totalAmount);
+                paymentResult = await this.processCreditCardPayment(order, totalAmount);
                 break;
                 
             case 'LINE_PAY':
-                await this.processLinePayPayment(order, totalAmount);
+                paymentResult = await this.processLinePayPayment(order, totalAmount);
                 break;
                 
             case 'APPLE_PAY':
-                await this.processApplePayPayment(order, totalAmount);
+                paymentResult = await this.processApplePayPayment(order, totalAmount);
                 break;
                 
             default:
                 throw new Error('不支援的付款方式');
         }
+        
+        return paymentResult;
     }
 
     async processCreditCardPayment(order, totalAmount) {
         try {
             console.log('Processing credit card payment for order:', order.orderId);
             
-            // Simulate credit card processing
-            this.updateProcessingMessage('正在連接信用卡處理中心...');
-            await this.delay(1500);
+            this.updateProcessingMessage('正在連接綠界金流中心...');
+            await this.delay(1000);
             
+            // Use ECPay for credit card processing
+            const orderData = {
+                orderId: order.orderId,
+                customerId: this.currentUser.userId,
+                totalAmount: totalAmount,
+                items: this.cartItems
+            };
+            
+            this.updateProcessingMessage('正在建立支付頁面...');
+            const paymentResult = await paymentAPI.processECPayPayment(orderData);
+            
+            // Validate payment result
+            const validation = paymentAPI.validatePaymentResult(paymentResult);
+            if (!validation.isValid) {
+                throw new Error(validation.message);
+            }
+            
+            this.updateProcessingMessage('正在確認交易結果...');
+            await this.delay(1000);
+            
+            // Create payment record with real transaction data
             const paymentData = {
                 orderId: order.orderId,
                 customerId: this.currentUser.userId,
                 paymentMethod: 'CREDIT_CARD',
                 amount: totalAmount,
                 currency: 'TWD',
-                transactionId: this.generateTransactionId()
+                transactionId: paymentResult.transactionId,
+                paymentProvider: 'ECPAY',
+                paymentStatus: 'SUCCESS'
             };
             
-            this.updateProcessingMessage('正在驗證信用卡資訊...');
-            await this.delay(2000);
-            
-            // Create payment record
             const payment = await api.createPayment(paymentData);
-            console.log('Payment created:', payment);
-            
-            this.updateProcessingMessage('正在完成交易...');
-            await this.delay(1000);
-            
-            // Process payment
-            await api.processPayment(payment.paymentId);
-            console.log('Credit card payment processed successfully');
+            console.log('Payment record created:', payment);
             
             toast.success('信用卡付款成功！');
+            return paymentResult;
             
         } catch (error) {
             console.error('Credit card payment failed:', error);
-            throw new Error('信用卡付款失敗，請檢查卡片資訊或選擇其他付款方式');
+            // Don't create order if payment fails
+            throw new Error(error.message || '信用卡付款失敗，請檢查卡片資訊或選擇其他付款方式');
         }
     }
 
@@ -475,37 +528,49 @@ class CheckoutPage {
         try {
             console.log('Processing LINE Pay payment for order:', order.orderId);
             
-            this.updateProcessingMessage('正在連接 LINE Pay...');
+            this.updateProcessingMessage('正在連接 LINE Pay Sandbox...');
             await this.delay(1000);
             
+            // Use LINE Pay API for processing
+            const orderData = {
+                orderId: order.orderId,
+                customerId: this.currentUser.userId,
+                totalAmount: totalAmount,
+                items: this.cartItems
+            };
+            
+            const paymentResult = await paymentAPI.processLinePayPayment(orderData);
+            
+            // Validate payment result
+            const validation = paymentAPI.validatePaymentResult(paymentResult);
+            if (!validation.isValid) {
+                throw new Error(validation.message);
+            }
+            
+            this.updateProcessingMessage('正在確認付款狀態...');
+            await this.delay(1000);
+            
+            // Create payment record with real transaction data
             const paymentData = {
                 orderId: order.orderId,
                 customerId: this.currentUser.userId,
                 paymentMethod: 'LINE_PAY',
                 amount: totalAmount,
                 currency: 'TWD',
-                transactionId: this.generateTransactionId()
+                transactionId: paymentResult.transactionId,
+                paymentProvider: 'LINE_PAY',
+                paymentStatus: 'SUCCESS'
             };
             
-            this.updateProcessingMessage('正在生成 LINE Pay 付款連結...');
-            await this.delay(1500);
-            
-            // Create payment record
             const payment = await api.createPayment(paymentData);
-            console.log('LINE Pay payment created:', payment);
-            
-            this.updateProcessingMessage('正在確認付款狀態...');
-            await this.delay(2000);
-            
-            // Simulate LINE Pay processing
-            await api.processPayment(payment.paymentId);
-            console.log('LINE Pay payment processed successfully');
+            console.log('Payment record created:', payment);
             
             toast.success('LINE Pay 付款成功！');
+            return paymentResult;
             
         } catch (error) {
             console.error('LINE Pay payment failed:', error);
-            throw new Error('LINE Pay 付款失敗，請稍後再試');
+            throw new Error(error.message || 'LINE Pay 付款失敗，請稍後再試');
         }
     }
 
@@ -513,37 +578,49 @@ class CheckoutPage {
         try {
             console.log('Processing Apple Pay payment for order:', order.orderId);
             
-            this.updateProcessingMessage('正在連接 Apple Pay...');
+            this.updateProcessingMessage('正在檢查 Apple Pay 支援...');
             await this.delay(1000);
             
+            // Use Apple Pay API for processing
+            const orderData = {
+                orderId: order.orderId,
+                customerId: this.currentUser.userId,
+                totalAmount: totalAmount,
+                items: this.cartItems
+            };
+            
+            const paymentResult = await paymentAPI.processApplePayPayment(orderData);
+            
+            // Validate payment result
+            const validation = paymentAPI.validatePaymentResult(paymentResult);
+            if (!validation.isValid) {
+                throw new Error(validation.message);
+            }
+            
+            this.updateProcessingMessage('正在完成 Apple Pay 交易...');
+            await this.delay(1000);
+            
+            // Create payment record with real transaction data
             const paymentData = {
                 orderId: order.orderId,
                 customerId: this.currentUser.userId,
                 paymentMethod: 'APPLE_PAY',
                 amount: totalAmount,
                 currency: 'TWD',
-                transactionId: this.generateTransactionId()
+                transactionId: paymentResult.transactionId,
+                paymentProvider: 'APPLE_PAY',
+                paymentStatus: 'SUCCESS'
             };
             
-            this.updateProcessingMessage('正在驗證生物識別...');
-            await this.delay(2500);
-            
-            // Create payment record
             const payment = await api.createPayment(paymentData);
-            console.log('Apple Pay payment created:', payment);
-            
-            this.updateProcessingMessage('正在完成 Apple Pay 交易...');
-            await this.delay(1500);
-            
-            // Process payment
-            await api.processPayment(payment.paymentId);
-            console.log('Apple Pay payment processed successfully');
+            console.log('Payment record created:', payment);
             
             toast.success('Apple Pay 付款成功！');
+            return paymentResult;
             
         } catch (error) {
             console.error('Apple Pay payment failed:', error);
-            throw new Error('Apple Pay 付款失敗，請檢查設備設定');
+            throw new Error(error.message || 'Apple Pay 付款失敗，請檢查設備設定');
         }
     }
 
