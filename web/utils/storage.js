@@ -149,7 +149,8 @@ class Storage {
     // Order history cache
     static cacheOrder(order) {
         const orders = this.getCachedOrders();
-        const existingIndex = orders.findIndex(o => o.id === order.id);
+        // Use orderId for matching (backend uses orderId, not id)
+        const existingIndex = orders.findIndex(o => (o.orderId || o.id) === (order.orderId || order.id));
         
         if (existingIndex !== -1) {
             orders[existingIndex] = order;

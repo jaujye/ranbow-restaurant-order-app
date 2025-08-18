@@ -34,8 +34,15 @@ public class PaymentService {
         
         // Check if payment already exists for this order
         Optional<Payment> existingPayment = findPaymentByOrderId(orderId);
-        if (existingPayment.isPresent() && existingPayment.get().getStatus() == PaymentStatus.COMPLETED) {
-            throw new IllegalStateException("此訂單已完成付款");
+        if (existingPayment.isPresent()) {
+            Payment existing = existingPayment.get();
+            if (existing.getStatus() == PaymentStatus.COMPLETED) {
+                throw new IllegalStateException("此訂單已完成付款");
+            } else if (existing.getStatus() == PaymentStatus.PENDING || existing.getStatus() == PaymentStatus.PROCESSING) {
+                // Allow creating new payment record for failed or stuck payments
+                // This handles cases where payment process was interrupted
+                System.out.println("Found existing non-completed payment for order " + orderId + ", creating new payment record");
+            }
         }
         
         Payment payment = new Payment(orderId, customerId, order.getTotalAmount(), paymentMethod);

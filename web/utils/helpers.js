@@ -6,8 +6,37 @@ class Helpers {
         return `NT$ ${amount.toLocaleString()}`;
     }
 
+    // Parse date with robust handling for different formats
+    static parseDate(date) {
+        if (!date) return null;
+        
+        // If it's already a Date object, return it
+        if (date instanceof Date) return date;
+        
+        // Handle Java LocalDateTime format (e.g., "2024-01-15T14:30:00" or with milliseconds)
+        if (typeof date === 'string') {
+            // Replace space with 'T' for ISO format if needed
+            let normalizedDate = date.replace(' ', 'T');
+            
+            // Add 'Z' if it's missing timezone info and looks like ISO format
+            if (normalizedDate.includes('T') && !normalizedDate.includes('Z') && !normalizedDate.includes('+')) {
+                normalizedDate += 'Z';
+            }
+            
+            const parsed = new Date(normalizedDate);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
+        
+        // Try to create Date object directly
+        const parsed = new Date(date);
+        return isNaN(parsed.getTime()) ? null : parsed;
+    }
+
     // Format date
     static formatDate(date, options = {}) {
+        const parsedDate = this.parseDate(date);
+        if (!parsedDate) return 'Invalid Date';
+        
         const defaultOptions = {
             year: 'numeric',
             month: '2-digit',
@@ -15,12 +44,15 @@ class Helpers {
             ...options
         };
         
-        return new Date(date).toLocaleDateString('zh-TW', defaultOptions);
+        return parsedDate.toLocaleDateString('zh-TW', defaultOptions);
     }
 
     // Format time
     static formatTime(date) {
-        return new Date(date).toLocaleTimeString('zh-TW', {
+        const parsedDate = this.parseDate(date);
+        if (!parsedDate) return 'Invalid Time';
+        
+        return parsedDate.toLocaleTimeString('zh-TW', {
             hour: '2-digit',
             minute: '2-digit'
         });
@@ -28,15 +60,21 @@ class Helpers {
 
     // Format date and time
     static formatDateTime(date) {
-        const dateStr = this.formatDate(date);
-        const timeStr = this.formatTime(date);
+        const parsedDate = this.parseDate(date);
+        if (!parsedDate) return 'Invalid DateTime';
+        
+        const dateStr = this.formatDate(parsedDate);
+        const timeStr = this.formatTime(parsedDate);
         return `${dateStr} ${timeStr}`;
     }
 
     // Calculate time difference
     static getTimeAgo(date) {
+        const parsedDate = this.parseDate(date);
+        if (!parsedDate) return 'Unknown time';
+        
         const now = new Date();
-        const diff = now - new Date(date);
+        const diff = now - parsedDate;
         const minutes = Math.floor(diff / 60000);
         const hours = Math.floor(minutes / 60);
         const days = Math.floor(hours / 24);
@@ -45,12 +83,15 @@ class Helpers {
         if (minutes < 60) return `${minutes}分鐘前`;
         if (hours < 24) return `${hours}小時前`;
         if (days < 7) return `${days}天前`;
-        return this.formatDate(date);
+        return this.formatDate(parsedDate);
     }
 
     // Calculate estimated time
     static addMinutes(date, minutes) {
-        const result = new Date(date);
+        const parsedDate = this.parseDate(date);
+        if (!parsedDate) return null;
+        
+        const result = new Date(parsedDate);
         result.setMinutes(result.getMinutes() + minutes);
         return result;
     }

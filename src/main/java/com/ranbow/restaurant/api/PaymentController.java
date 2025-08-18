@@ -36,7 +36,7 @@ public class PaymentController {
     }
     
     @GetMapping("/{paymentId}")
-    public ResponseEntity<?> getPayment(@PathVariable String paymentId) {
+    public ResponseEntity<?> getPayment(@PathVariable("paymentId") String paymentId) {
         Optional<Payment> payment = paymentService.findPaymentById(paymentId);
         if (payment.isPresent()) {
             return ResponseEntity.ok(payment.get());
@@ -45,7 +45,7 @@ public class PaymentController {
     }
     
     @GetMapping("/order/{orderId}")
-    public ResponseEntity<?> getPaymentByOrderId(@PathVariable String orderId) {
+    public ResponseEntity<?> getPaymentByOrderId(@PathVariable("orderId") String orderId) {
         Optional<Payment> payment = paymentService.findPaymentByOrderId(orderId);
         if (payment.isPresent()) {
             return ResponseEntity.ok(payment.get());
@@ -60,13 +60,13 @@ public class PaymentController {
     }
     
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<Payment>> getPaymentsByCustomer(@PathVariable String customerId) {
+    public ResponseEntity<List<Payment>> getPaymentsByCustomer(@PathVariable("customerId") String customerId) {
         List<Payment> payments = paymentService.getPaymentsByCustomerId(customerId);
         return ResponseEntity.ok(payments);
     }
     
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Payment>> getPaymentsByStatus(@PathVariable PaymentStatus status) {
+    public ResponseEntity<List<Payment>> getPaymentsByStatus(@PathVariable("status") PaymentStatus status) {
         List<Payment> payments = paymentService.getPaymentsByStatus(status);
         return ResponseEntity.ok(payments);
     }
@@ -78,7 +78,7 @@ public class PaymentController {
     }
     
     @PostMapping("/{paymentId}/process")
-    public ResponseEntity<?> processPayment(@PathVariable String paymentId) {
+    public ResponseEntity<?> processPayment(@PathVariable("paymentId") String paymentId) {
         try {
             boolean success = paymentService.processPayment(paymentId);
             if (success) {
@@ -98,7 +98,7 @@ public class PaymentController {
     }
     
     @PostMapping("/{paymentId}/refund")
-    public ResponseEntity<?> refundPayment(@PathVariable String paymentId, 
+    public ResponseEntity<?> refundPayment(@PathVariable("paymentId") String paymentId, 
                                          @RequestBody RefundRequest request) {
         try {
             boolean success = paymentService.refundPayment(paymentId, request.getReason());

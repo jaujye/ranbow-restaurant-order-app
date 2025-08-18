@@ -359,51 +359,37 @@ class CheckoutPage {
         try {
             this.isProcessing = true;
             this.showProcessingModal();
-            this.updateProcessingMessage('正在檢查訂單狀態...');
+            this.updateProcessingMessage('正在建立訂單...');
             
-            // Check for existing pending orders for this customer
-            const existingOrders = await api.getCustomerOrders(this.currentUser.userId);
-            const pendingOrder = existingOrders.find(o => 
-                o.status === 'PENDING_PAYMENT' && 
-                o.customerId === this.currentUser.userId
-            );
+            // Always create a new order for each checkout session
+            // Remove the logic for reusing existing PENDING_PAYMENT orders
+            const specialInstructions = document.getElementById('special-instructions')?.value || '';
+            const summary = cart.getSummary();
+            const serviceFee = Math.round(summary.subtotal * 0.1);
+            const tax = Math.round((summary.subtotal + serviceFee) * 0.05);
             
-            if (pendingOrder) {
-                console.log('Found existing pending order:', pendingOrder);
-                order = pendingOrder;
-                this.updateProcessingMessage('發現未完成訂單，繼續付款流程...');
-            } else {
-                this.updateProcessingMessage('正在建立訂單...');
-                
-                // Create order data
-                const specialInstructions = document.getElementById('special-instructions')?.value || '';
-                const summary = cart.getSummary();
-                const serviceFee = Math.round(summary.subtotal * 0.1);
-                const tax = Math.round((summary.subtotal + serviceFee) * 0.05);
-                
-                const orderData = {
-                    customerId: this.currentUser.userId,
-                    tableNumber: 1,
-                    items: this.cartItems.map(item => ({
-                        menuItemId: item.itemId || item.id,
-                        quantity: item.quantity,
-                        price: item.price,
-                        specialRequests: item.specialRequests || null
-                    })),
-                    specialInstructions: specialInstructions,
-                    paymentMethod: this.selectedPaymentMethod,
-                    subtotal: summary.subtotal,
-                    serviceFee: serviceFee,
-                    tax: tax,
-                    totalAmount: summary.subtotal + serviceFee + tax,
-                    status: 'PENDING_PAYMENT' // Initial status before payment
-                };
-                
-                // Create order with pending payment status
-                console.log('Creating order with data:', orderData);
-                order = await api.createOrder(orderData);
-                console.log('Order created successfully:', order);
-            }
+            const orderData = {
+                customerId: this.currentUser.userId,
+                tableNumber: 1,
+                items: this.cartItems.map(item => ({
+                    menuItemId: item.itemId || item.id,
+                    quantity: item.quantity,
+                    price: item.price,
+                    specialRequests: item.specialRequests || null
+                })),
+                specialInstructions: specialInstructions,
+                paymentMethod: this.selectedPaymentMethod,
+                subtotal: summary.subtotal,
+                serviceFee: serviceFee,
+                tax: tax,
+                totalAmount: summary.subtotal + serviceFee + tax,
+                status: 'PENDING_PAYMENT' // Initial status before payment
+            };
+            
+            // Create order with pending payment status
+            console.log('Creating order with data:', orderData);
+            order = await api.createOrder(orderData);
+            console.log('Order created successfully:', order);
             
             // Calculate total amount for payment processing
             const totalAmount = order.totalAmount;
@@ -416,6 +402,26 @@ class CheckoutPage {
                 this.updateProcessingMessage('正在處理付款...');
                 const processResult = await api.processPayment(paymentResult.paymentId);
                 console.log('Payment processed successfully:', processResult);
+                
+                // Update local order status to reflect the backend change
+                if (processResult && processResult.success) {
+                    this.updateProcessingMessage('更新訂單狀態...');
+                    try {
+                        // Fetch updated order from backend to get the latest status
+                        const updatedOrder = await api.getOrder(order.orderId);
+                        console.log('Updated order status:', updatedOrder.status);
+                        order.status = updatedOrder.status;
+                        
+                        // Update cached order with new status
+                        Storage.cacheOrder(order);
+                        
+                    } catch (updateError) {
+                        console.warn('Failed to fetch updated order status, but payment succeeded:', updateError);
+                        // Manually set status if fetch fails
+                        order.status = 'CONFIRMED';
+                        Storage.cacheOrder(order);
+                    }
+                }
                 
                 // Clear cart and navigate to success page
                 cart.clear();

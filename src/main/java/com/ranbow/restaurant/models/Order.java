@@ -76,6 +76,11 @@ public class Order {
         return orderItems;
     }
     
+    // Alias for front-end compatibility
+    public List<OrderItem> getItems() {
+        return orderItems;
+    }
+    
     public void setOrderItems(List<OrderItem> orderItems) {
         this.orderItems = orderItems;
         calculateTotals();
@@ -125,6 +130,11 @@ public class Order {
     }
     
     public LocalDateTime getOrderTime() {
+        return orderTime;
+    }
+    
+    // Alias for front-end compatibility
+    public LocalDateTime getCreatedAt() {
         return orderTime;
     }
     
