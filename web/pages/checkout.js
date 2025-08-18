@@ -451,6 +451,9 @@ class CheckoutPage {
     async processPayment(order, totalAmount) {
         this.updateProcessingMessage('正在處理付款...');
         
+        // Store current order amount for payment modals
+        this.currentOrderAmount = totalAmount;
+        
         let paymentResult = null;
         
         switch (this.selectedPaymentMethod) {
@@ -961,7 +964,7 @@ class CheckoutPage {
                 paymentType: paymentType,
                 transactionId: `${paymentType}${Date.now()}`,
                 paymentDate: new Date().toISOString(),
-                amount: this.getTotalAmount(),
+                amount: this.currentOrderAmount || this.getTotalAmount(),
                 message: `${paymentType} 付款成功`
             };
             

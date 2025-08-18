@@ -312,13 +312,18 @@ class OrdersPage {
                         <span>訂單內容</span>
                     </div>
                     <div class="items-list">
-                        ${order.items.slice(0, 3).map(item => `
+                        ${(order.items && order.items.length > 0) ? order.items.slice(0, 3).map(item => `
                             <div class="order-item-preview">
-                                <span class="item-name">${item.menuItem.name}</span>
-                                <span class="item-quantity">×${item.quantity}</span>
+                                <span class="item-name">${item.menuItem ? item.menuItem.name : '未知商品'}</span>
+                                <span class="item-quantity">×${item.quantity || 0}</span>
                             </div>
-                        `).join('')}
-                        ${order.items.length > 3 ? `
+                        `).join('') : `
+                            <div class="order-item-preview">
+                                <span class="item-name">訂單詳情載入中...</span>
+                                <span class="item-quantity"></span>
+                            </div>
+                        `}
+                        ${(order.items && order.items.length > 3) ? `
                             <div class="more-items-indicator">
                                 <i class="fas fa-ellipsis-h"></i>
                                 <span>還有 ${order.items.length - 3} 道菜</span>
@@ -515,18 +520,25 @@ class OrdersPage {
                 <!-- Order Items -->
                 <div class="order-items-detail">
                     <h4>訂單明細</h4>
-                    ${order.items.map(item => `
+                    ${(order.items && order.items.length > 0) ? order.items.map(item => `
                         <div class="order-item-detail">
                             <div class="item-info">
-                                <h5>${item.menuItem.name}</h5>
-                                <p class="item-price">${Helpers.formatCurrency(item.price)} × ${item.quantity}</p>
+                                <h5>${item.menuItem ? item.menuItem.name : '未知商品'}</h5>
+                                <p class="item-price">${Helpers.formatCurrency(item.price || 0)} × ${item.quantity || 0}</p>
                                 ${item.specialRequests ? `<p class="item-requests">備註: ${item.specialRequests}</p>` : ''}
                             </div>
                             <div class="item-total">
-                                ${Helpers.formatCurrency(item.price * item.quantity)}
+                                ${Helpers.formatCurrency((item.price || 0) * (item.quantity || 0))}
                             </div>
                         </div>
-                    `).join('')}
+                    `).join('') : `
+                        <div class="order-item-detail">
+                            <div class="item-info">
+                                <h5>訂單詳情載入中...</h5>
+                                <p class="item-price">請稍候</p>
+                            </div>
+                        </div>
+                    `}
                 </div>
 
                 <!-- Order Summary -->
@@ -658,17 +670,22 @@ class OrdersPage {
     async reorderItems(orderId) {
         try {
             const order = this.orders.find(o => o.orderId === orderId);
-            if (!order) return;
+            if (!order || !order.items || order.items.length === 0) {
+                toast.warning('訂單資料不完整，無法重新訂購');
+                return;
+            }
 
             // Add items to cart
             order.items.forEach(item => {
-                cart.addItem({
-                    id: item.menuItem.itemId,
-                    name: item.menuItem.name,
-                    price: item.price,
-                    imageUrl: item.menuItem.imageUrl,
-                    description: item.menuItem.description
-                }, item.quantity, item.specialRequests);
+                if (item && item.menuItem) {
+                    cart.addItem({
+                        id: item.menuItem.itemId,
+                        name: item.menuItem.name,
+                        price: item.price,
+                        imageUrl: item.menuItem.imageUrl,
+                        description: item.menuItem.description
+                    }, item.quantity, item.specialRequests);
+                }
             });
 
             toast.success('商品已加入購物車');
