@@ -1052,7 +1052,7 @@
 /* Menu Page */
 .menu-header {
     background: var(--bg-card);
-    padding: var(--space-sm) var(--space-md);
+    padding: 0;
     border-bottom: 1px solid var(--border-light);
     position: sticky;
     top: var(--header-height);
@@ -1214,7 +1214,7 @@
 /* Cart Page */
 .cart-header {
     background: var(--bg-card);
-    padding: var(--space-lg) var(--space-md);
+    padding: 1em;
     border-bottom: 1px solid var(--border-light);
     display: flex;
     justify-content: space-between;
@@ -1915,13 +1915,15 @@
 /* Mobile Responsive */
 @media (max-width: 767px) {
     .orders-header {
+        padding-top: 10lvh;
         flex-direction: column;
         gap: var(--space-md);
         text-align: center;
     }
     
     .order-tabs {
-        flex-direction: column;
+        padding-top: 10lvh;
+        height: 20vh;
         gap: var(--space-sm);
     }
     
