@@ -197,9 +197,16 @@ class MenuItemDetailPage {
 
     async initializeMenuItemDetailPage() {
         try {
-            // Get item ID from URL
-            const urlParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
+            // Get item ID from URL hash
+            // URL format: #menu-item?id=xxx
+            const hash = window.location.hash.substring(1); // Remove #
+            const queryString = hash.includes('?') ? hash.split('?')[1] : '';
+            const urlParams = new URLSearchParams(queryString);
             this.itemId = urlParams.get('id');
+            
+            console.log('Menu Item Detail - Hash:', hash);
+            console.log('Menu Item Detail - Query String:', queryString);
+            console.log('Menu Item Detail - Item ID:', this.itemId);
             
             if (!this.itemId) {
                 app.showToast('菜品ID不存在', 'error');
@@ -223,12 +230,30 @@ class MenuItemDetailPage {
     async loadItemData() {
         try {
             // Try to get from menu items first (faster)
-            const menuItems = menuPage.menuItems || await api.getMenuItems();
-            this.itemData = menuItems.find(item => item.itemId === this.itemId);
+            let menuItems = [];
+            
+            // Check if menuPage has loaded items
+            if (menuPage.menuItems && menuPage.menuItems.length > 0) {
+                menuItems = menuPage.menuItems;
+            } else {
+                // Load from API if not available
+                menuItems = await api.getMenuItems();
+            }
+            
+            console.log('Menu Item Detail - Available items:', menuItems.length);
+            console.log('Menu Item Detail - Looking for ID:', this.itemId);
+            
+            this.itemData = menuItems.find(item => {
+                console.log('Comparing:', item.itemId, 'with', this.itemId);
+                return item.itemId === this.itemId;
+            });
             
             if (!this.itemData) {
+                console.error('Item not found in menu items:', menuItems.map(item => item.itemId));
                 throw new Error('Item not found');
             }
+
+            console.log('Menu Item Detail - Found item:', this.itemData);
 
             // Re-render with loaded data
             const mainContent = document.getElementById('main-content');
