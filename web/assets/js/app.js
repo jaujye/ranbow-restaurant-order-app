@@ -199,14 +199,17 @@ class RanbowApp {
         try {
             console.log(`Navigating to page: ${page}`);
             
+            // Parse page and query parameters
+            const [pageName, queryString] = page.split('?');
+            
             // Check if user has permission for this page
-            if (!this.hasPagePermission(page)) {
-                console.log(`Permission denied for page: ${page}`);
+            if (!this.hasPagePermission(pageName)) {
+                console.log(`Permission denied for page: ${pageName}`);
                 this.showToast('您沒有權限訪問此頁面', 'error');
                 return;
             }
             
-            console.log(`Permission granted for page: ${page}`);
+            console.log(`Permission granted for page: ${pageName}`);
             await this.loadPage(page, addToHistory);
             console.log(`Successfully loaded page: ${page}`);
             
@@ -228,7 +231,7 @@ class RanbowApp {
         }
         
         const rolePages = {
-            'CUSTOMER': ['home', 'menu', 'cart', 'checkout', 'orders', 'profile', 'order-detail'],
+            'CUSTOMER': ['home', 'menu', 'menu-item', 'cart', 'checkout', 'orders', 'profile', 'order-detail'],
             'STAFF': ['staff-dashboard', 'staff-orders', 'staff-profile'],
             'ADMIN': ['admin-dashboard', 'admin-menu', 'admin-orders', 'admin-users', 'admin-reports']
         };
@@ -269,17 +272,20 @@ class RanbowApp {
     }
 
     updateNavigation(page) {
+        // Parse page name from potential query string
+        const [pageName, queryString] = page.split('?');
+        
         // Update bottom navigation active state
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
             item.classList.remove('active');
-            if (item.dataset.page === page) {
+            if (item.dataset.page === pageName) {
                 item.classList.add('active');
             }
         });
 
         // Update page title
-        const pageTitle = this.getPageTitle(page);
+        const pageTitle = this.getPageTitle(pageName);
         const navTitle = document.querySelector('.nav-title');
         if (navTitle) {
             navTitle.textContent = pageTitle;
@@ -287,12 +293,24 @@ class RanbowApp {
         
         // Update document title
         document.title = `${pageTitle} - Ranbow Restaurant`;
+        
+        // Show/hide back button based on page
+        const backBtn = document.querySelector('.back-btn');
+        if (backBtn) {
+            // Hide back button on home page since it's the top-level page
+            if (pageName === 'home') {
+                backBtn.style.display = 'none';
+            } else {
+                backBtn.style.display = 'block';
+            }
+        }
     }
 
     getPageTitle(page) {
         const titles = {
             'home': '首頁',
             'menu': '菜單',
+            'menu-item': '菜品詳情',
             'cart': '購物車',
             'checkout': '確認訂單',
             'orders': '我的訂單',
@@ -308,10 +326,14 @@ class RanbowApp {
     }
 
     async getPageContent(page) {
+        // Parse page name from potential query string
+        const [pageName, queryString] = page.split('?');
+        
         // Load page templates
         const templates = {
             'home': homePage.getHomePageTemplate(),
             'menu': menuPage.getMenuPageTemplate(),
+            'menu-item': menuItemDetailPage.getMenuItemDetailTemplate(),
             'cart': cartPage.getCartPageTemplate(),
             'checkout': checkoutPage.getCheckoutPageTemplate(),
             'orders': ordersPage.getOrdersPageTemplate(),
@@ -323,14 +345,17 @@ class RanbowApp {
             'error': this.getErrorPageTemplate()
         };
         
-        return templates[page] || templates['404'];
+        return templates[pageName] || templates['404'];
     }
 
     // These methods are now handled by individual page components
     // Keeping them for backward compatibility but they should not be used
 
     async initializePage(page) {
-        switch (page) {
+        // Parse page name from potential query string
+        const [pageName, queryString] = page.split('?');
+        
+        switch (pageName) {
             case 'home':
                 await homePage.initializeHomePage();
                 break;
@@ -345,6 +370,9 @@ class RanbowApp {
                 break;
             case 'menu':
                 await menuPage.initializeMenuPage();
+                break;
+            case 'menu-item':
+                await menuItemDetailPage.initializeMenuItemDetailPage();
                 break;
             case 'cart':
                 await cartPage.initializeCartPage();

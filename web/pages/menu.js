@@ -402,8 +402,7 @@ class MenuPage {
         const isGridView = viewMode === 'grid';
 
         return `
-            <div class="menu-item-card ${isGridView ? 'grid-view' : 'list-view'} ${!item.available ? 'unavailable' : ''}" 
-                 onclick="menuPage.viewItemDetail('${item.itemId}')">
+            <div class="menu-item-card ${isGridView ? 'grid-view' : 'list-view'} ${!item.available ? 'unavailable' : ''}">
                 <div class="item-image">
                     <img src="${item.imageUrl || 'assets/images/placeholder.svg'}" 
                          alt="${item.name}"
@@ -433,11 +432,11 @@ class MenuPage {
                     </div>
                     
                     <div class="item-actions">
-                        <button class="btn btn-outline btn-small" onclick="event.stopPropagation(); menuPage.viewItemDetail('${item.itemId}')">
+                        <button class="btn btn-outline btn-small" onclick="menuPage.viewItemDetail('${item.itemId}')">
                             查看詳情
                         </button>
                         <button class="add-to-cart-btn ${!item.available ? 'disabled' : ''}" 
-                                onclick="event.stopPropagation(); menuPage.addToCart('${item.itemId}')"
+                                onclick="menuPage.addToCart('${item.itemId}')"
                                 ${!item.available ? 'disabled' : ''}>
                             <i class="fas fa-plus"></i>
                             加入購物車
