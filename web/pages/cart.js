@@ -5,6 +5,7 @@ class CartPage {
         this.cartItems = [];
         this.isProcessing = false;
         this.tableNumber = null;
+        this.scrollListener = null;
     }
 
     getCartPageTemplate() {
@@ -528,6 +529,71 @@ class CartPage {
 
         this.hideSpecialRequestsModal();
         toast.success('備註已更新');
+    }
+
+    // Smart cart summary positioning for mobile
+    initSmartCartSummary() {
+        if (window.innerWidth > 767) return; // Only for mobile
+
+        const cartSummary = document.getElementById('cart-summary');
+        const mainContent = document.getElementById('main-content');
+        
+        if (!cartSummary || !mainContent) return;
+
+        // Remove existing listener if it exists
+        if (this.scrollListener) {
+            mainContent.removeEventListener('scroll', this.scrollListener);
+        }
+
+        this.scrollListener = () => {
+            const scrollTop = mainContent.scrollTop;
+            const scrollHeight = mainContent.scrollHeight;
+            const clientHeight = mainContent.clientHeight;
+            
+            // Check if user has scrolled near the bottom (within 100px)
+            const isAtBottom = scrollTop + clientHeight >= scrollHeight - 100;
+            
+            if (isAtBottom) {
+                cartSummary.classList.add('at-bottom');
+            } else {
+                cartSummary.classList.remove('at-bottom');
+            }
+        };
+
+        // Add scroll listener
+        mainContent.addEventListener('scroll', this.scrollListener);
+        
+        // Initial check
+        this.scrollListener();
+    }
+
+    // Clean up scroll listener
+    destroySmartCartSummary() {
+        const mainContent = document.getElementById('main-content');
+        if (this.scrollListener && mainContent) {
+            mainContent.removeEventListener('scroll', this.scrollListener);
+            this.scrollListener = null;
+        }
+    }
+
+    // Initialize cart page
+    async initializeCartPage() {
+        try {
+            // Load cart items from storage
+            this.cartItems = cart.getItems();
+            
+            // Update cart display
+            this.updateCartDisplay();
+            
+            // Initialize smart cart summary for mobile
+            setTimeout(() => {
+                this.initSmartCartSummary();
+            }, 100); // Small delay to ensure DOM is ready
+            
+        } catch (error) {
+            console.error('Failed to initialize cart page:', error);
+            toast.error('購物車載入失敗');
+        }
     }
 }
 

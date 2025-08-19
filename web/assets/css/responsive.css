@@ -514,6 +514,31 @@
         margin-top: 0;
         padding-top: var(--space-sm);
     }
+    
+    /* Mobile Cart Summary Smart Positioning */
+    .cart-summary {
+        position: fixed !important;
+        left: var(--space-md);
+        right: var(--space-md);
+        bottom: var(--bottom-nav-height);
+        margin-bottom: 0;
+        z-index: calc(var(--z-sticky) + 2);
+        transition: bottom var(--transition-base), transform var(--transition-base);
+        border-radius: var(--radius-large) var(--radius-large) 0 0;
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* When at bottom of page, show with full rounded corners */
+    .cart-summary.at-bottom {
+        bottom: calc(var(--bottom-nav-height) + var(--space-md));
+        border-radius: var(--radius-large);
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Cart content padding adjustment */
+    .cart-content {
+        padding-bottom: calc(var(--bottom-nav-height) + 120px);
+    }
 }
 
 /* Touch Device Optimizations */
