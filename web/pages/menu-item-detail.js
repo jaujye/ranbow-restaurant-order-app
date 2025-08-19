@@ -195,6 +195,32 @@ class MenuItemDetailPage {
         </div>`;
     }
 
+    getNotFoundTemplate() {
+        return `
+        <div class="menu-item-detail-page">
+            <div class="item-not-found">
+                <div class="not-found-icon">
+                    <i class="fas fa-utensils"></i>
+                    <div class="icon-overlay">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                </div>
+                <h1>找不到此菜品</h1>
+                <p>抱歉，您要查看的菜品可能已經下架或不存在。</p>
+                <div class="not-found-actions">
+                    <button class="btn btn-primary" onclick="app.navigateTo('menu')">
+                        <i class="fas fa-utensils"></i>
+                        瀏覽全部菜單
+                    </button>
+                    <button class="btn btn-outline" onclick="app.goBack()">
+                        <i class="fas fa-arrow-left"></i>
+                        返回上一頁
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    }
+
     async initializeMenuItemDetailPage(pageWithParams = null) {
         try {
             let pageParam = pageWithParams || app.currentPage;
@@ -219,8 +245,7 @@ class MenuItemDetailPage {
             console.log('Menu Item Detail - Item ID:', this.itemId);
             
             if (!this.itemId) {
-                app.showToast('菜品ID不存在', 'error');
-                app.navigateTo('menu');
+                this.showNotFound('菜品ID不存在');
                 return;
             }
 
@@ -232,8 +257,7 @@ class MenuItemDetailPage {
             
         } catch (error) {
             console.error('Failed to initialize menu item detail page:', error);
-            app.showToast('載入菜品詳情失敗', 'error');
-            app.navigateTo('menu');
+            this.showNotFound('載入菜品詳情時發生錯誤');
         }
     }
 
@@ -260,7 +284,8 @@ class MenuItemDetailPage {
             
             if (!this.itemData) {
                 console.error('Item not found in menu items:', menuItems.map(item => item.itemId));
-                throw new Error('Item not found');
+                this.showNotFound('找不到此菜品，可能已經下架或不存在');
+                return;
             }
 
             console.log('Menu Item Detail - Found item:', this.itemData);
@@ -400,6 +425,18 @@ class MenuItemDetailPage {
         } catch (error) {
             console.error('Failed to add to cart:', error);
             app.showToast('加入購物車失敗', 'error');
+        }
+    }
+
+    showNotFound(message) {
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.innerHTML = this.getNotFoundTemplate();
+        }
+        
+        // Optional: Show toast message
+        if (message) {
+            app.showToast(message, 'warning');
         }
     }
 
