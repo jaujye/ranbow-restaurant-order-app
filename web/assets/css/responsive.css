@@ -480,8 +480,15 @@
 /* Mobile Menu Header Fix */
 @media screen and (max-width: 767px) {
     .menu-header {
+        position: sticky;
+        top: 0 !important;
         padding: var(--space-xs) var(--space-md);
         min-height: auto;
+        margin-top: 0;
+        background: var(--bg-card);
+        border-bottom: 1px solid var(--border-light);
+        z-index: calc(var(--z-sticky) + 1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
     
     .search-bar {
@@ -495,6 +502,17 @@
     .category-tab {
         padding: var(--space-xs) var(--space-sm);
         font-size: var(--font-sm);
+    }
+    
+    /* Adjust main content padding for mobile */
+    .menu-page .main-content {
+        padding-top: 0;
+    }
+    
+    /* Ensure smooth scrolling without visual gaps */
+    .menu-content {
+        margin-top: 0;
+        padding-top: var(--space-sm);
     }
 }
 
