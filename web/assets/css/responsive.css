@@ -278,6 +278,24 @@
         background: var(--bg-color);
     }
     
+    /* Ensure proper navigation positioning on desktop */
+    .top-nav {
+        position: static;
+        border-radius: var(--radius-xlarge) var(--radius-xlarge) 0 0;
+    }
+    
+    .main-content {
+        padding-top: 0;
+        padding-bottom: 0;
+        flex: 1;
+        overflow-y: auto;
+    }
+    
+    .bottom-nav {
+        position: static;
+        border-radius: 0 0 var(--radius-xlarge) var(--radius-xlarge);
+    }
+    
     /* Desktop menu header adjustments */
     .menu-header {
         position: relative !important;
@@ -290,20 +308,7 @@
         padding-top: 0;
     }
     
-    .top-nav {
-        grid-area: header;
-        position: static;
-    }
-    
-    .main-content {
-        grid-area: main;
-        padding-top: 0;
-        padding-bottom: 0;
-    }
-    
-    .bottom-nav {
-        display: none;
-    }
+    /* Keep bottom nav visible but styled for desktop */
     
     /* Desktop Sidebar */
     .desktop-sidebar {
@@ -469,6 +474,27 @@
     
     .auth-container {
         background: linear-gradient(135deg, #2d2d2d, #1a1a1a);
+    }
+}
+
+/* Mobile Menu Header Fix */
+@media screen and (max-width: 767px) {
+    .menu-header {
+        padding: var(--space-xs) var(--space-md);
+        min-height: auto;
+    }
+    
+    .search-bar {
+        margin-bottom: var(--space-sm);
+    }
+    
+    .category-tabs {
+        padding-bottom: var(--space-xs);
+    }
+    
+    .category-tab {
+        padding: var(--space-xs) var(--space-sm);
+        font-size: var(--font-sm);
     }
 }
 
