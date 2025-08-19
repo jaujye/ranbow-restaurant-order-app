@@ -195,16 +195,26 @@ class MenuItemDetailPage {
         </div>`;
     }
 
-    async initializeMenuItemDetailPage() {
+    async initializeMenuItemDetailPage(pageWithParams = null) {
         try {
-            // Get item ID from URL hash
-            // URL format: #menu-item?id=xxx
-            const hash = window.location.hash.substring(1); // Remove #
-            const queryString = hash.includes('?') ? hash.split('?')[1] : '';
+            let pageParam = pageWithParams || app.currentPage;
+            
+            // Get item ID from page parameter or URL hash
+            let queryString = '';
+            
+            if (pageParam && pageParam.includes('?')) {
+                // From app.js page parameter: "menu-item?id=xxx"
+                queryString = pageParam.split('?')[1];
+            } else {
+                // Fallback: try to get from URL hash
+                const hash = window.location.hash.substring(1); // Remove #
+                queryString = hash.includes('?') ? hash.split('?')[1] : '';
+            }
+            
             const urlParams = new URLSearchParams(queryString);
             this.itemId = urlParams.get('id');
             
-            console.log('Menu Item Detail - Hash:', hash);
+            console.log('Menu Item Detail - Page Param:', pageParam);
             console.log('Menu Item Detail - Query String:', queryString);
             console.log('Menu Item Detail - Item ID:', this.itemId);
             

@@ -372,7 +372,7 @@ class RanbowApp {
                 await menuPage.initializeMenuPage();
                 break;
             case 'menu-item':
-                await menuItemDetailPage.initializeMenuItemDetailPage();
+                await menuItemDetailPage.initializeMenuItemDetailPage(page);
                 break;
             case 'cart':
                 await cartPage.initializeCartPage();
