@@ -379,7 +379,7 @@ class OrdersPage {
         if (!canCancel && !canTrack) return '';
 
         return `
-            <div class="order-actions" onclick="event.stopPropagation()">
+            <div class="order-actions"">
                 ${canTrack ? `<button class="btn btn-outline btn-small" onclick="ordersPage.trackOrder('${order.orderId}')">追蹤訂單</button>` : ''}
                 ${canCancel ? `<button class="btn btn-danger btn-small" onclick="ordersPage.showCancelModal('${order.orderId}')">取消訂單</button>` : ''}
             </div>

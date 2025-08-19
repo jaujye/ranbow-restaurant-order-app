@@ -1052,11 +1052,12 @@
 /* Menu Page */
 .menu-header {
     background: var(--bg-card);
-    padding: var(--space-lg) var(--space-md);
+    padding: var(--space-md);
     border-bottom: 1px solid var(--border-light);
     position: sticky;
     top: var(--header-height);
     z-index: var(--z-sticky);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .search-bar {
