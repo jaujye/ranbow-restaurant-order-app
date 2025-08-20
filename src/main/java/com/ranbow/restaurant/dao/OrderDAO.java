@@ -359,4 +359,140 @@ public class OrderDAO {
         Integer count = jdbcTemplate.queryForObject(COUNT_COMPLETED_ORDERS, Integer.class);
         return count != null ? count : 0;
     }
+    
+    // ================================
+    // STAFF-SPECIFIC ORDER METHODS
+    // ================================
+    
+    /**
+     * Find orders by multiple statuses
+     * @param statuses List of order statuses
+     * @return List of orders matching any of the statuses
+     */
+    public List<Order> findByStatuses(List<OrderStatus> statuses) {
+        if (statuses == null || statuses.isEmpty()) {
+            return new java.util.ArrayList<>();
+        }
+        
+        // Build dynamic IN clause
+        String statusPlaceholders = String.join(",", 
+            statuses.stream().map(s -> "?::order_status").toArray(String[]::new));
+        
+        String query = """
+            SELECT order_id, customer_id, status, subtotal, tax, total_amount, 
+                   special_instructions, table_number, order_time, completed_time 
+            FROM orders WHERE status IN (%s)
+            ORDER BY order_time DESC
+            """.formatted(statusPlaceholders);
+        
+        Object[] statusNames = statuses.stream().map(OrderStatus::name).toArray();
+        
+        List<Order> orders = jdbcTemplate.query(query, orderRowMapper, statusNames);
+        for (Order order : orders) {
+            List<OrderItem> orderItems = jdbcTemplate.query(SELECT_ORDER_ITEMS_BY_ORDER, 
+                    orderItemRowMapper, order.getOrderId());
+            order.setOrderItems(orderItems);
+        }
+        return orders;
+    }
+    
+    /**
+     * Find orders assigned to a specific staff member
+     * Note: This is a placeholder implementation using special_instructions
+     * In production, you might want to add an assigned_staff_id column
+     */
+    public List<Order> findByAssignedStaff(String staffId) {
+        String query = """
+            SELECT order_id, customer_id, status, subtotal, tax, total_amount, 
+                   special_instructions, table_number, order_time, completed_time 
+            FROM orders 
+            WHERE special_instructions LIKE ? 
+            ORDER BY order_time DESC
+            """;
+        
+        List<Order> orders = jdbcTemplate.query(query, orderRowMapper, "%負責員工: " + staffId + "%");
+        for (Order order : orders) {
+            List<OrderItem> orderItems = jdbcTemplate.query(SELECT_ORDER_ITEMS_BY_ORDER, 
+                    orderItemRowMapper, order.getOrderId());
+            order.setOrderItems(orderItems);
+        }
+        return orders;
+    }
+    
+    /**
+     * Find overdue orders based on time threshold
+     * @param minutesThreshold Orders older than this many minutes are considered overdue
+     * @return List of overdue orders
+     */
+    public List<Order> findOverdueOrders(int minutesThreshold) {
+        String query = """
+            SELECT order_id, customer_id, status, subtotal, tax, total_amount, 
+                   special_instructions, table_number, order_time, completed_time 
+            FROM orders 
+            WHERE status IN ('PENDING', 'CONFIRMED', 'PREPARING', 'READY')
+              AND order_time < (CURRENT_TIMESTAMP - INTERVAL '%d minutes')
+            ORDER BY order_time ASC
+            """.formatted(minutesThreshold);
+        
+        List<Order> orders = jdbcTemplate.query(query, orderRowMapper);
+        for (Order order : orders) {
+            List<OrderItem> orderItems = jdbcTemplate.query(SELECT_ORDER_ITEMS_BY_ORDER, 
+                    orderItemRowMapper, order.getOrderId());
+            order.setOrderItems(orderItems);
+        }
+        return orders;
+    }
+    
+    /**
+     * Find orders within a date range
+     * @param startDate Start date
+     * @param endDate End date
+     * @return List of orders in date range
+     */
+    public List<Order> findByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        String query = """
+            SELECT order_id, customer_id, status, subtotal, tax, total_amount, 
+                   special_instructions, table_number, order_time, completed_time 
+            FROM orders 
+            WHERE order_time BETWEEN ? AND ?
+            ORDER BY order_time DESC
+            """;
+        
+        List<Order> orders = jdbcTemplate.query(query, orderRowMapper, 
+                java.sql.Timestamp.valueOf(startDate), 
+                java.sql.Timestamp.valueOf(endDate));
+        
+        for (Order order : orders) {
+            List<OrderItem> orderItems = jdbcTemplate.query(SELECT_ORDER_ITEMS_BY_ORDER, 
+                    orderItemRowMapper, order.getOrderId());
+            order.setOrderItems(orderItems);
+        }
+        return orders;
+    }
+    
+    /**
+     * Count orders by status for dashboard
+     * @param status Order status
+     * @return Count of orders with the specified status
+     */
+    public int countByStatus(OrderStatus status) {
+        String query = "SELECT COUNT(*) FROM orders WHERE status = ?::order_status";
+        Integer count = jdbcTemplate.queryForObject(query, Integer.class, status.name());
+        return count != null ? count : 0;
+    }
+    
+    /**
+     * Get average order processing time for performance metrics
+     * @return Average processing time in minutes
+     */
+    public double getAverageProcessingTime() {
+        String query = """
+            SELECT AVG(EXTRACT(EPOCH FROM (completed_time - order_time))/60) 
+            FROM orders 
+            WHERE status = 'COMPLETED' AND completed_time IS NOT NULL
+            """;
+        
+        Double avgTime = jdbcTemplate.queryForObject(query, Double.class);
+        return avgTime != null ? avgTime : 0.0;
+    }
 }

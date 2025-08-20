@@ -270,4 +270,198 @@ public class OrderService {
     public int getCompletedOrdersCount() {
         return getOrdersByStatus(OrderStatus.COMPLETED).size();
     }
+    
+    // ================================
+    // STAFF-SPECIFIC ORDER METHODS
+    // ================================
+    
+    /**
+     * Get orders by multiple statuses (for staff dashboard)
+     * @param statuses List of order statuses to include
+     * @return List of orders matching any of the statuses
+     */
+    public List<Order> getOrdersByStatuses(List<OrderStatus> statuses) {
+        try {
+            return orderDAO.findByStatuses(statuses);
+        } catch (Exception e) {
+            System.err.println("Error getting orders by statuses: " + e.getMessage());
+            e.printStackTrace();
+            return new java.util.ArrayList<>();
+        }
+    }
+    
+    /**
+     * Get orders assigned to a specific staff member
+     * @param staffId Staff ID
+     * @return List of orders assigned to staff
+     */
+    public List<Order> getOrdersByAssignedStaff(String staffId) {
+        try {
+            return orderDAO.findByAssignedStaff(staffId);
+        } catch (Exception e) {
+            System.err.println("Error getting orders by assigned staff: " + e.getMessage());
+            e.printStackTrace();
+            return new java.util.ArrayList<>();
+        }
+    }
+    
+    /**
+     * Assign order to a staff member
+     * @param orderId Order ID
+     * @param staffId Staff ID
+     * @return Success status
+     */
+    public boolean assignOrderToStaff(String orderId, String staffId) {
+        try {
+            Optional<Order> orderOpt = findOrderById(orderId);
+            if (orderOpt.isPresent()) {
+                Order order = orderOpt.get();
+                if (order.getStatus() == OrderStatus.PENDING || order.getStatus() == OrderStatus.CONFIRMED) {
+                    // This would require adding assigned_staff_id field to orders table
+                    // For now, we'll use the special instructions field to track assignment
+                    String currentInstructions = order.getSpecialInstructions() != null ? 
+                        order.getSpecialInstructions() : "";
+                    order.setSpecialInstructions(currentInstructions + " | 負責員工: " + staffId);
+                    orderDAO.update(order);
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            System.err.println("Error assigning order to staff: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * Get overdue orders (orders that should have been completed by now)
+     * @param minutesThreshold Orders older than this many minutes are considered overdue
+     * @return List of overdue orders
+     */
+    public List<Order> getOverdueOrders(int minutesThreshold) {
+        try {
+            return orderDAO.findOverdueOrders(minutesThreshold);
+        } catch (Exception e) {
+            System.err.println("Error getting overdue orders: " + e.getMessage());
+            e.printStackTrace();
+            return new java.util.ArrayList<>();
+        }
+    }
+    
+    /**
+     * Get emergency orders (high priority or significantly overdue)
+     * @return List of emergency orders
+     */
+    public List<Order> getEmergencyOrders() {
+        try {
+            // Consider orders overdue by more than 20 minutes as emergency
+            List<Order> overdueOrders = getOverdueOrders(20);
+            
+            // Add any orders with special priority flags
+            List<Order> allActiveOrders = getActiveOrders();
+            List<Order> emergencyOrders = new java.util.ArrayList<>(overdueOrders);
+            
+            // Check for special instructions indicating priority
+            for (Order order : allActiveOrders) {
+                if (order.getSpecialInstructions() != null && 
+                    (order.getSpecialInstructions().contains("緊急") || 
+                     order.getSpecialInstructions().contains("急件") ||
+                     order.getSpecialInstructions().contains("優先"))) {
+                    if (!emergencyOrders.contains(order)) {
+                        emergencyOrders.add(order);
+                    }
+                }
+            }
+            
+            return emergencyOrders;
+        } catch (Exception e) {
+            System.err.println("Error getting emergency orders: " + e.getMessage());
+            e.printStackTrace();
+            return new java.util.ArrayList<>();
+        }
+    }
+    
+    /**
+     * Get today's order statistics for staff dashboard
+     * @return Order statistics summary
+     */
+    public OrderStatisticsSummary getTodaysOrderStatistics() {
+        try {
+            List<Order> todaysOrders = getTodaysOrders();
+            
+            OrderStatisticsSummary summary = new OrderStatisticsSummary();
+            summary.setTotalOrders(todaysOrders.size());
+            
+            int pending = 0, preparing = 0, ready = 0, completed = 0, cancelled = 0;
+            double totalRevenue = 0.0;
+            
+            for (Order order : todaysOrders) {
+                switch (order.getStatus()) {
+                    case PENDING, PENDING_PAYMENT, CONFIRMED -> pending++;
+                    case PREPARING -> preparing++;
+                    case READY, DELIVERED -> ready++;
+                    case COMPLETED -> {
+                        completed++;
+                        if (order.getTotalAmount() != null) {
+                            totalRevenue += order.getTotalAmount().doubleValue();
+                        }
+                    }
+                    case CANCELLED -> cancelled++;
+                }
+            }
+            
+            summary.setPendingOrders(pending);
+            summary.setPreparingOrders(preparing);
+            summary.setReadyOrders(ready);
+            summary.setCompletedOrders(completed);
+            summary.setCancelledOrders(cancelled);
+            summary.setTotalRevenue(totalRevenue);
+            summary.setCompletionRate(todaysOrders.size() > 0 ? 
+                (double) completed / todaysOrders.size() : 0.0);
+            
+            return summary;
+        } catch (Exception e) {
+            System.err.println("Error getting today's order statistics: " + e.getMessage());
+            e.printStackTrace();
+            return new OrderStatisticsSummary(); // Return empty summary on error
+        }
+    }
+    
+    // Inner class for order statistics summary
+    public static class OrderStatisticsSummary {
+        private int totalOrders;
+        private int pendingOrders;
+        private int preparingOrders;
+        private int readyOrders;
+        private int completedOrders;
+        private int cancelledOrders;
+        private double totalRevenue;
+        private double completionRate;
+        
+        // Getters and Setters
+        public int getTotalOrders() { return totalOrders; }
+        public void setTotalOrders(int totalOrders) { this.totalOrders = totalOrders; }
+        
+        public int getPendingOrders() { return pendingOrders; }
+        public void setPendingOrders(int pendingOrders) { this.pendingOrders = pendingOrders; }
+        
+        public int getPreparingOrders() { return preparingOrders; }
+        public void setPreparingOrders(int preparingOrders) { this.preparingOrders = preparingOrders; }
+        
+        public int getReadyOrders() { return readyOrders; }
+        public void setReadyOrders(int readyOrders) { this.readyOrders = readyOrders; }
+        
+        public int getCompletedOrders() { return completedOrders; }
+        public void setCompletedOrders(int completedOrders) { this.completedOrders = completedOrders; }
+        
+        public int getCancelledOrders() { return cancelledOrders; }
+        public void setCancelledOrders(int cancelledOrders) { this.cancelledOrders = cancelledOrders; }
+        
+        public double getTotalRevenue() { return totalRevenue; }
+        public void setTotalRevenue(double totalRevenue) { this.totalRevenue = totalRevenue; }
+        
+        public double getCompletionRate() { return completionRate; }
+        public void setCompletionRate(double completionRate) { this.completionRate = completionRate; }
+    }
 }
