@@ -67,6 +67,7 @@ class RanbowApp {
     showNavigation() {
         const topNav = document.getElementById('top-nav');
         const bottomNav = document.getElementById('bottom-nav');
+        const staffNav = document.getElementById('staff-nav');
         
         if (this.currentUser) {
             topNav?.classList.remove('hidden');
@@ -74,10 +75,70 @@ class RanbowApp {
             // Update user dropdown info
             this.updateUserDropdownInfo();
             
-            // Show bottom nav only for customers
+            // Show appropriate navigation based on role
             if (this.currentUser.role === 'CUSTOMER') {
                 bottomNav?.classList.remove('hidden');
+                staffNav?.classList.add('hidden');
+            } else if (this.currentUser.role === 'STAFF') {
+                bottomNav?.classList.add('hidden');
+                this.showStaffNavigation();
             }
+        }
+    }
+
+    showStaffNavigation() {
+        const staffNav = document.getElementById('staff-nav');
+        if (staffNav) {
+            staffNav.classList.remove('hidden');
+        } else {
+            // Create staff navigation if it doesn't exist
+            this.createStaffNavigation();
+        }
+    }
+
+    createStaffNavigation() {
+        const mainContainer = document.getElementById('app');
+        if (!mainContainer) return;
+
+        const staffNavHTML = `
+            <nav id="staff-nav" class="staff-bottom-nav">
+                <div class="staff-nav-items">
+                    <div class="staff-nav-item" data-page="staff-dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>工作台</span>
+                    </div>
+                    <div class="staff-nav-item" data-page="staff-orders">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>訂單</span>
+                    </div>
+                    <div class="staff-nav-item" data-page="staff-kitchen">
+                        <i class="fas fa-utensils"></i>
+                        <span>廚房</span>
+                    </div>
+                    <div class="staff-nav-item" data-page="staff-stats">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>統計</span>
+                    </div>
+                    <div class="staff-nav-item" data-page="staff-profile">
+                        <i class="fas fa-user"></i>
+                        <span>我的</span>
+                    </div>
+                </div>
+            </nav>
+        `;
+
+        mainContainer.insertAdjacentHTML('beforeend', staffNavHTML);
+
+        // Add event listeners for staff navigation
+        const staffNav = document.getElementById('staff-nav');
+        if (staffNav) {
+            staffNav.addEventListener('click', (e) => {
+                const navItem = e.target.closest('.staff-nav-item');
+                if (navItem) {
+                    const page = navItem.dataset.page;
+                    this.navigateTo(page);
+                }
+            });
         }
     }
 
@@ -220,7 +281,7 @@ class RanbowApp {
     }
 
     hasPagePermission(page) {
-        const publicPages = ['login', 'register', 'forgot-password', 'home'];
+        const publicPages = ['login', 'register', 'forgot-password', 'home', 'staff-auth'];
         
         if (publicPages.includes(page)) {
             return true;
@@ -232,7 +293,7 @@ class RanbowApp {
         
         const rolePages = {
             'CUSTOMER': ['home', 'menu', 'menu-item', 'cart', 'checkout', 'orders', 'profile', 'order-detail'],
-            'STAFF': ['staff-dashboard', 'staff-orders', 'staff-profile'],
+            'STAFF': ['staff-dashboard', 'staff-orders', 'staff-profile', 'staff-kitchen', 'staff-stats', 'staff-notifications', 'staff-auth'],
             'ADMIN': ['admin-dashboard', 'admin-menu', 'admin-orders', 'admin-users', 'admin-reports']
         };
         
@@ -275,9 +336,18 @@ class RanbowApp {
         // Parse page name from potential query string
         const [pageName, queryString] = page.split('?');
         
-        // Update bottom navigation active state
+        // Update bottom navigation active state (customer nav)
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.page === pageName) {
+                item.classList.add('active');
+            }
+        });
+
+        // Update staff navigation active state
+        const staffNavItems = document.querySelectorAll('.staff-nav-item');
+        staffNavItems.forEach(item => {
             item.classList.remove('active');
             if (item.dataset.page === pageName) {
                 item.classList.add('active');
@@ -297,8 +367,9 @@ class RanbowApp {
         // Show/hide back button based on page
         const backBtn = document.querySelector('.back-btn');
         if (backBtn) {
-            // Hide back button on home page since it's the top-level page
-            if (pageName === 'home') {
+            // Hide back button on main pages
+            const mainPages = ['home', 'staff-dashboard', 'admin-dashboard'];
+            if (mainPages.includes(pageName)) {
                 backBtn.style.display = 'none';
             } else {
                 backBtn.style.display = 'block';
@@ -318,7 +389,13 @@ class RanbowApp {
             'login': '登入',
             'register': '註冊',
             'forgot-password': '忘記密碼',
-            'staff-dashboard': '工作台',
+            'staff-auth': '員工登入',
+            'staff-dashboard': '員工工作台',
+            'staff-orders': '訂單管理',
+            'staff-kitchen': '廚房工作台',
+            'staff-stats': '工作統計',
+            'staff-notifications': '通知中心',
+            'staff-profile': '個人中心',
             'admin-dashboard': '管理後台'
         };
         
@@ -341,6 +418,13 @@ class RanbowApp {
             'login': authPages.getLoginPageTemplate(),
             'register': authPages.getRegisterPageTemplate(),
             'forgot-password': authPages.getForgotPasswordTemplate(),
+            'staff-auth': staffAuthPages.getStaffLoginPageTemplate(),
+            'staff-dashboard': staffDashboardPage.getStaffDashboardTemplate(),
+            'staff-orders': staffOrdersPage.getStaffOrdersTemplate(),
+            'staff-kitchen': staffKitchenPage.getStaffKitchenTemplate(),
+            'staff-stats': staffStatsPage.getStaffStatsTemplate(),
+            'staff-notifications': staffNotificationsPage.getStaffNotificationsTemplate(),
+            'staff-profile': staffProfilePage.getStaffProfileTemplate(),
             '404': this.get404PageTemplate(),
             'error': this.getErrorPageTemplate()
         };
@@ -385,6 +469,27 @@ class RanbowApp {
                 break;
             case 'profile':
                 await profilePage.initializeProfilePage();
+                break;
+            case 'staff-auth':
+                staffAuthPages.initializeStaffLoginPage();
+                break;
+            case 'staff-dashboard':
+                await staffDashboardPage.initializeStaffDashboardPage();
+                break;
+            case 'staff-orders':
+                await staffOrdersPage.initializeStaffOrdersPage();
+                break;
+            case 'staff-kitchen':
+                await staffKitchenPage.initializeStaffKitchenPage();
+                break;
+            case 'staff-stats':
+                await staffStatsPage.initializeStaffStatsPage();
+                break;
+            case 'staff-notifications':
+                await staffNotificationsPage.initializeStaffNotificationsPage();
+                break;
+            case 'staff-profile':
+                await staffProfilePage.initializeStaffProfilePage();
                 break;
         }
     }

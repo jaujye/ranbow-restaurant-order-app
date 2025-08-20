@@ -1,5 +1,6 @@
 package com.ranbow.restaurant.models;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -13,10 +14,20 @@ public class User {
     private LocalDateTime lastLoginAt;
     private boolean isActive;
     
+    // 新增個人中心相關字段
+    private String avatarUrl;
+    private LocalDate birthday;
+    private MemberLevel memberLevel;
+    private double totalSpent;
+    private int totalOrders;
+    
     public User() {
         this.userId = UUID.randomUUID().toString();
         this.createdAt = LocalDateTime.now();
         this.isActive = true;
+        this.memberLevel = MemberLevel.BRONZE;
+        this.totalSpent = 0.0;
+        this.totalOrders = 0;
     }
     
     public User(String username, String email, String phoneNumber, UserRole role) {
@@ -90,6 +101,47 @@ public class User {
     
     public void setActive(boolean active) {
         isActive = active;
+    }
+    
+    // 新增字段的getter和setter
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+    
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+    
+    public LocalDate getBirthday() {
+        return birthday;
+    }
+    
+    public void setBirthday(LocalDate birthday) {
+        this.birthday = birthday;
+    }
+    
+    public MemberLevel getMemberLevel() {
+        return memberLevel;
+    }
+    
+    public void setMemberLevel(MemberLevel memberLevel) {
+        this.memberLevel = memberLevel;
+    }
+    
+    public double getTotalSpent() {
+        return totalSpent;
+    }
+    
+    public void setTotalSpent(double totalSpent) {
+        this.totalSpent = totalSpent;
+    }
+    
+    public int getTotalOrders() {
+        return totalOrders;
+    }
+    
+    public void setTotalOrders(int totalOrders) {
+        this.totalOrders = totalOrders;
     }
     
     @Override

@@ -67,13 +67,16 @@
       "mcp__playwright__browser_press_key",
       "mcp__playwright__browser_type",
       "mcp__playwright__browser_navigate_back",
-      "mcp__playwright__browser_close"
+      "mcp__playwright__browser_close",
+      "Bash(git checkout:*)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": [],
     "defaultMode": "acceptEdits",
     "additionalDirectories": [
-      "C:\\c\\Users\\JauJyeCH\\Desktop"
+      "C:\\c\\Users\\JauJyeCH\\Desktop",
+      "C:\\c\\Users"
     ]
   }
 }
