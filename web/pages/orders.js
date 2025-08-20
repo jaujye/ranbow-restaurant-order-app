@@ -249,8 +249,140 @@ class OrdersPage {
             container.innerHTML = this.getEmptyStateHTML('history');
         } else {
             const sortedOrders = historyOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            container.innerHTML = sortedOrders.map(order => this.renderOrderCard(order, false)).join('');
+            container.innerHTML = this.renderOrdersByDateGroups(sortedOrders);
         }
+    }
+
+    renderOrdersByDateGroups(orders) {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+        const groups = {
+            today: [],
+            yesterday: [],
+            thisWeek: [],
+            older: []
+        };
+
+        // Group orders by date
+        orders.forEach(order => {
+            const orderDate = new Date(order.createdAt);
+            const orderDay = new Date(orderDate.getFullYear(), orderDate.getMonth(), orderDate.getDate());
+            
+            if (orderDay.getTime() === today.getTime()) {
+                groups.today.push(order);
+            } else if (orderDay.getTime() === yesterday.getTime()) {
+                groups.yesterday.push(order);
+            } else if (orderDate >= weekAgo) {
+                groups.thisWeek.push(order);
+            } else {
+                groups.older.push(order);
+            }
+        });
+
+        let html = '';
+        
+        // Render each group with headers
+        if (groups.today.length > 0) {
+            html += `
+                <div class="orders-date-group">
+                    <div class="date-group-header">
+                        <i class="fas fa-calendar-day"></i>
+                        <h4>📅 今天</h4>
+                    </div>
+                    <div class="date-group-orders">
+                        ${groups.today.map(order => this.renderHistoryOrderCard(order)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        if (groups.yesterday.length > 0) {
+            html += `
+                <div class="orders-date-group">
+                    <div class="date-group-header">
+                        <i class="fas fa-calendar-minus"></i>
+                        <h4>📅 昨天</h4>
+                    </div>
+                    <div class="date-group-orders">
+                        ${groups.yesterday.map(order => this.renderHistoryOrderCard(order)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        if (groups.thisWeek.length > 0) {
+            html += `
+                <div class="orders-date-group">
+                    <div class="date-group-header">
+                        <i class="fas fa-calendar-week"></i>
+                        <h4>📅 本週</h4>
+                    </div>
+                    <div class="date-group-orders">
+                        ${groups.thisWeek.map(order => this.renderHistoryOrderCard(order)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        if (groups.older.length > 0) {
+            html += `
+                <div class="orders-date-group">
+                    <div class="date-group-header">
+                        <i class="fas fa-calendar-alt"></i>
+                        <h4>📅 更早</h4>
+                    </div>
+                    <div class="date-group-orders">
+                        ${groups.older.map(order => this.renderHistoryOrderCard(order)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        return html;
+    }
+
+    renderHistoryOrderCard(order) {
+        const statusInfo = Helpers.getOrderStatusInfo(order.status);
+        const orderTime = Helpers.formatDateTime(order.createdAt);
+        
+        return `
+            <div class="history-order-card" onclick="ordersPage.showOrderDetail('${order.orderId}')">
+                <div class="history-order-header">
+                    <div class="order-id-section">
+                        <span class="order-id">#${order.orderId}</span>
+                        <span class="order-status ${order.status.toLowerCase()}">
+                            <i class="fas fa-${statusInfo.icon}"></i>
+                            ${statusInfo.text}
+                        </span>
+                    </div>
+                    <div class="order-time">${orderTime}</div>
+                </div>
+                
+                <div class="history-order-summary">
+                    <div class="order-items-count">
+                        <i class="fas fa-utensils"></i>
+                        <span>${order.items ? order.items.length : 0} 項商品</span>
+                    </div>
+                    <div class="order-amount">
+                        <span class="amount">${Helpers.formatCurrency(order.totalAmount)}</span>
+                    </div>
+                </div>
+
+                <div class="history-order-actions">
+                    <button class="btn btn-outline btn-small" onclick="event.stopPropagation(); ordersPage.showOrderDetail('${order.orderId}')">
+                        <i class="fas fa-eye"></i>
+                        查看詳情
+                    </button>
+                    <button class="btn btn-primary btn-small" onclick="event.stopPropagation(); ordersPage.reorderItems('${order.orderId}')">
+                        <i class="fas fa-redo"></i>
+                        再次訂購
+                    </button>
+                </div>
+            </div>
+        `;
     }
 
     applyHistoryFilter(orders, filter) {
@@ -561,36 +693,80 @@ class OrdersPage {
 
                 <!-- Order Actions -->
                 ${this.renderDetailActions(order)}
+                
+                <!-- Contact Restaurant Section -->
+                <div class="contact-section">
+                    <h4>需要協助？</h4>
+                    <div class="contact-actions">
+                        <button class="btn btn-outline" onclick="ordersPage.contactRestaurant('${order.orderId}')">
+                            <i class="fas fa-phone"></i>
+                            聯繫餐廳
+                        </button>
+                        <button class="btn btn-outline" onclick="ordersPage.viewTableLocation('${order.tableNumber}')">
+                            <i class="fas fa-map-marker-alt"></i>
+                            桌位位置
+                        </button>
+                    </div>
+                </div>
             </div>
         `;
     }
 
     renderOrderProgress(status) {
         const steps = [
-            { key: 'PENDING_PAYMENT', text: '等待付款', icon: 'credit-card' },
-            { key: 'PENDING', text: '訂單確認', icon: 'clock' },
-            { key: 'CONFIRMED', text: '廚房接單', icon: 'check' },
-            { key: 'PREPARING', text: '正在製作', icon: 'utensils' },
-            { key: 'READY', text: '製作完成', icon: 'bell' },
-            { key: 'DELIVERED', text: '已送達', icon: 'check-double' }
+            { key: 'PENDING_PAYMENT', text: '等待付款', icon: 'credit-card', desc: '請完成付款' },
+            { key: 'PENDING', text: '訂單確認', icon: 'clock', desc: '訂單處理中' },
+            { key: 'CONFIRMED', text: '廚房接單', icon: 'check', desc: '廚房已確認' },
+            { key: 'PREPARING', text: '正在製作', icon: 'utensils', desc: '正在烹飪中' },
+            { key: 'READY', text: '製作完成', icon: 'bell', desc: '請取餐' },
+            { key: 'DELIVERED', text: '已送達', icon: 'check-double', desc: '用餐愉快' }
         ];
 
         const currentIndex = steps.findIndex(step => step.key === status);
+        const currentTime = new Date();
         
         return `
-            <div class="progress-steps">
+            <div class="progress-timeline">
                 ${steps.map((step, index) => {
-                    let stepClass = 'step';
-                    if (index < currentIndex) stepClass += ' completed';
-                    if (index === currentIndex) stepClass += ' current';
-                    if (status === 'CANCELLED') stepClass = index === 0 ? 'step cancelled' : 'step';
+                    let stepClass = 'progress-step';
+                    let timeInfo = '';
+                    
+                    if (index < currentIndex) {
+                        stepClass += ' completed';
+                        // 模擬已完成步驟的時間
+                        const minutesAgo = (currentIndex - index) * 5;
+                        timeInfo = `<span class="step-time">${minutesAgo}分鐘前</span>`;
+                    } else if (index === currentIndex) {
+                        stepClass += ' current';
+                        if (status === 'PREPARING') {
+                            timeInfo = `<span class="step-time estimate">預計還需15分鐘</span>`;
+                        } else {
+                            timeInfo = `<span class="step-time current">進行中</span>`;
+                        }
+                    } else {
+                        stepClass += ' pending';
+                    }
+                    
+                    if (status === 'CANCELLED') {
+                        stepClass = index === 0 ? 'progress-step cancelled' : 'progress-step disabled';
+                    }
                     
                     return `
                         <div class="${stepClass}">
-                            <div class="step-icon">
-                                <i class="fas fa-${step.icon}"></i>
+                            <div class="step-connector"></div>
+                            <div class="step-marker">
+                                <div class="step-icon">
+                                    ${index < currentIndex || (index === currentIndex && status !== 'CANCELLED') ? 
+                                      `<i class="fas fa-${step.icon}"></i>` : 
+                                      `<i class="fas fa-${step.icon}"></i>`
+                                    }
+                                </div>
                             </div>
-                            <div class="step-text">${step.text}</div>
+                            <div class="step-content">
+                                <div class="step-title">${index < currentIndex ? '✅' : (index === currentIndex ? '🔄' : '⏳')} ${step.text}</div>
+                                <div class="step-description">${step.desc}</div>
+                                ${timeInfo}
+                            </div>
                         </div>
                     `;
                 }).join('')}
@@ -766,6 +942,91 @@ class OrdersPage {
             clearInterval(this.refreshInterval);
             this.refreshInterval = null;
         }
+    }
+
+    // Contact restaurant functionality
+    contactRestaurant(orderId) {
+        const order = this.orders.find(o => o.orderId === orderId);
+        if (!order) return;
+        
+        const contactInfo = `
+            <div class="restaurant-contact">
+                <div class="contact-header">
+                    <i class="fas fa-phone-alt"></i>
+                    <h4>聯絡餐廳</h4>
+                </div>
+                <div class="contact-info">
+                    <p><strong>訂單編號:</strong> #${orderId}</p>
+                    <p><strong>桌號:</strong> ${order.tableNumber}</p>
+                    <hr>
+                    <div class="contact-methods">
+                        <a href="tel:+886-2-1234-5678" class="contact-method">
+                            <i class="fas fa-phone"></i>
+                            <span>電話: 02-1234-5678</span>
+                        </a>
+                        <button class="contact-method" onclick="ordersPage.callWaiter('${order.tableNumber}')">
+                            <i class="fas fa-bell"></i>
+                            <span>呼叫服務生</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        modal.show(contactInfo, {
+            title: '聯絡餐廳',
+            size: 'small'
+        });
+    }
+    
+    async callWaiter(tableNumber) {
+        try {
+            // 模擬呼叫服務生API
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            toast.success(`已通知服務生前往桌號 ${tableNumber}`);
+        } catch (error) {
+            console.error('Failed to call waiter:', error);
+            toast.error('呼叫服務生失敗，請直接聯繫餐廳');
+        }
+    }
+    
+    viewTableLocation(tableNumber) {
+        const locationInfo = `
+            <div class="table-location">
+                <div class="location-header">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h4>桌位位置</h4>
+                </div>
+                <div class="location-content">
+                    <div class="table-map">
+                        <div class="restaurant-layout">
+                            <div class="table-indicator table-${tableNumber}">
+                                <span>${tableNumber}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="location-description">
+                        <p><strong>桌號 ${tableNumber}</strong></p>
+                        <p>位於餐廳${this.getTableLocation(tableNumber)}</p>
+                        <p class="location-hint">如需協助找到座位，請聯繫服務生</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        modal.show(locationInfo, {
+            title: '桌位位置',
+            size: 'medium'
+        });
+    }
+    
+    getTableLocation(tableNumber) {
+        // 簡單的桌位區域對應
+        const table = parseInt(tableNumber);
+        if (table <= 4) return '靠窗區域';
+        if (table <= 8) return '中央用餐區';
+        if (table <= 12) return '包廂區域';
+        return '其他區域';
     }
 
     // Cleanup when leaving page

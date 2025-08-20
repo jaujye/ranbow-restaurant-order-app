@@ -31,17 +31,42 @@ class ProfilePage {
 
             <!-- Profile Stats -->
             <div class="profile-stats">
-                <div class="stat-item">
-                    <div class="stat-number" id="total-orders">0</div>
-                    <div class="stat-label">總訂單數</div>
+                <h3>📊 我的統計</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="total-orders">0</div>
+                            <div class="stat-label">總訂單數</div>
+                            <div class="stat-subtitle" id="total-orders-subtitle">筆</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="total-spent">NT$ 0</div>
+                            <div class="stat-label">累計消費</div>
+                            <div class="stat-subtitle" id="total-spent-subtitle"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="total-spent">NT$ 0</div>
-                    <div class="stat-label">累計消費</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="member-level">普通</div>
-                    <div class="stat-label">會員等級</div>
+                <div class="member-level-card">
+                    <div class="member-level-content">
+                        <div class="member-badge">
+                            <span id="member-level">普通</span>
+                        </div>
+                        <div class="member-info">
+                            <div class="member-title">會員等級</div>
+                            <div class="member-benefits" id="member-benefits">享有基本會員優惠</div>
+                        </div>
+                    </div>
+                    <div class="member-progress" id="member-progress">
+                        <!-- 會員進度條將在這裡顯示 -->
+                    </div>
                 </div>
             </div>
 
@@ -104,6 +129,46 @@ class ProfilePage {
                             </div>
                         </div>
 
+                        <div class="menu-item" onclick="profilePage.showCoupons()">
+                            <div class="menu-icon">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <div class="menu-content">
+                                <div class="menu-title">🎁 優惠券</div>
+                                <div class="menu-subtitle">查看和使用優惠券</div>
+                            </div>
+                            <div class="menu-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                                <span class="menu-badge" id="coupon-count">3</span>
+                            </div>
+                        </div>
+
+                        <div class="menu-item" onclick="profilePage.showAddresses()">
+                            <div class="menu-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="menu-content">
+                                <div class="menu-title">📍 收貨地址</div>
+                                <div class="menu-subtitle">管理外送地址</div>
+                            </div>
+                            <div class="menu-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </div>
+
+                        <div class="menu-item" onclick="profilePage.showMyReviews()">
+                            <div class="menu-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="menu-content">
+                                <div class="menu-title">⭐ 我的評價</div>
+                                <div class="menu-subtitle">查看已評價的餐點</div>
+                            </div>
+                            <div class="menu-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </div>
+
                         <div class="menu-item" onclick="profilePage.showNotificationSettings()">
                             <div class="menu-icon">
                                 <i class="fas fa-bell"></i>
@@ -122,8 +187,21 @@ class ProfilePage {
                                 <i class="fas fa-shield-alt"></i>
                             </div>
                             <div class="menu-content">
-                                <div class="menu-title">隱私設定</div>
+                                <div class="menu-title">🛡️ 隱私設定</div>
                                 <div class="menu-subtitle">管理個人資料隱私</div>
+                            </div>
+                            <div class="menu-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </div>
+
+                        <div class="menu-item" onclick="profilePage.contactCustomerService()">
+                            <div class="menu-icon">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <div class="menu-content">
+                                <div class="menu-title">📞 聯繫客服</div>
+                                <div class="menu-subtitle">獲得幫助和支援</div>
                             </div>
                             <div class="menu-arrow">
                                 <i class="fas fa-chevron-right"></i>
@@ -148,7 +226,7 @@ class ProfilePage {
                                 <i class="fas fa-info-circle"></i>
                             </div>
                             <div class="menu-content">
-                                <div class="menu-title">關於我們</div>
+                                <div class="menu-title">ℹ️ 關於我們</div>
                                 <div class="menu-subtitle">應用程式資訊和服務條款</div>
                             </div>
                             <div class="menu-arrow">
@@ -341,18 +419,80 @@ class ProfilePage {
         try {
             // Mock user statistics - in real app, this would come from API
             const stats = {
-                totalOrders: 12,
-                totalSpent: 8640,
+                totalOrders: 28,
+                totalSpent: 12580,
                 memberLevel: 'SILVER'
             };
 
             document.getElementById('total-orders').textContent = stats.totalOrders;
+            document.getElementById('total-orders-subtitle').textContent = '筆';
             document.getElementById('total-spent').textContent = Helpers.formatCurrency(stats.totalSpent);
+            document.getElementById('total-spent-subtitle').textContent = '本月已消費 NT$ 1,200';
             document.getElementById('member-level').textContent = this.getMemberLevelText(stats.memberLevel);
+            
+            // Update member benefits and progress
+            this.updateMemberLevelDisplay(stats.memberLevel, stats.totalSpent);
+            
+            // Update coupon count
+            document.getElementById('coupon-count').textContent = '3';
 
         } catch (error) {
             console.error('Failed to load user stats:', error);
         }
+    }
+
+    updateMemberLevelDisplay(level, totalSpent) {
+        const benefits = this.getMemberBenefits(level);
+        const progress = this.getMemberProgress(level, totalSpent);
+        
+        document.getElementById('member-benefits').textContent = benefits;
+        
+        const progressContainer = document.getElementById('member-progress');
+        if (progressContainer && progress.showProgress) {
+            progressContainer.innerHTML = `
+                <div class="progress-info">
+                    <span>距離 ${progress.nextLevel} 還需</span>
+                    <span class="progress-amount">${Helpers.formatCurrency(progress.remaining)}</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progress.percentage}%"></div>
+                </div>
+            `;
+        }
+    }
+
+    getMemberBenefits(level) {
+        const benefits = {
+            'BRONZE': '享有基本會員優惠',
+            'SILVER': '享有銀牌專屬優惠和生日禮',
+            'GOLD': '享有金牌VIP待遇和免費外送',
+            'PLATINUM': '享有白金頂級服務和專屬客服'
+        };
+        return benefits[level] || '享有基本會員優惠';
+    }
+
+    getMemberProgress(level, totalSpent) {
+        const levels = {
+            'BRONZE': { next: 'SILVER', threshold: 5000 },
+            'SILVER': { next: 'GOLD', threshold: 15000 },
+            'GOLD': { next: 'PLATINUM', threshold: 30000 },
+            'PLATINUM': { next: null, threshold: null }
+        };
+        
+        const currentLevel = levels[level];
+        if (!currentLevel || !currentLevel.next) {
+            return { showProgress: false };
+        }
+        
+        const remaining = currentLevel.threshold - totalSpent;
+        const percentage = Math.min((totalSpent / currentLevel.threshold) * 100, 100);
+        
+        return {
+            showProgress: true,
+            nextLevel: this.getMemberLevelText(currentLevel.next),
+            remaining: remaining > 0 ? remaining : 0,
+            percentage: percentage
+        };
     }
 
     getMemberLevelText(level) {
@@ -632,6 +772,238 @@ class ProfilePage {
 
     showAppSettings() {
         modal.alert('應用程式設定功能開發中...', '提示');
+    }
+
+    showCoupons() {
+        const couponsContent = `
+            <div class="coupons-content">
+                <div class="coupon-card available">
+                    <div class="coupon-header">
+                        <div class="coupon-discount">9折</div>
+                        <div class="coupon-type">滿額優惠</div>
+                    </div>
+                    <div class="coupon-details">
+                        <p class="coupon-title">滿500折50</p>
+                        <p class="coupon-desc">單筆消費滿NT$ 500即可使用</p>
+                        <p class="coupon-expire">有效期至 2024-12-31</p>
+                    </div>
+                    <div class="coupon-action">
+                        <button class="btn btn-primary btn-small">立即使用</button>
+                    </div>
+                </div>
+                
+                <div class="coupon-card available">
+                    <div class="coupon-header">
+                        <div class="coupon-discount">免費</div>
+                        <div class="coupon-type">生日禮</div>
+                    </div>
+                    <div class="coupon-details">
+                        <p class="coupon-title">生日免費甜點</p>
+                        <p class="coupon-desc">生日月份可免費兌換甜點一份</p>
+                        <p class="coupon-expire">有效期至 2024-12-31</p>
+                    </div>
+                    <div class="coupon-action">
+                        <button class="btn btn-primary btn-small">立即使用</button>
+                    </div>
+                </div>
+                
+                <div class="coupon-card used">
+                    <div class="coupon-header">
+                        <div class="coupon-discount">8折</div>
+                        <div class="coupon-type">已使用</div>
+                    </div>
+                    <div class="coupon-details">
+                        <p class="coupon-title">週末優惠券</p>
+                        <p class="coupon-desc">週末使用享8折優惠</p>
+                        <p class="coupon-expire">已於 2024-08-15 使用</p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        modal.show(couponsContent, {
+            title: '🎁 我的優惠券',
+            size: 'large'
+        });
+    }
+
+    showAddresses() {
+        const addressesContent = `
+            <div class="addresses-content">
+                <div class="address-card default">
+                    <div class="address-header">
+                        <span class="address-label">預設地址</span>
+                        <div class="address-actions">
+                            <button class="btn btn-outline btn-small">編輯</button>
+                            <button class="btn btn-outline btn-small">刪除</button>
+                        </div>
+                    </div>
+                    <div class="address-details">
+                        <p class="address-name">王小明</p>
+                        <p class="address-phone">0912-345-678</p>
+                        <p class="address-location">台北市中正區忠孝西路一段50號</p>
+                    </div>
+                </div>
+                
+                <div class="address-card">
+                    <div class="address-header">
+                        <span class="address-label">公司地址</span>
+                        <div class="address-actions">
+                            <button class="btn btn-outline btn-small">編輯</button>
+                            <button class="btn btn-outline btn-small">刪除</button>
+                        </div>
+                    </div>
+                    <div class="address-details">
+                        <p class="address-name">王小明</p>
+                        <p class="address-phone">0912-345-678</p>
+                        <p class="address-location">台北市信義區市府路45號</p>
+                    </div>
+                </div>
+                
+                <div class="add-address-card">
+                    <button class="btn btn-outline">
+                        <i class="fas fa-plus"></i>
+                        新增地址
+                    </button>
+                </div>
+            </div>
+        `;
+
+        modal.show(addressesContent, {
+            title: '📍 收貨地址',
+            size: 'large'
+        });
+    }
+
+    showMyReviews() {
+        const reviewsContent = `
+            <div class="reviews-content">
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-restaurant">彩虹餐廳</div>
+                        <div class="review-date">2024-08-15</div>
+                    </div>
+                    <div class="review-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span class="rating-text">5.0 分</span>
+                    </div>
+                    <div class="review-content">
+                        <p>招牌牛排很棒！肉質鮮嫩，調味恰到好處。服務態度也很好，會再來的！</p>
+                    </div>
+                    <div class="review-items">
+                        <span class="review-item">招牌牛排</span>
+                        <span class="review-item">蜜汁雞腿</span>
+                    </div>
+                </div>
+                
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-restaurant">彩虹餐廳</div>
+                        <div class="review-date">2024-08-10</div>
+                    </div>
+                    <div class="review-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                        <span class="rating-text">4.0 分</span>
+                    </div>
+                    <div class="review-content">
+                        <p>義式燉飯很香，份量也足夠。不過等待時間稍長，希望可以改善。</p>
+                    </div>
+                    <div class="review-items">
+                        <span class="review-item">義式燉飯</span>
+                    </div>
+                </div>
+                
+                <div class="empty-state">
+                    <p>沒有更多評價了</p>
+                    <button class="btn btn-primary" onclick="app.navigateTo('orders')">
+                        去評價訂單
+                    </button>
+                </div>
+            </div>
+        `;
+
+        modal.show(reviewsContent, {
+            title: '⭐ 我的評價',
+            size: 'large'
+        });
+    }
+
+    contactCustomerService() {
+        const serviceContent = `
+            <div class="customer-service-content">
+                <div class="service-header">
+                    <i class="fas fa-headset"></i>
+                    <h4>客服中心</h4>
+                    <p>我們隨時為您服務</p>
+                </div>
+                
+                <div class="service-options">
+                    <a href="tel:+886-2-1234-5678" class="service-option">
+                        <i class="fas fa-phone"></i>
+                        <div class="service-info">
+                            <div class="service-title">電話客服</div>
+                            <div class="service-subtitle">02-1234-5678</div>
+                            <div class="service-time">服務時間：09:00-22:00</div>
+                        </div>
+                    </a>
+                    
+                    <div class="service-option" onclick="profilePage.startChat()">
+                        <i class="fas fa-comments"></i>
+                        <div class="service-info">
+                            <div class="service-title">線上客服</div>
+                            <div class="service-subtitle">即時聊天協助</div>
+                            <div class="service-time">24小時線上服務</div>
+                        </div>
+                    </div>
+                    
+                    <a href="mailto:support@ranbow-restaurant.com" class="service-option">
+                        <i class="fas fa-envelope"></i>
+                        <div class="service-info">
+                            <div class="service-title">郵件客服</div>
+                            <div class="service-subtitle">support@ranbow-restaurant.com</div>
+                            <div class="service-time">24小時內回覆</div>
+                        </div>
+                    </a>
+                </div>
+                
+                <div class="faq-section">
+                    <h5>常見問題</h5>
+                    <div class="faq-item">
+                        <strong>Q: 如何取消訂單？</strong>
+                        <p>A: 在訂單確認前，可在「我的訂單」中取消。</p>
+                    </div>
+                    <div class="faq-item">
+                        <strong>Q: 可以修改訂單內容嗎？</strong>
+                        <p>A: 訂單確認後無法修改，請聯繫客服協助。</p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        modal.show(serviceContent, {
+            title: '📞 聯絡客服',
+            size: 'large'
+        });
+    }
+
+    startChat() {
+        toast.info('正在連接線上客服...');
+        // 這裡可以整合真實的線上客服系統
+        setTimeout(() => {
+            toast.success('客服人員將盡快為您服務！');
+        }, 2000);
     }
 
     showAbout() {
