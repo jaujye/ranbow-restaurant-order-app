@@ -228,6 +228,125 @@ class API {
         return this.get('/reports/performance');
     }
 
+    // === STAFF ENDPOINTS ===
+    
+    // Staff authentication
+    async staffLogin(identifier, password) {
+        return this.post('/staff/login', { identifier, password });
+    }
+
+    // Get staff profile
+    async getStaffProfile(staffId) {
+        return this.get(`/staff/profile/${staffId}`);
+    }
+
+    // Staff switching
+    async switchStaff(fromStaffId, toStaffId) {
+        return this.post('/staff/switch', { fromStaffId, toStaffId });
+    }
+
+    // Get available staff
+    async getAvailableStaff(currentStaffId) {
+        return this.get(`/staff/available/${currentStaffId}`);
+    }
+
+    // Get pending orders for staff
+    async getPendingStaffOrders() {
+        return this.get('/staff/orders/pending');
+    }
+
+    // Get in-progress orders
+    async getInProgressOrders() {
+        return this.get('/staff/orders/in-progress');
+    }
+
+    // Get completed orders
+    async getCompletedOrders() {
+        return this.get('/staff/orders/completed');
+    }
+
+    // Update order status (staff)
+    async updateStaffOrderStatus(orderId, statusData) {
+        return this.put(`/staff/orders/${orderId}/status`, statusData);
+    }
+
+    // Get order details for staff
+    async getStaffOrderDetails(orderId) {
+        return this.get(`/staff/orders/${orderId}/details`);
+    }
+
+    // === KITCHEN ENDPOINTS ===
+    
+    // Get kitchen queue
+    async getKitchenQueue() {
+        return this.get('/staff/kitchen/queue');
+    }
+
+    // Start preparing order
+    async startPreparingOrder(orderId, staffId) {
+        return this.post(`/staff/kitchen/start/${orderId}`, { staffId });
+    }
+
+    // Update cooking timer
+    async updateCookingTimer(orderId, timerData) {
+        return this.put(`/staff/kitchen/timer/${orderId}`, timerData);
+    }
+
+    // Complete order in kitchen
+    async completeKitchenOrder(orderId, staffId) {
+        return this.post(`/staff/kitchen/complete/${orderId}`, { staffId });
+    }
+
+    // === STAFF STATISTICS ENDPOINTS ===
+    
+    // Get daily statistics
+    async getDailyStats(staffId, date) {
+        const params = date ? `?date=${date}` : '';
+        return this.get(`/staff/${staffId}/stats/daily${params}`);
+    }
+
+    // Get weekly statistics
+    async getWeeklyStats(staffId, weekStart) {
+        const params = weekStart ? `?weekStart=${weekStart}` : '';
+        return this.get(`/staff/${staffId}/stats/weekly${params}`);
+    }
+
+    // Get monthly statistics
+    async getMonthlyStats(staffId, monthStart) {
+        const params = monthStart ? `?monthStart=${monthStart}` : '';
+        return this.get(`/staff/${staffId}/stats/monthly${params}`);
+    }
+
+    // Get team statistics
+    async getTeamStats() {
+        return this.get('/staff/team/stats');
+    }
+
+    // Get staff leaderboard
+    async getStaffLeaderboard(period = 'DAILY', limit = 10) {
+        return this.get(`/staff/leaderboard?period=${period}&limit=${limit}`);
+    }
+
+    // === NOTIFICATION ENDPOINTS ===
+    
+    // Get staff notifications
+    async getStaffNotifications(staffId, unreadOnly = false) {
+        return this.get(`/staff/notifications/${staffId}?unreadOnly=${unreadOnly}`);
+    }
+
+    // Mark notifications as read
+    async markNotificationsRead(staffId, notificationId = null) {
+        const body = notificationId ? { notificationId } : {};
+        return this.post(`/staff/notifications/${staffId}/mark-read`, body);
+    }
+
+    // Generic staff request method
+    async staffRequest(endpoint, options = {}) {
+        // Ensure endpoint starts with /staff if not already
+        const staffEndpoint = endpoint.startsWith('/staff') ? endpoint : `/staff${endpoint}`;
+        return this.request(staffEndpoint, options);
+    }
+
     // === HEALTH CHECK ===
     
     async healthCheck() {

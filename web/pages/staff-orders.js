@@ -335,69 +335,137 @@ class StaffOrders {
 
     async loadOrders() {
         try {
-            // Simulate loading orders data
-            this.orders = [
-                {
-                    id: '12347',
-                    tableNumber: 3,
-                    customerName: '王先生',
-                    customerPhone: '0912-345-678',
-                    status: 'EMERGENCY',
-                    totalAmount: 940,
-                    items: [
-                        { name: '招牌牛排', quantity: 2, price: 380, cookingTime: '25', notes: '不要洋蔥' },
-                        { name: '蜜汁雞腿', quantity: 1, price: 180, cookingTime: '20', notes: '無特殊要求' }
-                    ],
-                    notes: '請盡快準備，謝謝',
-                    createdAt: new Date(Date.now() - 30 * 60000), // 30 minutes ago
-                    acceptedAt: new Date(Date.now() - 29 * 60000),
-                    estimatedCompletionTime: new Date(Date.now() - 5 * 60000),
-                    overtimeMinutes: 5
-                },
-                {
-                    id: '12348',
-                    tableNumber: 5,
-                    status: 'IN_PROGRESS',
-                    totalAmount: 260,
-                    items: [
-                        { name: '義式燉飯', quantity: 1, price: 260, cookingTime: '18' }
-                    ],
-                    createdAt: new Date(Date.now() - 15 * 60000), // 15 minutes ago
-                    acceptedAt: new Date(Date.now() - 14 * 60000),
-                    estimatedCompletionTime: new Date(Date.now() + 3 * 60000)
-                },
-                {
-                    id: '12349',
-                    tableNumber: 2,
-                    status: 'COMPLETED',
-                    totalAmount: 380,
-                    items: [
-                        { name: '雞腿排', quantity: 1, price: 280, cookingTime: '20' },
-                        { name: '可樂', quantity: 2, price: 50 }
-                    ],
-                    createdAt: new Date(Date.now() - 45 * 60000), // 45 minutes ago
-                    acceptedAt: new Date(Date.now() - 44 * 60000),
-                    completedAt: new Date(Date.now() - 10 * 60000)
-                },
-                {
-                    id: '12350',
-                    tableNumber: 7,
-                    status: 'PENDING',
-                    totalAmount: 520,
-                    items: [
-                        { name: '海鮮義大利麵', quantity: 1, price: 320 },
-                        { name: '凱薩沙拉', quantity: 1, price: 200 }
-                    ],
-                    createdAt: new Date(Date.now() - 5 * 60000) // 5 minutes ago
+            let allOrders = [];
+
+            // Load orders from different API endpoints based on filter
+            if (this.currentFilter === 'all' || this.currentFilter === 'pending') {
+                const pendingResponse = await api.staffRequest('/staff/orders/pending');
+                if (pendingResponse.pending) {
+                    allOrders = allOrders.concat(pendingResponse.pending);
                 }
-            ];
+                if (pendingResponse.confirmed) {
+                    allOrders = allOrders.concat(pendingResponse.confirmed);
+                }
+            }
+
+            if (this.currentFilter === 'all' || this.currentFilter === 'in-progress') {
+                const inProgressResponse = await api.staffRequest('/staff/orders/in-progress');
+                if (inProgressResponse.preparing) {
+                    allOrders = allOrders.concat(inProgressResponse.preparing);
+                }
+                if (inProgressResponse.ready) {
+                    allOrders = allOrders.concat(inProgressResponse.ready);
+                }
+            }
+
+            if (this.currentFilter === 'all' || this.currentFilter === 'completed') {
+                const completedResponse = await api.staffRequest('/staff/orders/completed');
+                if (completedResponse.delivered) {
+                    allOrders = allOrders.concat(completedResponse.delivered);
+                }
+                if (completedResponse.completed) {
+                    allOrders = allOrders.concat(completedResponse.completed);
+                }
+            }
+
+            // Process and normalize order data
+            this.orders = allOrders.map(order => this.normalizeOrderData(order));
 
             this.updateOrdersList();
             
         } catch (error) {
             console.error('Failed to load orders:', error);
-            app.showToast('載入訂單失敗', 'error');
+            
+            // Fallback to demo data if API fails
+            this.loadDemoOrders();
+            app.showToast('使用示範數據 - API連接失敗', 'warning');
         }
+    }
+
+    normalizeOrderData(order) {
+        // Normalize different API response formats
+        return {
+            id: order.orderId || order.id,
+            tableNumber: order.tableNumber || order.table_number || 1,
+            customerName: order.customerName || order.customer_name || '顧客',
+            customerPhone: order.customerPhone || order.customer_phone || '',
+            status: this.mapOrderStatus(order.status),
+            totalAmount: order.totalAmount || order.total_amount || 0,
+            items: this.parseOrderItems(order.items || order.order_items || []),
+            notes: order.notes || order.special_requests || '',
+            createdAt: new Date(order.createdAt || order.created_at || order.orderTime),
+            acceptedAt: order.acceptedAt ? new Date(order.acceptedAt) : null,
+            completedAt: order.completedAt ? new Date(order.completedAt) : null,
+            estimatedCompletionTime: order.estimatedCompletionTime ? new Date(order.estimatedCompletionTime) : null,
+            overtimeMinutes: this.calculateOvertimeMinutes(order)
+        };
+    }
+
+    mapOrderStatus(status) {
+        // Map backend status to frontend status
+        const statusMap = {
+            'PENDING': 'PENDING',
+            'CONFIRMED': 'PENDING',
+            'PREPARING': 'IN_PROGRESS',
+            'READY': 'COMPLETED',
+            'DELIVERED': 'COMPLETED',
+            'COMPLETED': 'COMPLETED',
+            'CANCELLED': 'CANCELLED'
+        };
+        return statusMap[status] || 'PENDING';
+    }
+
+    parseOrderItems(items) {
+        return items.map(item => ({
+            name: item.menuItemName || item.name || item.item_name,
+            quantity: item.quantity || 1,
+            price: item.price || item.unit_price || 0,
+            cookingTime: item.cookingTime || item.cooking_time || '25',
+            notes: item.notes || item.special_requests || ''
+        }));
+    }
+
+    calculateOvertimeMinutes(order) {
+        if (!order.estimatedCompletionTime) return 0;
+        
+        const now = new Date();
+        const estimated = new Date(order.estimatedCompletionTime);
+        const diffMinutes = Math.floor((now - estimated) / (1000 * 60));
+        
+        return diffMinutes > 0 ? diffMinutes : 0;
+    }
+
+    loadDemoOrders() {
+        // Fallback demo data
+        this.orders = [
+            {
+                id: '12347',
+                tableNumber: 3,
+                customerName: '王先生',
+                customerPhone: '0912-345-678',
+                status: 'EMERGENCY',
+                totalAmount: 940,
+                items: [
+                    { name: '招牌牛排', quantity: 2, price: 380, cookingTime: '25', notes: '不要洋蔥' },
+                    { name: '蜜汁雞腿', quantity: 1, price: 180, cookingTime: '20', notes: '無特殊要求' }
+                ],
+                notes: '請盡快準備，謝謝',
+                createdAt: new Date(Date.now() - 30 * 60000),
+                acceptedAt: new Date(Date.now() - 29 * 60000),
+                estimatedCompletionTime: new Date(Date.now() - 5 * 60000),
+                overtimeMinutes: 5
+            },
+            {
+                id: '12348',
+                tableNumber: 5,
+                status: 'IN_PROGRESS',
+                totalAmount: 260,
+                items: [{ name: '義式燉飯', quantity: 1, price: 260, cookingTime: '18' }],
+                createdAt: new Date(Date.now() - 15 * 60000),
+                acceptedAt: new Date(Date.now() - 14 * 60000),
+                estimatedCompletionTime: new Date(Date.now() + 3 * 60000)
+            }
+        ];
     }
 
     setupAutoRefresh() {
@@ -559,11 +627,32 @@ class StaffOrders {
     }
 
     async updateOrderStatus(orderId, status, notes) {
-        // This would call the actual API
-        // For now, simulate the API call
-        return new Promise((resolve) => {
-            setTimeout(resolve, 500);
-        });
+        try {
+            const currentUser = Storage.getUser();
+            if (!currentUser || !currentUser.staffId) {
+                throw new Error('員工身份驗證失敗');
+            }
+
+            const requestBody = {
+                status: status.toUpperCase(),
+                staffId: currentUser.staffId,
+                notes: notes || ''
+            };
+
+            const response = await api.staffRequest(`/staff/orders/${orderId}/status`, {
+                method: 'PUT',
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.success) {
+                throw new Error(response.message || '更新狀態失敗');
+            }
+
+            return response;
+        } catch (error) {
+            console.error('Failed to update order status:', error);
+            throw error;
+        }
     }
 
     // Helper methods

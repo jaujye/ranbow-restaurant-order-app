@@ -312,65 +312,135 @@ class StaffKitchen {
 
     async loadKitchenData() {
         try {
-            // Load active orders (in progress)
-            this.activeOrders = [
-                {
-                    id: '12347',
-                    tableNumber: 3,
-                    status: 'IN_PROGRESS',
-                    items: [
-                        { name: '招牌牛排', quantity: 2, cookingTime: '25' },
-                        { name: '蜜汁雞腿', quantity: 1, cookingTime: '20' }
-                    ],
-                    startedAt: new Date(Date.now() - 15 * 60000), // Started 15 minutes ago
-                    estimatedCompletionTime: new Date(Date.now() + 10 * 60000), // 10 minutes from now
-                    totalCookingTime: 25
-                },
-                {
-                    id: '12348',
-                    tableNumber: 5,
-                    status: 'IN_PROGRESS',
-                    items: [
-                        { name: '義式燉飯', quantity: 1, cookingTime: '18' }
-                    ],
-                    startedAt: new Date(Date.now() - 10 * 60000), // Started 10 minutes ago
-                    estimatedCompletionTime: new Date(Date.now() + 8 * 60000), // 8 minutes from now
-                    totalCookingTime: 18
-                }
-            ];
-
-            // Load waiting orders (pending)
-            this.waitingOrders = [
-                {
-                    id: '12349',
-                    tableNumber: 2,
-                    status: 'PENDING',
-                    items: [
-                        { name: '雞腿排', quantity: 1, cookingTime: '20' },
-                        { name: '可樂', quantity: 2, cookingTime: '0' }
-                    ],
-                    createdAt: new Date(Date.now() - 5 * 60000),
-                    priority: 'normal'
-                },
-                {
-                    id: '12350',
-                    tableNumber: 7,
-                    status: 'PENDING',
-                    items: [
-                        { name: '海鮮義大利麵', quantity: 1, cookingTime: '22' }
-                    ],
-                    createdAt: new Date(Date.now() - 3 * 60000),
-                    priority: 'high'
-                }
-            ];
+            // Load kitchen queue data from API
+            const response = await api.getKitchenQueue();
+            
+            if (response && response.active) {
+                // Process active orders
+                this.activeOrders = response.active.map(order => this.normalizeKitchenOrder(order));
+            } else {
+                this.activeOrders = [];
+            }
+            
+            if (response && response.queued) {
+                // Process waiting orders
+                this.waitingOrders = response.queued.map(order => this.normalizeKitchenOrder(order));
+            } else {
+                this.waitingOrders = [];
+            }
+            
+            // Handle overdue orders by moving them to active with emergency status
+            if (response && response.overdue) {
+                const overdueOrders = response.overdue.map(order => {
+                    const normalized = this.normalizeKitchenOrder(order);
+                    normalized.priority = 'emergency';
+                    return normalized;
+                });
+                this.activeOrders = [...overdueOrders, ...this.activeOrders];
+            }
 
             this.updateKitchenUI();
             this.initializeTimers();
             
         } catch (error) {
             console.error('Failed to load kitchen data:', error);
-            app.showToast('載入廚房數據失敗', 'error');
+            
+            // Fallback to demo data
+            this.loadDemoKitchenData();
+            app.showToast('使用示範數據 - API連接失敗', 'warning');
         }
+    }
+
+    normalizeKitchenOrder(kitchenOrder) {
+        // Extract order information from KitchenOrder object
+        const order = kitchenOrder.order || kitchenOrder;
+        
+        return {
+            id: order.orderId || order.id,
+            tableNumber: order.tableNumber || order.table_number || 1,
+            status: this.mapKitchenStatus(kitchenOrder.kitchenStatus || order.status),
+            items: this.parseKitchenItems(order.items || order.order_items || []),
+            startedAt: kitchenOrder.startedAt ? new Date(kitchenOrder.startedAt) : new Date(order.createdAt),
+            estimatedCompletionTime: kitchenOrder.estimatedCompletionTime 
+                ? new Date(kitchenOrder.estimatedCompletionTime) 
+                : this.calculateEstimatedCompletion(order),
+            totalCookingTime: kitchenOrder.estimatedMinutesRemaining || this.calculateTotalCookingTime(order.items || []),
+            priority: this.determinePriority(kitchenOrder),
+            createdAt: new Date(order.createdAt || order.created_at || order.orderTime),
+            cookingNotes: kitchenOrder.notes || ''
+        };
+    }
+
+    mapKitchenStatus(status) {
+        const statusMap = {
+            'QUEUED': 'PENDING',
+            'PREPARING': 'IN_PROGRESS',
+            'COMPLETED': 'COMPLETED',
+            'OVERDUE': 'IN_PROGRESS'
+        };
+        return statusMap[status] || status;
+    }
+
+    parseKitchenItems(items) {
+        return items.map(item => ({
+            name: item.menuItemName || item.name || item.item_name,
+            quantity: item.quantity || 1,
+            cookingTime: item.cookingTime || item.cooking_time || '20'
+        }));
+    }
+
+    calculateEstimatedCompletion(order) {
+        const maxCookingTime = this.calculateTotalCookingTime(order.items || []);
+        const startTime = new Date(order.createdAt);
+        return new Date(startTime.getTime() + maxCookingTime * 60000);
+    }
+
+    calculateTotalCookingTime(items) {
+        if (!items || items.length === 0) return 20;
+        const times = items.map(item => parseInt(item.cookingTime || item.cooking_time || '20'));
+        return Math.max(...times);
+    }
+
+    determinePriority(kitchenOrder) {
+        if (kitchenOrder.kitchenStatus === 'OVERDUE') return 'emergency';
+        
+        const now = new Date();
+        const estimated = new Date(kitchenOrder.estimatedCompletionTime);
+        const minutesOverdue = (now - estimated) / (1000 * 60);
+        
+        if (minutesOverdue > 0) return 'high';
+        if (minutesOverdue > -10) return 'normal';
+        return 'low';
+    }
+
+    loadDemoKitchenData() {
+        // Fallback demo data
+        this.activeOrders = [
+            {
+                id: '12347',
+                tableNumber: 3,
+                status: 'IN_PROGRESS',
+                items: [
+                    { name: '招牌牛排', quantity: 2, cookingTime: '25' },
+                    { name: '蜜汁雞腿', quantity: 1, cookingTime: '20' }
+                ],
+                startedAt: new Date(Date.now() - 15 * 60000),
+                estimatedCompletionTime: new Date(Date.now() + 10 * 60000),
+                totalCookingTime: 25,
+                priority: 'normal'
+            }
+        ];
+
+        this.waitingOrders = [
+            {
+                id: '12349',
+                tableNumber: 2,
+                status: 'PENDING',
+                items: [{ name: '雞腿排', quantity: 1, cookingTime: '20' }],
+                createdAt: new Date(Date.now() - 5 * 60000),
+                priority: 'normal'
+            }
+        ];
     }
 
     updateKitchenUI() {
@@ -531,24 +601,35 @@ class StaffKitchen {
             const order = this.waitingOrders.find(o => o.id === orderId);
             if (!order) return;
             
-            // Move to active orders
-            order.status = 'IN_PROGRESS';
-            order.startedAt = new Date();
-            order.estimatedCompletionTime = new Date(Date.now() + order.items[0].cookingTime * 60000);
-            order.totalCookingTime = Math.max(...order.items.map(item => parseInt(item.cookingTime)));
+            const currentUser = Storage.getUser();
+            if (!currentUser || !currentUser.staffId) {
+                throw new Error('員工身份驗證失敗');
+            }
             
-            this.activeOrders.push(order);
-            this.waitingOrders = this.waitingOrders.filter(o => o.id !== orderId);
+            // Call API to start preparing order
+            const response = await api.startPreparingOrder(orderId, currentUser.staffId);
             
-            // Create timer
-            this.createTimer(order);
-            
-            this.updateKitchenUI();
-            app.showToast(`開始製作訂單 #${orderId}`, 'success');
+            if (response && response.success) {
+                // Move to active orders
+                order.status = 'IN_PROGRESS';
+                order.startedAt = new Date();
+                order.estimatedCompletionTime = new Date(Date.now() + order.totalCookingTime * 60000);
+                
+                this.activeOrders.push(order);
+                this.waitingOrders = this.waitingOrders.filter(o => o.id !== orderId);
+                
+                // Create timer
+                this.createTimer(order);
+                
+                this.updateKitchenUI();
+                app.showToast(`開始製作訂單 #${orderId}`, 'success');
+            } else {
+                throw new Error(response.message || '開始製作失敗');
+            }
             
         } catch (error) {
             console.error('Failed to start cooking:', error);
-            app.showToast('開始製作失敗', 'error');
+            app.showToast(error.message || '開始製作失敗', 'error');
         }
     }
 
@@ -560,19 +641,31 @@ class StaffKitchen {
             );
             
             if (confirmed) {
-                // Remove from active orders
-                this.activeOrders = this.activeOrders.filter(o => o.id !== orderId);
+                const currentUser = Storage.getUser();
+                if (!currentUser || !currentUser.staffId) {
+                    throw new Error('員工身份驗證失敗');
+                }
                 
-                // Remove timer
-                this.timers.delete(orderId);
+                // Call API to complete kitchen order
+                const response = await api.completeKitchenOrder(orderId, currentUser.staffId);
                 
-                this.updateKitchenUI();
-                app.showToast(`訂單 #${orderId} 已完成`, 'success');
+                if (response && response.success) {
+                    // Remove from active orders
+                    this.activeOrders = this.activeOrders.filter(o => o.id !== orderId);
+                    
+                    // Remove timer
+                    this.timers.delete(orderId);
+                    
+                    this.updateKitchenUI();
+                    app.showToast(`訂單 #${orderId} 已完成`, 'success');
+                } else {
+                    throw new Error(response.message || '完成訂單失敗');
+                }
             }
             
         } catch (error) {
             console.error('Failed to complete order:', error);
-            app.showToast('完成訂單失敗', 'error');
+            app.showToast(error.message || '完成訂單失敗', 'error');
         }
     }
 
@@ -582,19 +675,30 @@ class StaffKitchen {
             const timer = this.timers.get(orderId);
             
             if (order && timer) {
-                // Extend by 10 minutes
-                timer.totalMinutes += 10;
-                order.estimatedCompletionTime = new Date(order.estimatedCompletionTime.getTime() + 10 * 60000);
+                // Call API to update cooking timer
+                const additionalMinutes = 10;
+                const response = await api.updateCookingTimer(orderId, {
+                    estimatedMinutesRemaining: timer.totalMinutes + additionalMinutes,
+                    notes: `延時 ${additionalMinutes} 分鐘`
+                });
                 
-                this.updateTimer(timer);
-                this.updateTimerDisplay(orderId);
-                
-                app.showToast(`訂單 #${orderId} 已延時10分鐘`, 'info');
+                if (response && response.success) {
+                    // Extend by 10 minutes
+                    timer.totalMinutes += additionalMinutes;
+                    order.estimatedCompletionTime = new Date(order.estimatedCompletionTime.getTime() + additionalMinutes * 60000);
+                    
+                    this.updateTimer(timer);
+                    this.updateTimerDisplay(orderId);
+                    
+                    app.showToast(`訂單 #${orderId} 已延時${additionalMinutes}分鐘`, 'info');
+                } else {
+                    throw new Error(response.message || '延時失敗');
+                }
             }
             
         } catch (error) {
             console.error('Failed to extend time:', error);
-            app.showToast('延時失敗', 'error');
+            app.showToast(error.message || '延時失敗', 'error');
         }
     }
 
