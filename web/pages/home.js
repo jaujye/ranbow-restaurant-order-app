@@ -74,7 +74,7 @@ class HomePage {
                     <p>追蹤訂單狀態</p>
                 </div>
                 
-                <div class="action-card" onclick="homePage.showTableSelector()">
+                <div class="action-card">
                     <div class="action-icon">
                         <i class="fas fa-chair"></i>
                     </div>

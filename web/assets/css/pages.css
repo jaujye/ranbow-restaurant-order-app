@@ -2869,6 +2869,22 @@
 
 /* Mobile Responsive */
 @media (max-width: 767px) {
+    .home-page {
+        padding-top: 10vh;
+    }
+    .welcome-banner{
+        padding: 3vh;
+        margin-bottom: 1vh;
+    }
+    .search-section{
+        margin-bottom: 0;
+    }
+    .category-card {
+        padding: 0;
+        padding-left: 2vh;
+        margin: 0;
+    }
+
     .checkout-page {
         padding: var(--space-sm);
     }
