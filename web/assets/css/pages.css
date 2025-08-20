@@ -2125,6 +2125,7 @@
     background: var(--bg-card);
     border-radius: var(--radius-large);
     padding: var(--space-xl);
+    padding-top: 10vh;
     margin-bottom: var(--space-xl);
     box-shadow: var(--shadow-medium);
     border: 1px solid rgba(255, 107, 53, 0.1);
@@ -2523,7 +2524,7 @@
     background: linear-gradient(135deg, var(--bg-color), rgba(255, 255, 255, 0.8));
     border: 2px solid var(--border-light);
     border-radius: var(--radius-large);
-    padding: var(--space-lg);
+    padding-top: 2vh;
     text-align: center;
     transition: all var(--transition-fast);
     position: relative;
@@ -2646,7 +2647,7 @@
     box-shadow: var(--shadow-medium);
     display: flex;
     gap: var(--space-md);
-    position: sticky;
+    position: relative;
     bottom: var(--space-md);
     border: 2px solid rgba(255, 107, 53, 0.1);
 }
@@ -2906,8 +2907,29 @@
         grid-template-columns: 1fr;
     }
 
+    .payment-option {
+        height: 8vh;
+    }
+
+    .payment-option:hover .payment-card {
+        height: 8vh;
+    }
+
+    .payment-option input[type="radio"]:checked+.payment-card, .payment-card {
+        height: 8vh;
+    }
+
+    .payment-card {
+        height: 8vh;
+    }
+
+    .payment-card span {
+        display: inline;
+    }
+
     .checkout-actions {
         flex-direction: column;
+        padding: 10px;
     }
 }
 

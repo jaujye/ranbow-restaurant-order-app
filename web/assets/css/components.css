@@ -667,9 +667,8 @@
 
 .payment-info {
     background: var(--light-gray);
-    padding: var(--space-lg);
     border-radius: var(--border-radius);
-    margin-bottom: var(--space-lg);
+    /* margin-bottom: var(--space-lg); */
 }
 
 .payment-info p {
@@ -691,12 +690,11 @@
 .card-input {
     display: flex;
     flex-direction: column;
-    gap: var(--space-md);
     margin-bottom: var(--space-xl);
 }
 
 .card-input input {
-    padding: var(--space-md);
+    padding: 2vh;
     border: 2px solid var(--border-color);
     border-radius: var(--border-radius);
     font-size: 1rem;
@@ -707,7 +705,7 @@
 
 /* QR Code Section */
 .qr-code-section {
-    margin-bottom: var(--space-xl);
+    /* margin-bottom: var(--space-xl); */
 }
 
 .qr-placeholder {
@@ -734,7 +732,7 @@
 
 /* Biometric Section */
 .biometric-section {
-    margin-bottom: var(--space-xl);
+    /* margin-bottom: var(--space-xl); */
 }
 
 .biometric-placeholder {
@@ -784,7 +782,9 @@
 @media (max-width: 768px) {
     .payment-modal {
         width: 95%;
-        max-height: 95vh;
+        max-height: 75vh;
+        border:#d3cd2f 2px solid;
+        border-radius: 5px;
     }
     
     .payment-header {
