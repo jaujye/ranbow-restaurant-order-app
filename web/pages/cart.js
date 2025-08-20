@@ -59,41 +59,6 @@ class CartPage {
                 </div>
             </div>
 
-            <!-- Table Selection Modal -->
-            <div class="modal-overlay hidden" id="table-selection-modal">
-                <div class="table-selection-modal">
-                    <div class="modal-header">
-                        <h3>選擇桌號</h3>
-                        <button class="modal-close" onclick="cartPage.hideTableSelection()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="modal-content">
-                        <div class="table-grid" id="table-grid">
-                            <!-- Table numbers will be generated -->
-                        </div>
-                        
-                        <div class="table-input-section">
-                            <div class="input-group">
-                                <label for="table-number-input">或手動輸入桌號:</label>
-                                <input type="number" id="table-number-input" placeholder="請輸入桌號" min="1" max="99">
-                            </div>
-                            
-                            <div class="qr-scanner-section">
-                                <p>掃描桌上QR Code:</p>
-                                <button class="btn btn-outline" onclick="cartPage.scanQRCode()">
-                                    <i class="fas fa-qrcode"></i>
-                                    掃描QR Code
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" onclick="cartPage.hideTableSelection()">取消</button>
-                        <button class="btn btn-primary" onclick="cartPage.confirmTableSelection()">確認</button>
-                    </div>
-                </div>
-            </div>
 
             <!-- Special Requests Modal -->
             <div class="modal-overlay hidden" id="special-requests-modal">
@@ -138,18 +103,14 @@ class CartPage {
     async initializeCartPage() {
         try {
             this.cartItems = cart.getItems();
-            this.tableNumber = Storage.getTableNumber();
             
-            // FOR TESTING: Set default table number if not exists
-            if (!this.tableNumber) {
-                this.tableNumber = 1;
-                Storage.setTableNumber(this.tableNumber);
-                console.log('Set default table number for testing:', this.tableNumber);
-            }
+            // 設定預設桌號為1
+            this.tableNumber = 1;
+            Storage.setTableNumber(this.tableNumber);
+            console.log('Set default table number:', this.tableNumber);
             
             this.updateCartDisplay();
             this.setupEventListeners();
-            this.generateTableGrid();
             
             // Listen for cart updates
             cart.eventEmitter.on('cartUpdated', () => {
@@ -164,17 +125,6 @@ class CartPage {
     }
 
     setupEventListeners() {
-        // Table number input
-        const tableInput = document.getElementById('table-number-input');
-        if (tableInput) {
-            tableInput.addEventListener('input', (e) => {
-                const value = parseInt(e.target.value);
-                if (value > 0) {
-                    this.selectTable(value);
-                }
-            });
-        }
-
         // Special requests input
         const requestsInput = document.getElementById('special-requests-input');
         if (requestsInput) {
@@ -351,7 +301,6 @@ class CartPage {
     async proceedToCheckout() {
         console.log('proceedToCheckout() called');
         console.log('Cart items:', this.cartItems.length);
-        console.log('Table number:', this.tableNumber);
         
         if (this.cartItems.length === 0) {
             console.log('Checkout blocked: Empty cart');
@@ -359,12 +308,10 @@ class CartPage {
             return;
         }
 
-        // Check if table number is selected
-        if (!this.tableNumber) {
-            console.log('Checkout blocked: No table number');
-            this.showTableSelection();
-            return;
-        }
+        // 設定預設桌號為1
+        this.tableNumber = 1;
+        Storage.setTableNumber(this.tableNumber);
+        console.log('Set default table number:', this.tableNumber);
 
         // Validate cart
         const validation = cart.validate();
@@ -380,85 +327,6 @@ class CartPage {
         app.navigateTo('checkout');
     }
 
-    // Table selection
-    showTableSelection() {
-        const modal = document.getElementById('table-selection-modal');
-        if (modal) {
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-    }
-
-    hideTableSelection() {
-        const modal = document.getElementById('table-selection-modal');
-        if (modal) {
-            modal.classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-    }
-
-    generateTableGrid() {
-        const grid = document.getElementById('table-grid');
-        if (!grid) return;
-
-        let html = '';
-        for (let i = 1; i <= 20; i++) {
-            const isSelected = this.tableNumber === i;
-            html += `
-                <button class="table-number ${isSelected ? 'selected' : ''}" 
-                        onclick="cartPage.selectTable(${i})">
-                    ${i}
-                </button>
-            `;
-        }
-        grid.innerHTML = html;
-    }
-
-    selectTable(tableNumber) {
-        // Update UI
-        const buttons = document.querySelectorAll('.table-number');
-        buttons.forEach(btn => {
-            btn.classList.toggle('selected', parseInt(btn.textContent) === tableNumber);
-        });
-
-        // Update input
-        const input = document.getElementById('table-number-input');
-        if (input) {
-            input.value = tableNumber;
-        }
-
-        this.tableNumber = tableNumber;
-    }
-
-    confirmTableSelection() {
-        if (!this.tableNumber) {
-            toast.warning('請選擇桌號');
-            return;
-        }
-
-        Storage.setTableNumber(this.tableNumber);
-        this.hideTableSelection();
-        toast.success(`已選擇桌號 ${this.tableNumber}`);
-        
-        // Continue to checkout
-        this.proceedToCheckout();
-    }
-
-    async scanQRCode() {
-        try {
-            // This would integrate with a QR code scanner
-            toast.info('QR Code 掃描功能開發中...');
-            
-            // Mock QR code scan result
-            // const scannedData = await QRCodeScanner.scan();
-            // const tableNumber = this.parseTableFromQR(scannedData);
-            // this.selectTable(tableNumber);
-            
-        } catch (error) {
-            console.error('QR Code scan failed:', error);
-            toast.error('掃描失敗，請手動選擇桌號');
-        }
-    }
 
     // Special requests modal
     editSpecialRequests(itemId, currentRequests = '') {
@@ -576,25 +444,6 @@ class CartPage {
         }
     }
 
-    // Initialize cart page
-    async initializeCartPage() {
-        try {
-            // Load cart items from storage
-            this.cartItems = cart.getItems();
-            
-            // Update cart display
-            this.updateCartDisplay();
-            
-            // Initialize smart cart summary for mobile
-            setTimeout(() => {
-                this.initSmartCartSummary();
-            }, 100); // Small delay to ensure DOM is ready
-            
-        } catch (error) {
-            console.error('Failed to initialize cart page:', error);
-            toast.error('購物車載入失敗');
-        }
-    }
 }
 
 // Create global cart page instance
