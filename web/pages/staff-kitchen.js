@@ -922,3 +922,7 @@ class StaffKitchen {
 
 // Create global instance
 window.staffKitchen = new StaffKitchen();
+window.staffKitchenPage = {
+    getStaffKitchenTemplate: () => window.staffKitchen.getKitchenTemplate(),
+    initializeStaffKitchenPage: () => window.staffKitchen.initializeKitchenPage()
+};

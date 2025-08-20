@@ -741,3 +741,7 @@ class StaffNotifications {
 
 // Create global instance
 window.staffNotifications = new StaffNotifications();
+window.staffNotificationsPage = {
+    getStaffNotificationsTemplate: () => window.staffNotifications.getNotificationsPageTemplate(),
+    initializeStaffNotificationsPage: () => window.staffNotifications.initializeNotificationsPage()
+};

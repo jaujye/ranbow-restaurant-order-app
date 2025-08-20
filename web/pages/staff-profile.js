@@ -731,3 +731,7 @@ class StaffProfile {
 
 // Create global instance
 window.staffProfile = new StaffProfile();
+window.staffProfilePage = {
+    getStaffProfileTemplate: () => window.staffProfile.getProfilePageTemplate(),
+    initializeStaffProfilePage: () => window.staffProfile.initializeProfilePage()
+};

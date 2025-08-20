@@ -470,3 +470,7 @@ class StaffDashboard {
 
 // Create global instance
 window.staffDashboard = new StaffDashboard();
+window.staffDashboardPage = {
+    getStaffDashboardTemplate: () => window.staffDashboard.getDashboardTemplate(),
+    initializeStaffDashboardPage: () => window.staffDashboard.initializeDashboardPage()
+};

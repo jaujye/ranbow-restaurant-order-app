@@ -75,7 +75,8 @@
     "ask": [],
     "defaultMode": "acceptEdits",
     "additionalDirectories": [
-      "C:\\c\\Users\\JauJyeCH\\Desktop"
+      "C:\\c\\Users\\JauJyeCH\\Desktop",
+      "C:\\c\\Users"
     ]
   }
 }

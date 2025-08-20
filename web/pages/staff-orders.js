@@ -869,3 +869,7 @@ class StaffOrders {
 
 // Create global instance
 window.staffOrders = new StaffOrders();
+window.staffOrdersPage = {
+    getStaffOrdersTemplate: () => window.staffOrders.getOrdersPageTemplate(),
+    initializeStaffOrdersPage: () => window.staffOrders.initializeOrdersPage()
+};

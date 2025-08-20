@@ -784,3 +784,7 @@ class StaffStats {
 
 // Create global instance
 window.staffStats = new StaffStats();
+window.staffStatsPage = {
+    getStaffStatsTemplate: () => window.staffStats.getStatsPageTemplate(),
+    initializeStaffStatsPage: () => window.staffStats.initializeStatsPage()
+};

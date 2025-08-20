@@ -586,9 +586,14 @@ class AuthPages {
     }
 
     async quickLogin(role) {
+        // For staff login, navigate to dedicated staff login page
+        if (role === 'staff') {
+            app.navigateTo('staff-auth');
+            return;
+        }
+        
         const demoCredentials = {
             customer: { email: 'customer@ranbow.com', password: 'password123' },
-            staff: { email: 'staff@ranbow.com', password: 'password123' },
             admin: { email: 'admin@ranbow.com', password: 'password123' }
         };
         
