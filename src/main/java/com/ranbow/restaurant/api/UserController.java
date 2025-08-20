@@ -224,6 +224,123 @@ public class UserController {
                 "totalCustomers", userService.getTotalCustomers()
         ));
     }
+
+    @GetMapping("/{userId}/profile")
+    public ResponseEntity<?> getUserProfile(@PathVariable String userId) {
+        Optional<User> user = userService.findUserById(userId);
+        if (user.isPresent()) {
+            return ResponseEntity.ok(user.get());
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/{userId}/profile")
+    public ResponseEntity<?> updateUserProfile(@PathVariable String userId, @RequestBody UpdateProfileRequest request) {
+        try {
+            User updatedUser = userService.updateUserProfile(userId, request);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{userId}/change-password")
+    public ResponseEntity<?> changePassword(@PathVariable String userId, @RequestBody ChangePasswordRequest request) {
+        try {
+            boolean success = userService.changePassword(userId, request.getCurrentPassword(), request.getNewPassword());
+            if (success) {
+                return ResponseEntity.ok(Map.of("success", true, "message", "Password changed successfully"));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "error", "Current password is incorrect"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "error", "Password change failed"));
+        }
+    }
+
+    @GetMapping("/{userId}/coupons")
+    public ResponseEntity<?> getUserCoupons(@PathVariable String userId) {
+        // 模擬優惠券數據 - 實際應用中應該從數據庫查詢
+        return ResponseEntity.ok(Map.of(
+                "available", java.util.Arrays.asList(
+                        Map.of(
+                                "id", "coupon1",
+                                "title", "滿500折50",
+                                "description", "單筆消費滿NT$ 500即可使用",
+                                "type", "FIXED_AMOUNT",
+                                "discountValue", 50,
+                                "minOrderAmount", 500,
+                                "expiryDate", "2024-12-31T23:59:59"
+                        ),
+                        Map.of(
+                                "id", "coupon2",
+                                "title", "生日免費甜點",
+                                "description", "生日月份可免費兌換甜點一份",
+                                "type", "FREE_ITEM",
+                                "discountValue", 0,
+                                "minOrderAmount", 0,
+                                "expiryDate", "2024-12-31T23:59:59"
+                        )
+                ),
+                "used", java.util.Arrays.asList(
+                        Map.of(
+                                "id", "coupon3",
+                                "title", "週末優惠券",
+                                "description", "週末使用享8折優惠",
+                                "type", "PERCENTAGE",
+                                "discountValue", 20,
+                                "usedAt", "2024-08-15T14:30:00"
+                        )
+                )
+        ));
+    }
+
+    @GetMapping("/{userId}/addresses")
+    public ResponseEntity<?> getUserAddresses(@PathVariable String userId) {
+        // 模擬地址數據
+        return ResponseEntity.ok(java.util.Arrays.asList(
+                Map.of(
+                        "id", "addr1",
+                        "label", "預設地址",
+                        "recipientName", "王小明",
+                        "phoneNumber", "0912-345-678",
+                        "address", "台北市中正區忠孝西路一段50號",
+                        "isDefault", true
+                ),
+                Map.of(
+                        "id", "addr2",
+                        "label", "公司地址",
+                        "recipientName", "王小明",
+                        "phoneNumber", "0912-345-678",
+                        "address", "台北市信義區市府路45號",
+                        "isDefault", false
+                )
+        ));
+    }
+
+    @GetMapping("/{userId}/reviews")
+    public ResponseEntity<?> getUserReviews(@PathVariable String userId) {
+        // 模擬評價數據
+        return ResponseEntity.ok(java.util.Arrays.asList(
+                Map.of(
+                        "id", "review1",
+                        "restaurantName", "彩虹餐廳",
+                        "rating", 5.0,
+                        "content", "招牌牛排很棒！肉質鮮嫩，調味恰到好處。服務態度也很好，會再來的！",
+                        "items", java.util.Arrays.asList("招牌牛排", "蜜汁雞腿"),
+                        "date", "2024-08-15T14:30:00"
+                ),
+                Map.of(
+                        "id", "review2",
+                        "restaurantName", "彩虹餐廳",
+                        "rating", 4.0,
+                        "content", "義式燉飯很香，份量也足夠。不過等待時間稍長，希望可以改善。",
+                        "items", java.util.Arrays.asList("義式燉飯"),
+                        "date", "2024-08-10T19:20:00"
+                )
+        ));
+    }
     
     // DTO Classes
     public static class CreateUserRequest {
@@ -260,6 +377,38 @@ public class UserController {
         
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
+    }
+
+    public static class UpdateProfileRequest {
+        private String username;
+        private String phoneNumber;
+        private String birthday;
+        private String avatarUrl;
+        
+        // Getters and setters
+        public String getUsername() { return username; }
+        public void setUsername(String username) { this.username = username; }
+        
+        public String getPhoneNumber() { return phoneNumber; }
+        public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+        
+        public String getBirthday() { return birthday; }
+        public void setBirthday(String birthday) { this.birthday = birthday; }
+        
+        public String getAvatarUrl() { return avatarUrl; }
+        public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+    }
+
+    public static class ChangePasswordRequest {
+        private String currentPassword;
+        private String newPassword;
+        
+        // Getters and setters
+        public String getCurrentPassword() { return currentPassword; }
+        public void setCurrentPassword(String currentPassword) { this.currentPassword = currentPassword; }
+        
+        public String getNewPassword() { return newPassword; }
+        public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
     }
 
     // 輔助方法
