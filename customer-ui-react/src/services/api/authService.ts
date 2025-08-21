@@ -224,6 +224,35 @@ export class AuthService {
    * 刷新用戶信息
    */
   static async refreshUser(): Promise<ApiResponse<User>> {
+    // 檢查是否使用模擬 token（開發測試模式）
+    const currentToken = localStorage.getItem('authToken')
+    const currentUser = localStorage.getItem('currentUser')
+    
+    if (currentToken && currentToken.startsWith('mock-jwt-token-')) {
+      // 如果是模擬 token，直接返回本地存儲的用戶資料，不調用後端 API
+      if (currentUser) {
+        try {
+          const user = JSON.parse(currentUser)
+          return {
+            success: true,
+            data: user
+          }
+        } catch (error) {
+          console.error('Error parsing stored user data:', error)
+          return {
+            success: false,
+            error: 'Invalid stored user data'
+          }
+        }
+      } else {
+        return {
+          success: false,
+          error: 'No user data found for mock token'
+        }
+      }
+    }
+    
+    // 對於真實 token，調用後端 API 進行驗證和刷新
     const response = await HttpClient.get<{success: boolean, user: User, sessionId: string}>('/users/me')
     
     // 處理後端返回的嵌套格式：{success: true, user: {...}, sessionId: "..."}

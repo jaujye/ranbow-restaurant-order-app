@@ -49,13 +49,19 @@ const NotFoundPage: React.FC = () => (
 
 // Route Guard for authentication
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Import Zustand auth store - checking token and user directly
-  const { token, user, isLoading } = useAuthStore((state) => ({
+  // Import Zustand auth store - checking token, user, and hydration state
+  const { token, user, isLoading, _hasHydrated } = useAuthStore((state) => ({
     token: state.token,
     user: state.user,
-    isLoading: state.isLoading
+    isLoading: state.isLoading,
+    _hasHydrated: state._hasHydrated
   }))
   const location = useLocation()
+  
+  // Show loading while the store is hydrating from localStorage
+  if (!_hasHydrated) {
+    return <PageLoading />
+  }
   
   // Show loading while checking authentication
   if (isLoading) {

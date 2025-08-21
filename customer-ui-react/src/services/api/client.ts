@@ -160,7 +160,15 @@ httpClient.interceptors.response.use(
       
       switch (status) {
         case 401:
-          // 未授權，通過 Zustand store 清除認證狀態
+          // 檢查是否為模擬 token，如果是則不清除認證狀態
+          const currentToken = localStorage.getItem('authToken')
+          if (currentToken && currentToken.startsWith('mock-jwt-token-')) {
+            console.warn('401 error with mock token - keeping authentication state')
+            // 對於模擬 token，不清除認證狀態，因為這只是後端 API 不認識模擬 token
+            break
+          }
+          
+          // 未授權，通過 Zustand store 清除認證狀態（僅限真實 token）
           try {
             const authStore = getAuthStore()
             if (authStore?.logout) {

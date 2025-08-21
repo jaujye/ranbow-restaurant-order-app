@@ -7,6 +7,7 @@ interface AuthState {
   token: string | null
   isLoading: boolean
   error: string | null
+  _hasHydrated: boolean
   
   // Actions
   login: (credentials: LoginRequest) => Promise<boolean>
@@ -30,6 +31,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isLoading: false,
       error: null,
+      _hasHydrated: false,
 
       // Actions
       login: async (credentials: LoginRequest) => {
@@ -151,16 +153,45 @@ export const useAuthStore = create<AuthState>()(
           if (response.success && response.data) {
             set({
               user: response.data,
-              isLoading: false
+              isLoading: false,
+              error: null
             })
           } else {
-            set({ isLoading: false })
+            // 如果 refreshUser 失敗，可能是 token 過期或無效
+            // 檢查是否是 401 未授權錯誤
+            if (response.error?.includes('401') || response.error?.includes('Unauthorized')) {
+              // 清除認證狀態
+              set({
+                user: null,
+                token: null,
+                isLoading: false,
+                error: null
+              })
+              console.warn('Authentication expired, clearing auth state')
+            } else {
+              set({ 
+                isLoading: false,
+                error: response.error || 'Failed to refresh user data'
+              })
+            }
           }
         } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.message || 'Failed to refresh user data'
-          })
+          // 檢查是否是網絡錯誤中的 401
+          if (error.message?.includes('401') || error.status === 401) {
+            // 清除認證狀態
+            set({
+              user: null,
+              token: null,
+              isLoading: false,
+              error: null
+            })
+            console.warn('Authentication expired, clearing auth state')
+          } else {
+            set({
+              isLoading: false,
+              error: error.message || 'Failed to refresh user data'
+            })
+          }
         }
       },
 
@@ -214,7 +245,12 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         token: state.token
-      })
+      }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state._hasHydrated = true
+        }
+      }
     }
   )
 )
@@ -227,7 +263,8 @@ export const useAuth = () => useAuthStore((state) => ({
   error: state.error,
   isAuthenticated: state.isAuthenticated,
   isAdmin: state.isAdmin,
-  isStaffOrAdmin: state.isStaffOrAdmin
+  isStaffOrAdmin: state.isStaffOrAdmin,
+  _hasHydrated: state._hasHydrated
 }))
 
 export const useAuthActions = () => useAuthStore((state) => ({
