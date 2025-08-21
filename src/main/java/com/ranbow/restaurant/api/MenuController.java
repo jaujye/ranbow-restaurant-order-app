@@ -46,7 +46,7 @@ public class MenuController {
     }
     
     @GetMapping
-    public ResponseEntity<List<MenuItem>> getAllMenuItems(@RequestParam(required = false) String category) {
+    public ResponseEntity<List<MenuItem>> getAllMenuItems(@RequestParam(name = "category", required = false) String category) {
         List<MenuItem> items;
         if (category != null && !category.isEmpty()) {
             try {
@@ -62,7 +62,7 @@ public class MenuController {
     }
     
     @GetMapping("/items")
-    public ResponseEntity<List<MenuItem>> getAllMenuItemsItems(@RequestParam(required = false) String category) {
+    public ResponseEntity<List<MenuItem>> getAllMenuItemsItems(@RequestParam(name = "category", required = false) String category) {
         // This endpoint is specifically for frontend compatibility
         return getAllMenuItems(category);
     }
@@ -80,8 +80,8 @@ public class MenuController {
     }
     
     @GetMapping("/search")
-    public ResponseEntity<List<MenuItem>> searchMenuItems(@RequestParam(value = "keyword", required = false) String keyword,
-                                                        @RequestParam(value = "query", required = false) String query) {
+    public ResponseEntity<List<MenuItem>> searchMenuItems(@RequestParam(name = "keyword", required = false) String keyword,
+                                                        @RequestParam(name = "query", required = false) String query) {
         String searchTerm = keyword != null ? keyword : query;
         if (searchTerm == null || searchTerm.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
