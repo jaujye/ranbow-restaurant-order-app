@@ -104,7 +104,7 @@ class AdminAuthPages {
                 
                 <div class="admin-auth-footer">
                     <div class="auth-links">
-                        <a href="#" class="auth-link rainbow-link" onclick="app.navigateTo('auth')">
+                        <a href="#" class="auth-link rainbow-link" onclick="app.navigateTo('login')">
                             <i class="fas fa-arrow-left"></i>
                             返回一般登入
                         </a>
@@ -412,29 +412,57 @@ class AdminAuthPages {
     }
 
     async authenticateAdmin(loginData) {
-        // Simulate API call - in real implementation, call backend admin auth endpoint
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                // Mock admin authentication
-                if (loginData.adminId === 'admin@ranbow.com' && loginData.password === 'admin123456') {
-                    resolve({
+        try {
+            // Use regular login API but check for admin role
+            const response = await api.login(loginData.adminId, loginData.password);
+            
+            if (response && response.success && response.user) {
+                // Check if user has admin role
+                if (response.user.role === 'ADMIN') {
+                    return {
                         success: true,
                         admin: {
-                            id: 'ADM001',
-                            name: '系統管理員',
-                            email: 'admin@ranbow.com',
+                            id: response.user.id,
+                            name: response.user.username,
+                            email: response.user.email,
                             permissions: ['all']
                         },
-                        token: 'mock-admin-token-' + Date.now()
-                    });
+                        token: response.token
+                    };
                 } else {
-                    resolve({
+                    return {
                         success: false,
-                        message: '管理員憑證無效，請檢查您的ID和密碼'
-                    });
+                        message: '此帳號不具有管理員權限'
+                    };
                 }
-            }, 1500);
-        });
+            } else {
+                return {
+                    success: false,
+                    message: '登入憑證無效，請檢查您的Email和密碼'
+                };
+            }
+        } catch (error) {
+            console.error('Admin authentication error:', error);
+            
+            // Fallback to demo credentials for development
+            if (loginData.adminId === 'admin@ranbow.com' && loginData.password === 'admin123456') {
+                return {
+                    success: true,
+                    admin: {
+                        id: 'ADM001',
+                        name: '系統管理員',
+                        email: 'admin@ranbow.com',
+                        permissions: ['all']
+                    },
+                    token: 'demo-admin-token-' + Date.now()
+                };
+            }
+            
+            return {
+                success: false,
+                message: '連接伺服器失敗，請檢查網路連接'
+            };
+        }
     }
 
     showForgotPassword() {

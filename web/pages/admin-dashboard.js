@@ -334,8 +334,28 @@ class AdminDashboard {
         const bottomNav = document.getElementById('bottom-nav');
         const topNav = document.getElementById('top-nav');
         
-        if (bottomNav) bottomNav.classList.add('hidden');
-        if (topNav) topNav.classList.add('hidden');
+        if (bottomNav) {
+            bottomNav.classList.add('hidden');
+            bottomNav.style.display = 'none';
+        }
+        if (topNav) {
+            topNav.classList.add('hidden');
+            topNav.style.display = 'none';
+        }
+    }
+    
+    showNavigationBars() {
+        const bottomNav = document.getElementById('bottom-nav');
+        const topNav = document.getElementById('top-nav');
+        
+        if (bottomNav) {
+            bottomNav.classList.remove('hidden');
+            bottomNav.style.display = '';
+        }
+        if (topNav) {
+            topNav.classList.remove('hidden');
+            topNav.style.display = '';
+        }
     }
 
     initializeDashboard() {

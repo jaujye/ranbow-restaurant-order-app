@@ -1376,6 +1376,7 @@
     background: var(--gradient-rainbow-soft);
     position: relative;
     overflow-x: hidden;
+    padding-top: 80px; /* Add padding to avoid top-nav overlap */
 }
 
 .rainbow-wave {
