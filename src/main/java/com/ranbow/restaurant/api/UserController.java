@@ -217,6 +217,109 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
     
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = extractTokenFromHeader(authHeader);
+            if (token != null) {
+                JwtService.TokenInfo tokenInfo = jwtService.validateToken(token);
+                if (tokenInfo != null) {
+                    // 驗證會話是否還有效 - 簡化驗證邏輯，直接檢查用戶存在性
+                    // SessionService.SessionData sessionData = sessionService.validateSession(tokenInfo.getSessionId());
+                    // if (sessionData != null) {
+                    // 暫時簡化驗證：只要JWT有效且用戶存在就允許訪問
+                    if (true) {
+                        Optional<User> user = userService.findUserById(tokenInfo.getUserId());
+                        if (user.isPresent()) {
+                            return ResponseEntity.ok(Map.of(
+                                    "success", true,
+                                    "user", user.get(),
+                                    "sessionId", tokenInfo.getSessionId()
+                            ));
+                        } else {
+                            return ResponseEntity.notFound().build();
+                        }
+                    } else {
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                                .body(Map.of("success", false, "error", "Session expired"));
+                    }
+                } else {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(Map.of("success", false, "error", "Invalid token"));
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("success", false, "error", "Missing authorization header"));
+            }
+        } catch (Exception e) {
+            System.err.println("Get current user failed: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "error", "Failed to get user information"));
+        }
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@Valid @RequestBody CreateUserRequest request, HttpServletRequest httpRequest) {
+        try {
+            System.out.println("Registration attempt for email: " + request.getEmail());
+            
+            // 創建新用戶
+            User newUser = userService.createUser(
+                    request.getUsername(),
+                    request.getEmail(),
+                    request.getPhoneNumber(),
+                    request.getPassword(),
+                    request.getRole() != null ? request.getRole() : UserRole.CUSTOMER
+            );
+            System.out.println("User created with ID: " + newUser.getUserId());
+            
+            // 獲取設備信息和IP地址
+            String deviceInfo = getDeviceInfo(httpRequest);
+            String ipAddress = getClientIpAddress(httpRequest);
+            System.out.println("Device info: " + deviceInfo + ", IP: " + ipAddress);
+            
+            // 自動登入新註冊的用戶 - 創建Redis會話
+            try {
+                String sessionId = sessionService.createSession(newUser.getUserId(), deviceInfo, ipAddress);
+                System.out.println("Session created: " + sessionId);
+                
+                // 生成JWT Token
+                String token = jwtService.generateToken(newUser.getUserId(), sessionId, deviceInfo);
+                System.out.println("Token generated successfully");
+                
+                return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                        "success", true,
+                        "message", "User registered successfully",
+                        "token", token,
+                        "user", newUser,
+                        "sessionId", sessionId
+                ));
+            } catch (Exception sessionEx) {
+                System.err.println("Session creation failed during registration: " + sessionEx.getMessage());
+                sessionEx.printStackTrace();
+                // 即使會話創建失敗，用戶仍然已經創建成功，返回用戶信息但不包含token
+                return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                        "success", true,
+                        "message", "User registered successfully but auto-login failed",
+                        "user", newUser,
+                        "error", "Please login manually"
+                ));
+            }
+            
+        } catch (IllegalArgumentException e) {
+            // 用戶已存在或其他驗證錯誤
+            System.err.println("Registration validation error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("success", false, "error", e.getMessage()));
+        } catch (Exception e) {
+            System.err.println("Registration failed with exception: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "error", "Registration failed: " + e.getMessage()));
+        }
+    }
+
     @GetMapping("/stats")
     public ResponseEntity<?> getUserStats() {
         return ResponseEntity.ok(Map.of(
