@@ -1,20 +1,63 @@
-import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Button, Input, Card } from '@/components/ui'
+import { useAuthActions } from '@/store/authStore'
+import { useFormValidation } from '@/hooks/useFormValidation'
+import { loginSchema, type LoginFormData } from '@/lib/validations/auth'
 
 const Login: React.FC = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { login, quickLogin, clearError } = useAuthActions()
   
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault()
-    // TODO: Implement actual login logic
-    console.log('Login submitted')
-    navigate('/')
+  const from = (location.state as any)?.from?.pathname || '/'
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    submitError,
+    setSubmitError
+  } = useFormValidation<LoginFormData>({
+    schema: loginSchema,
+    defaultValues: {
+      email: '',
+      password: '',
+      rememberMe: false
+    }
+  })
+  
+  const handleLogin = async (data: LoginFormData) => {
+    try {
+      clearError()
+      const success = await login({
+        email: data.email,
+        password: data.password
+      })
+      
+      if (success) {
+        navigate(from, { replace: true })
+      } else {
+        setSubmitError('登入失敗，請檢查您的帳號密碼')
+      }
+    } catch (error: any) {
+      setSubmitError(error.message || '登入時發生錯誤，請重試')
+    }
   }
   
-  const handleQuickLogin = (role: string) => {
-    console.log(`Quick login as ${role}`)
-    navigate('/')
+  const handleQuickLogin = async (role: 'customer' | 'staff' | 'admin') => {
+    try {
+      clearError()
+      const success = await quickLogin(role)
+      
+      if (success) {
+        navigate(from, { replace: true })
+      } else {
+        setSubmitError(`${role} 快速登入失敗`)
+      }
+    } catch (error: any) {
+      setSubmitError(error.message || '快速登入時發生錯誤')
+    }
   }
 
   return (
@@ -31,28 +74,41 @@ const Login: React.FC = () => {
           </p>
         </div>
         
+        {/* Error Message */}
+        {submitError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm">{submitError}</p>
+          </div>
+        )}
+
         {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleSubmit(handleLogin)} className="space-y-4">
           <Input
             label="Email"
             type="email"
             placeholder="請輸入您的Email"
-            required
+            error={errors.email?.message}
             fullWidth
+            {...register('email')}
           />
           
           <Input
             label="密碼"
             type="password"
             placeholder="請輸入密碼"
-            required
+            error={errors.password?.message}
             fullWidth
             showPasswordToggle
+            {...register('password')}
           />
           
           <div className="flex items-center justify-between text-sm">
             <label className="flex items-center gap-2">
-              <input type="checkbox" className="rounded" />
+              <input 
+                type="checkbox" 
+                className="rounded"
+                {...register('rememberMe')}
+              />
               記住我
             </label>
             <Link to="/forgot-password" className="text-primary-500 hover:underline">
@@ -60,8 +116,8 @@ const Login: React.FC = () => {
             </Link>
           </div>
           
-          <Button type="submit" fullWidth>
-            登入
+          <Button type="submit" fullWidth disabled={isSubmitting}>
+            {isSubmitting ? '登入中...' : '登入'}
           </Button>
         </form>
         
