@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, Button, Input } from '@/components/ui'
 import { useAuth, useAuthActions, useGlobalReset } from '@/store'
-import { User } from '@/services/api'
+import { User, ProfileService, UpdateProfileRequest, ChangePasswordRequest } from '@/services/api'
 import { 
   ArrowLeft, 
   User as UserIcon, 
@@ -71,16 +71,25 @@ const Profile: React.FC = () => {
 
     setIsSaving(true)
     try {
-      const success = await updateProfile(editForm)
-      if (success) {
+      // Use ProfileService for updating profile
+      const updateData: UpdateProfileRequest = {
+        username: editForm.name,
+        phoneNumber: editForm.phone
+        // Note: email changes might require special handling/verification
+      }
+      
+      const response = await ProfileService.updateCurrentUserProfile(updateData)
+      if (response.success) {
+        // Update local store with new data
+        const success = await updateProfile(editForm)
         setIsEditing(false)
         setEditForm({})
         alert('個人資料已更新')
       } else {
-        alert('更新失敗，請重試')
+        alert(`更新失敗: ${response.error || '請重試'}`)
       }
-    } catch (error) {
-      alert('更新失敗，請重試')
+    } catch (error: any) {
+      alert(`更新失敗: ${error.message || '請重試'}`)
     } finally {
       setIsSaving(false)
     }
@@ -95,7 +104,7 @@ const Profile: React.FC = () => {
     })
   }
 
-  const handleSavePassword = () => {
+  const handleSavePassword = async () => {
     const { currentPassword, newPassword, confirmPassword } = passwordForm
 
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -113,9 +122,31 @@ const Profile: React.FC = () => {
       return
     }
 
-    // TODO: 實現密碼修改 API
-    alert('密碼修改功能開發中...')
-    setIsChangingPassword(false)
+    setIsSaving(true)
+    try {
+      // Use ProfileService for changing password
+      const passwordData: ChangePasswordRequest = {
+        currentPassword,
+        newPassword
+      }
+      
+      const response = await ProfileService.changeCurrentUserPassword(passwordData)
+      if (response.success) {
+        setIsChangingPassword(false)
+        setPasswordForm({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        })
+        alert('密碼已成功更新')
+      } else {
+        alert(`密碼更新失敗: ${response.error || '請重試'}`)
+      }
+    } catch (error: any) {
+      alert(`密碼更新失敗: ${error.message || '請重試'}`)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleLogout = async () => {
@@ -325,10 +356,11 @@ const Profile: React.FC = () => {
                 <div className="flex gap-3 pt-4">
                   <Button
                     onClick={handleSavePassword}
+                    disabled={isSaving}
                     className="flex items-center gap-2"
                   >
                     <Save className="w-4 h-4" />
-                    更新密碼
+                    {isSaving ? '更新中...' : '更新密碼'}
                   </Button>
                   <Button
                     variant="ghost"
