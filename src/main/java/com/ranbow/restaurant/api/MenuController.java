@@ -62,19 +62,9 @@ public class MenuController {
     }
     
     @GetMapping("/items")
-    public ResponseEntity<List<MenuItem>> getMenuItems(@RequestParam(name = "category", required = false) String category) {
-        // Frontend compatibility endpoint
-        List<MenuItem> items;
-        if (category != null && !category.isEmpty()) {
-            try {
-                MenuCategory categoryEnum = MenuCategory.valueOf(category.toUpperCase());
-                items = menuService.getMenuItemsByCategory(categoryEnum);
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().build();
-            }
-        } else {
-            items = menuService.getAllMenuItems();
-        }
+    public ResponseEntity<List<MenuItem>> getMenuItems() {
+        // Frontend compatibility endpoint - simplified version
+        List<MenuItem> items = menuService.getAllMenuItems();
         return ResponseEntity.ok(items);
     }
     
