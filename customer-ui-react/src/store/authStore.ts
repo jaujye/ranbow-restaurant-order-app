@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import { AuthService, User, LoginRequest, RegisterRequest } from '@/services/api'
 
 interface AuthState {
@@ -24,17 +23,48 @@ interface AuthState {
   isStaffOrAdmin: boolean
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      user: null,
-      token: null,
-      isLoading: false,
-      error: null,
-      _hasHydrated: false,
+// 手動從 localStorage 恢復認證狀態
+const restoreAuthFromStorage = (): { user: User | null; token: string | null } => {
+  try {
+    const storedUser = localStorage.getItem('currentUser')
+    const storedToken = localStorage.getItem('authToken')
+    const tokenExpiry = localStorage.getItem('tokenExpiry')
+    
+    // 檢查 token 是否過期
+    if (storedToken && tokenExpiry) {
+      const expiryTime = parseInt(tokenExpiry)
+      if (Date.now() > expiryTime) {
+        // Token 過期，清除數據
+        localStorage.removeItem('authToken')
+        localStorage.removeItem('currentUser')
+        localStorage.removeItem('tokenExpiry')
+        return { user: null, token: null }
+      }
+    }
+    
+    const user = storedUser ? JSON.parse(storedUser) : null
+    const token = storedToken || null
+    
+    console.log('[AuthStore] Restored from storage:', { hasUser: !!user, hasToken: !!token })
+    return { user, token }
+  } catch (error) {
+    console.error('[AuthStore] Error restoring from storage:', error)
+    return { user: null, token: null }
+  }
+}
 
-      // Actions
-      login: async (credentials: LoginRequest) => {
+// 獲取初始狀態
+const initialAuth = restoreAuthFromStorage()
+
+export const useAuthStore = create<AuthState>()((set, get) => ({
+  user: initialAuth.user,
+  token: initialAuth.token,
+  isLoading: false,
+  error: null,
+  _hasHydrated: true, // 直接設為 true，因為我們已經從 localStorage 恢復了數據
+
+  // Actions
+  login: async (credentials: LoginRequest) => {
         set({ isLoading: true, error: null })
         
         try {
@@ -239,28 +269,7 @@ export const useAuthStore = create<AuthState>()(
         const role = get().user?.role
         return role === 'STAFF' || role === 'ADMIN'
       }
-    }),
-    {
-      name: 'auth-store',
-      partialize: (state) => ({
-        user: state.user,
-        token: state.token
-      }),
-      onRehydrateStorage: () => (state, error) => {
-        // 記錄 rehydration 過程用於調試
-        console.log('[AuthStore] Rehydrating with state:', state, 'error:', error)
-        
-        // 設置 hydration 完成標誌
-        setTimeout(() => {
-          useAuthStore.setState({ _hasHydrated: true })
-          console.log('[AuthStore] Hydration completed, _hasHydrated set to true')
-        }, 0)
-        
-        // 返回 state 讓 Zustand 自動恢復，不需要手動設置
-        return state
-      }
-    }
-  )
+    })
 )
 
 // Selectors for convenient access
