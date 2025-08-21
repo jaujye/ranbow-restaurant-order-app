@@ -1,7 +1,7 @@
 ---
 name: frontend-ui-designer
 description: Use this agent when you need UI/UX design guidance, component styling, responsive design solutions, or visual design improvements for frontend applications. Examples: <example>Context: User is working on improving the visual design of their restaurant ordering app's menu page. user: "The menu page looks bland and doesn't match our rainbow theme. Can you help redesign it?" assistant: "I'll use the frontend-ui-designer agent to provide comprehensive UI design recommendations for your menu page."</example> <example>Context: User needs help creating a responsive navigation component. user: "I need to create a mobile-friendly navigation bar that works well on both desktop and mobile" assistant: "Let me use the frontend-ui-designer agent to design a responsive navigation solution that adapts seamlessly across different screen sizes."</example>
-model: sonnet
+model: opus
 color: orange
 ---
 

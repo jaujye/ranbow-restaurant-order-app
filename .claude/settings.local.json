@@ -71,7 +71,10 @@
       "Bash(git checkout:*)",
       "Bash(mv:*)",
       "mcp__ssh-server__list-servers",
-      "Bash(npm cache clean:*)"
+      "Bash(npm cache clean:*)",
+      "Bash(cmd /c:*)",
+      "mcp__redis__set",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": [],

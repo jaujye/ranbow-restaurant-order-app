@@ -30,12 +30,62 @@ export class AuthService {
    * 快速登入（開發測試用）
    */
   static async quickLogin(role: 'customer' | 'staff' | 'admin'): Promise<ApiResponse<AuthResponse>> {
-    const mockCredentials: LoginRequest = {
-      email: `${role}@ranbow.com`,
-      password: 'password123'
+    // 創建測試用戶資料
+    const mockUsers = {
+      customer: {
+        id: 'mock-customer-001',
+        email: 'customer@ranbow.com',
+        name: '測試顧客',
+        phone: '0912345678',
+        role: 'CUSTOMER' as const,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      staff: {
+        id: 'mock-staff-001',
+        email: 'staff@ranbow.com',
+        name: '測試員工',
+        phone: '0923456789',
+        role: 'STAFF' as const,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      admin: {
+        id: 'mock-admin-001',
+        email: 'admin@ranbow.com',
+        name: '系統管理員',
+        phone: '0934567890',
+        role: 'ADMIN' as const,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
     }
-    
-    return this.login(mockCredentials)
+
+    // 生成模擬的 JWT token
+    const mockToken = `mock-jwt-token-${role}-${Date.now()}`
+    const mockExpiresIn = 86400 // 24 hours
+
+    // 創建模擬響應
+    const mockResponse: ApiResponse<AuthResponse> = {
+      success: true,
+      data: {
+        user: mockUsers[role],
+        token: mockToken,
+        expiresIn: mockExpiresIn
+      }
+    }
+
+    // 保存認證信息到本地存儲
+    if (mockResponse.success && mockResponse.data) {
+      localStorage.setItem('authToken', mockResponse.data.token)
+      localStorage.setItem('currentUser', JSON.stringify(mockResponse.data.user))
+      localStorage.setItem('tokenExpiry', (Date.now() + mockResponse.data.expiresIn * 1000).toString())
+    }
+
+    // 模擬網絡延遲
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    return mockResponse
   }
 
   /**

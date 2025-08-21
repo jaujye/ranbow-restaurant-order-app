@@ -9,6 +9,7 @@ const Login: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { login, quickLogin, clearError } = useAuthActions()
+  const [isQuickLoading, setIsQuickLoading] = useState(false)
   
   const from = (location.state as any)?.from?.pathname || '/'
   
@@ -47,16 +48,23 @@ const Login: React.FC = () => {
   
   const handleQuickLogin = async (role: 'customer' | 'staff' | 'admin') => {
     try {
+      setIsQuickLoading(true)
       clearError()
+      setSubmitError(null) // 清除之前的錯誤
+      
       const success = await quickLogin(role)
       
       if (success) {
+        // 快速登入成功，導航到首頁或之前的頁面
         navigate(from, { replace: true })
       } else {
         setSubmitError(`${role} 快速登入失敗`)
       }
     } catch (error: any) {
+      console.error('Quick login error:', error)
       setSubmitError(error.message || '快速登入時發生錯誤')
+    } finally {
+      setIsQuickLoading(false)
     }
   }
 
@@ -137,22 +145,25 @@ const Login: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={() => handleQuickLogin('customer')}
+              disabled={isQuickLoading}
             >
-              顧客
+              {isQuickLoading ? '登入中...' : '顧客'}
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => handleQuickLogin('staff')}
+              disabled={isQuickLoading}
             >
-              員工
+              {isQuickLoading ? '登入中...' : '員工'}
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => handleQuickLogin('admin')}
+              disabled={isQuickLoading}
             >
-              管理員
+              {isQuickLoading ? '登入中...' : '管理員'}
             </Button>
           </div>
         </div>

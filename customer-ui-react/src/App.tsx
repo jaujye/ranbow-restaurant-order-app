@@ -46,9 +46,10 @@ const NotFoundPage: React.FC = () => (
 
 // Route Guard for authentication
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Import Zustand auth store
-  const { isAuthenticated, isLoading } = useAuthStore((state) => ({
-    isAuthenticated: state.isAuthenticated,
+  // Import Zustand auth store - checking token and user directly
+  const { token, user, isLoading } = useAuthStore((state) => ({
+    token: state.token,
+    user: state.user,
     isLoading: state.isLoading
   }))
   const location = useLocation()
@@ -57,6 +58,9 @@ const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   if (isLoading) {
     return <PageLoading />
   }
+  
+  // Check authentication by verifying both token and user exist
+  const isAuthenticated = token !== null && user !== null
   
   if (!isAuthenticated) {
     // Redirect to login with the attempted location
