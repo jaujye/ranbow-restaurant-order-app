@@ -6,10 +6,12 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 @Service
 public class ReportService {
@@ -178,6 +180,83 @@ public class ReportService {
                 sb.append("- ").append(status).append(": ").append(count).append(" 筆\n"));
         
         return sb.toString();
+    }
+    
+    /**
+     * Generate sales report for admin dashboard
+     */
+    public Map<String, Object> generateSalesReport(String startDate, String endDate, String period) {
+        Map<String, Object> report = new HashMap<>();
+        
+        try {
+            // Parse dates
+            LocalDate start = LocalDate.parse(startDate);
+            LocalDate end = LocalDate.parse(endDate);
+            
+            // Get orders in date range  
+            LocalDateTime startDateTime = start.atStartOfDay();
+            LocalDateTime endDateTime = end.atTime(23, 59, 59);
+            
+            // Mock data for now - in production, should use DAO to get actual data
+            List<Map<String, Object>> salesData = new ArrayList<>();
+            
+            // Generate sample sales data
+            LocalDate current = start;
+            while (!current.isAfter(end)) {
+                Map<String, Object> dayData = new HashMap<>();
+                dayData.put("date", current.toString());
+                dayData.put("revenue", Math.random() * 50000 + 10000); // Mock revenue
+                dayData.put("orders", (int)(Math.random() * 100 + 20)); // Mock order count
+                dayData.put("customers", (int)(Math.random() * 80 + 15)); // Mock customer count
+                salesData.add(dayData);
+                current = current.plusDays(1);
+            }
+            
+            // Calculate totals
+            double totalRevenue = salesData.stream()
+                    .mapToDouble(data -> (Double) data.get("revenue"))
+                    .sum();
+            int totalOrders = salesData.stream()
+                    .mapToInt(data -> (Integer) data.get("orders"))
+                    .sum();
+            int totalCustomers = salesData.stream()
+                    .mapToInt(data -> (Integer) data.get("customers"))
+                    .sum();
+            
+            // Build report
+            report.put("period", period);
+            report.put("startDate", startDate);
+            report.put("endDate", endDate);
+            report.put("salesData", salesData);
+            report.put("summary", Map.of(
+                    "totalRevenue", totalRevenue,
+                    "totalOrders", totalOrders,
+                    "totalCustomers", totalCustomers,
+                    "averageOrderValue", totalOrders > 0 ? totalRevenue / totalOrders : 0,
+                    "days", salesData.size()
+            ));
+            
+            // Top selling items (mock data)
+            report.put("topItems", List.of(
+                    Map.of("name", "招牌牛排", "quantity", 85, "revenue", 32300),
+                    Map.of("name", "彩虹沙拉", "quantity", 72, "revenue", 13680),
+                    Map.of("name", "巧克力蛋糕", "quantity", 56, "revenue", 7840)
+            ));
+            
+            // Payment method breakdown (mock data)
+            report.put("paymentMethods", Map.of(
+                    "信用卡", 45.2,
+                    "現金", 28.7,
+                    "LINE Pay", 15.3,
+                    "其他", 10.8
+            ));
+            
+        } catch (Exception e) {
+            System.err.println("Error generating sales report: " + e.getMessage());
+            report.put("error", "報表生成失敗：" + e.getMessage());
+        }
+        
+        return report;
     }
     
     // Inner classes for report data structures
