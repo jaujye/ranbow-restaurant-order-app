@@ -69,7 +69,8 @@
       "mcp__playwright__browser_navigate_back",
       "mcp__playwright__browser_close",
       "Bash(git checkout:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "mcp__ssh-server__list-servers"
     ],
     "deny": [],
     "ask": [],

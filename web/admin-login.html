@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-role="admin">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理員登入 - Ranbow Restaurant</title>
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="assets/css/reset.css">
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/admin-login.css">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="rainbow-background">
+        <div class="rainbow-orb orb-1"></div>
+        <div class="rainbow-orb orb-2"></div>
+        <div class="rainbow-orb orb-3"></div>
+        <div class="rainbow-orb orb-4"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="login-container">
+        <!-- Brand Header -->
+        <div class="brand-header">
+            <div class="brand-logo">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <h1 class="brand-title">Ranbow Restaurant</h1>
+            <p class="brand-subtitle">管理員後台系統</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="login-form-wrapper">
+            <div class="login-form-container">
+                <div class="form-header">
+                    <h2 class="form-title">
+                        <i class="fas fa-user-shield"></i>
+                        管理員登入
+                    </h2>
+                    <p class="form-description">請輸入您的管理員憑證以存取系統</p>
+                </div>
+
+                <form class="login-form" id="adminLoginForm">
+                    <!-- Email Input -->
+                    <div class="input-group">
+                        <label for="email" class="input-label">
+                            <i class="fas fa-envelope"></i>
+                            管理員帳號
+                        </label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                class="form-input" 
+                                placeholder="請輸入管理員Email"
+                                required
+                                autocomplete="email"
+                            >
+                            <div class="input-focus-ring"></div>
+                        </div>
+                    </div>
+
+                    <!-- Password Input -->
+                    <div class="input-group">
+                        <label for="password" class="input-label">
+                            <i class="fas fa-lock"></i>
+                            密碼
+                        </label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                class="form-input" 
+                                placeholder="請輸入密碼"
+                                required
+                                autocomplete="current-password"
+                            >
+                            <button type="button" class="password-toggle" onclick="togglePassword()">
+                                <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                            </button>
+                            <div class="input-focus-ring"></div>
+                        </div>
+                    </div>
+
+                    <!-- Remember Me -->
+                    <div class="checkbox-group">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="rememberMe" name="rememberMe">
+                            <div class="checkbox-custom">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <span class="checkbox-label">記住登入狀態</span>
+                        </label>
+                    </div>
+
+                    <!-- Role Selection -->
+                    <div class="role-selection">
+                        <label class="role-label">權限等級</label>
+                        <div class="role-options">
+                            <label class="role-option">
+                                <input type="radio" name="role" value="super-admin" checked>
+                                <div class="role-card">
+                                    <i class="fas fa-crown"></i>
+                                    <span>超級管理員</span>
+                                    <small>完整系統控制權</small>
+                                </div>
+                            </label>
+                            <label class="role-option">
+                                <input type="radio" name="role" value="store-manager">
+                                <div class="role-card">
+                                    <i class="fas fa-store"></i>
+                                    <span>店舖管理員</span>
+                                    <small>店舖營運管理</small>
+                                </div>
+                            </label>
+                            <label class="role-option">
+                                <input type="radio" name="role" value="operations-manager">
+                                <div class="role-card">
+                                    <i class="fas fa-tasks"></i>
+                                    <span>營運管理員</span>
+                                    <small>日常業務管理</small>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="submit-button">
+                        <span class="button-content">
+                            <i class="fas fa-sign-in-alt"></i>
+                            進入管理後台
+                        </span>
+                        <div class="button-loader">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                    </button>
+
+                    <!-- Error Message -->
+                    <div class="error-message" id="errorMessage" style="display: none;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span id="errorText">登入失敗，請檢查您的憑證</span>
+                    </div>
+                </form>
+
+                <!-- Footer -->
+                <div class="form-footer">
+                    <p class="footer-text">
+                        忘記密碼？請聯繫 
+                        <a href="mailto:admin@ranbow.com" class="footer-link">系統管理員</a>
+                    </p>
+                    <div class="security-info">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>256位SSL加密保護</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Access Panel -->
+        <div class="quick-access-panel">
+            <h3 class="panel-title">快速存取</h3>
+            <div class="quick-actions">
+                <button class="quick-action-btn" data-role="super-admin">
+                    <i class="fas fa-crown"></i>
+                    <span>超級管理員</span>
+                    <small>demo@ranbow.com</small>
+                </button>
+                <button class="quick-action-btn" data-role="store-manager">
+                    <i class="fas fa-store"></i>
+                    <span>店舖管理員</span>
+                    <small>manager@ranbow.com</small>
+                </button>
+                <button class="quick-action-btn" data-role="operations-manager">
+                    <i class="fas fa-tasks"></i>
+                    <span>營運管理員</span>
+                    <small>ops@ranbow.com</small>
+                </button>
+            </div>
+            <p class="panel-note">
+                <i class="fas fa-info-circle"></i>
+                演示模式：點擊快速登入
+            </p>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="assets/js/admin-login.js"></script>
+</body>
+</html>

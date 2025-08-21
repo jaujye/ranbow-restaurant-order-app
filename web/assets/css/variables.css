@@ -132,3 +132,129 @@
 [data-role="admin"] {
     --theme-primary: var(--secondary-color);
 }
+
+/* === ADMIN RAINBOW THEME SYSTEM === */
+
+/* Rainbow Gradient Colors */
+:root {
+    /* Rainbow Primary Colors */
+    --rainbow-red: #FF3B30;
+    --rainbow-orange: #FF9500;
+    --rainbow-yellow: #FFCC00;
+    --rainbow-green: #34C759;
+    --rainbow-blue: #007AFF;
+    --rainbow-indigo: #5856D6;
+    --rainbow-purple: #AF52DE;
+    --rainbow-pink: #FF2D92;
+
+    /* Rainbow Gradient Definitions */
+    --gradient-rainbow-horizontal: linear-gradient(90deg, 
+        var(--rainbow-red) 0%, 
+        var(--rainbow-orange) 14.28%, 
+        var(--rainbow-yellow) 28.56%, 
+        var(--rainbow-green) 42.84%, 
+        var(--rainbow-blue) 57.12%, 
+        var(--rainbow-indigo) 71.4%, 
+        var(--rainbow-purple) 85.68%, 
+        var(--rainbow-pink) 100%);
+    
+    --gradient-rainbow-diagonal: linear-gradient(135deg, 
+        var(--rainbow-red) 0%, 
+        var(--rainbow-orange) 14.28%, 
+        var(--rainbow-yellow) 28.56%, 
+        var(--rainbow-green) 42.84%, 
+        var(--rainbow-blue) 57.12%, 
+        var(--rainbow-indigo) 71.4%, 
+        var(--rainbow-purple) 85.68%, 
+        var(--rainbow-pink) 100%);
+
+    --gradient-rainbow-radial: radial-gradient(circle at center, 
+        var(--rainbow-yellow) 0%, 
+        var(--rainbow-orange) 20%, 
+        var(--rainbow-red) 40%, 
+        var(--rainbow-purple) 60%, 
+        var(--rainbow-blue) 80%, 
+        var(--rainbow-indigo) 100%);
+
+    /* Subtle Rainbow Gradients */
+    --gradient-rainbow-soft: linear-gradient(135deg, 
+        rgba(255, 59, 48, 0.1) 0%, 
+        rgba(255, 149, 0, 0.1) 14.28%, 
+        rgba(255, 204, 0, 0.1) 28.56%, 
+        rgba(52, 199, 89, 0.1) 42.84%, 
+        rgba(0, 122, 255, 0.1) 57.12%, 
+        rgba(88, 86, 214, 0.1) 71.4%, 
+        rgba(175, 82, 222, 0.1) 85.68%, 
+        rgba(255, 45, 146, 0.1) 100%);
+
+    /* Admin Theme Specific Colors */
+    --admin-primary: var(--rainbow-blue);
+    --admin-secondary: var(--rainbow-purple);
+    --admin-accent: var(--rainbow-yellow);
+    --admin-success: var(--rainbow-green);
+    --admin-warning: var(--rainbow-orange);
+    --admin-danger: var(--rainbow-red);
+    
+    /* Status Colors with Rainbow Theme */
+    --status-pending: var(--rainbow-yellow);
+    --status-processing: var(--rainbow-blue);
+    --status-completed: var(--rainbow-green);
+    --status-cancelled: var(--rainbow-red);
+    --status-urgent: var(--rainbow-orange);
+    --status-low-priority: var(--rainbow-indigo);
+    
+    /* Admin Card Backgrounds */
+    --admin-card-bg: rgba(255, 255, 255, 0.95);
+    --admin-card-hover: rgba(255, 255, 255, 0.98);
+    --admin-card-border: rgba(255, 255, 255, 0.2);
+    
+    /* Rainbow Glass Effect */
+    --glass-rainbow: rgba(255, 255, 255, 0.1);
+    --glass-rainbow-border: rgba(255, 255, 255, 0.2);
+    --glass-rainbow-backdrop: blur(10px);
+    
+    /* Admin Layout Specific */
+    --admin-sidebar-width: 320px;
+    --admin-header-height: 80px;
+    --admin-card-min-height: 120px;
+    --admin-chart-height: 300px;
+    
+    /* Rainbow Animation Colors */
+    --rainbow-animation-duration: 3s;
+    --rainbow-pulse-opacity: 0.6;
+    
+    /* Admin Typography */
+    --admin-title-size: 28px;
+    --admin-subtitle-size: 20px;
+    --admin-metric-size: 32px;
+    --admin-label-size: 14px;
+    
+    /* Mobile Admin Optimizations */
+    --admin-mobile-padding: 16px;
+    --admin-mobile-card-spacing: 12px;
+    --admin-mobile-button-height: 52px;
+    
+    /* Admin Dashboard Grid */
+    --dashboard-grid-gap: 20px;
+    --dashboard-card-radius: 16px;
+    --dashboard-elevation: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* Admin Rainbow Theme Application */
+[data-role="admin"] {
+    --theme-primary: var(--admin-primary);
+    --theme-secondary: var(--admin-secondary);
+    --theme-accent: var(--admin-accent);
+    --bg-gradient: var(--gradient-rainbow-soft);
+}
+
+/* Dark Mode Admin Theme */
+@media (prefers-color-scheme: dark) {
+    [data-role="admin"] {
+        --admin-card-bg: rgba(45, 45, 45, 0.95);
+        --admin-card-hover: rgba(60, 60, 60, 0.98);
+        --admin-card-border: rgba(255, 255, 255, 0.1);
+        --glass-rainbow: rgba(0, 0, 0, 0.3);
+        --glass-rainbow-border: rgba(255, 255, 255, 0.15);
+    }
+}
