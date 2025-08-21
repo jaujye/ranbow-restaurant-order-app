@@ -14,16 +14,33 @@ export class AuthService {
    * 用戶登入
    */
   static async login(credentials: LoginRequest): Promise<ApiResponse<AuthResponse>> {
-    const response = await HttpClient.post<AuthResponse>('/users/login', credentials)
+    const response = await HttpClient.post<{success: boolean, token: string, user: User, sessionId: string}>('/users/login', credentials)
     
-    if (response.success && response.data) {
+    // 處理後端返回的格式：{success: true, token: "...", user: {...}, sessionId: "..."}
+    if (response.success && response.data?.success && response.data.token && response.data.user) {
       // 保存認證信息到本地存儲
       localStorage.setItem('authToken', response.data.token)
       localStorage.setItem('currentUser', JSON.stringify(response.data.user))
-      localStorage.setItem('tokenExpiry', (Date.now() + response.data.expiresIn * 1000).toString())
+      localStorage.setItem('sessionId', response.data.sessionId)
+      // 設置默認過期時間為24小時（86400秒）
+      localStorage.setItem('tokenExpiry', (Date.now() + 86400 * 1000).toString())
+      
+      // 返回標準化的格式
+      return {
+        success: true,
+        data: {
+          user: response.data.user,
+          token: response.data.token,
+          expiresIn: 86400 // 24 hours
+        }
+      }
     }
     
-    return response
+    // 如果登入失敗，返回錯誤信息
+    return {
+      success: false,
+      error: response.error || 'Login failed'
+    }
   }
 
   /**
@@ -92,16 +109,33 @@ export class AuthService {
    * 用戶註冊
    */
   static async register(userData: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
-    const response = await HttpClient.post<AuthResponse>('/users/register', userData)
+    const response = await HttpClient.post<{success: boolean, message: string, token?: string, user?: User, sessionId?: string}>('/users/register', userData)
     
-    if (response.success && response.data) {
+    // 處理後端返回的格式：{success: true, message: "...", token: "...", user: {...}, sessionId: "..."}
+    if (response.success && response.data?.success && response.data.token && response.data.user) {
       // 註冊成功後自動登入
       localStorage.setItem('authToken', response.data.token)
       localStorage.setItem('currentUser', JSON.stringify(response.data.user))
-      localStorage.setItem('tokenExpiry', (Date.now() + response.data.expiresIn * 1000).toString())
+      localStorage.setItem('sessionId', response.data.sessionId || '')
+      // 設置默認過期時間為24小時（86400秒）
+      localStorage.setItem('tokenExpiry', (Date.now() + 86400 * 1000).toString())
+      
+      // 返回標準化的格式
+      return {
+        success: true,
+        data: {
+          user: response.data.user,
+          token: response.data.token,
+          expiresIn: 86400 // 24 hours
+        }
+      }
     }
     
-    return response
+    // 如果註冊失敗，返回錯誤信息
+    return {
+      success: false,
+      error: response.error || 'Registration failed'
+    }
   }
 
   /**
@@ -190,13 +224,25 @@ export class AuthService {
    * 刷新用戶信息
    */
   static async refreshUser(): Promise<ApiResponse<User>> {
-    const response = await HttpClient.get<User>('/users/me')
+    const response = await HttpClient.get<{success: boolean, user: User, sessionId: string}>('/users/me')
     
-    if (response.success && response.data) {
-      localStorage.setItem('currentUser', JSON.stringify(response.data))
+    // 處理後端返回的嵌套格式：{success: true, user: {...}, sessionId: "..."}
+    if (response.success && response.data?.success && response.data.user) {
+      localStorage.setItem('currentUser', JSON.stringify(response.data.user))
+      localStorage.setItem('sessionId', response.data.sessionId)
+      
+      // 返回標準化的格式，將 user 提取到 data 層級
+      return {
+        success: true,
+        data: response.data.user
+      }
     }
     
-    return response
+    // 如果後端返回錯誤或無效響應
+    return {
+      success: false,
+      error: response.error || 'Failed to refresh user data'
+    }
   }
 
   /**

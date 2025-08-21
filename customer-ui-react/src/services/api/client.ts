@@ -1,5 +1,11 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
+// 延遲導入 authStore 避免循環依賴
+const getAuthStore = () => {
+  const { useAuthStore } = require('@/store/authStore')
+  return useAuthStore.getState()
+}
+
 // API 環境配置
 const API_CONFIG = {
   local: 'http://localhost:8080/api',
@@ -108,12 +114,24 @@ const httpClient: AxiosInstance = axios.create({
 // 請求攔截器
 httpClient.interceptors.request.use(
   (config: AxiosRequestConfig): AxiosRequestConfig => {
-    // 從 localStorage 獲取 token
-    const token = localStorage.getItem('authToken')
-    if (token) {
-      config.headers = {
-        ...config.headers,
-        'Authorization': `Bearer ${token}`
+    // 優先從 Zustand store 獲取 token，回退到 localStorage
+    try {
+      const authStore = getAuthStore()
+      const token = authStore?.token || localStorage.getItem('authToken')
+      if (token) {
+        config.headers = {
+          ...config.headers,
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    } catch (error) {
+      // 如果 store 還未初始化，回退到 localStorage
+      const token = localStorage.getItem('authToken')
+      if (token) {
+        config.headers = {
+          ...config.headers,
+          'Authorization': `Bearer ${token}`
+        }
       }
     }
     
@@ -142,10 +160,31 @@ httpClient.interceptors.response.use(
       
       switch (status) {
         case 401:
-          // 未授權，清除本地存儲並重新導向到登入頁
-          localStorage.removeItem('authToken')
-          localStorage.removeItem('currentUser')
-          window.location.href = '/login'
+          // 未授權，通過 Zustand store 清除認證狀態
+          try {
+            const authStore = getAuthStore()
+            if (authStore?.logout) {
+              authStore.logout()
+            } else {
+              // 如果 store 未初始化，直接清除 localStorage
+              localStorage.removeItem('authToken')
+              localStorage.removeItem('currentUser')
+              localStorage.removeItem('tokenExpiry')
+            }
+            
+            // 只有在不是登入頁面時才重定向
+            if (!window.location.pathname.includes('/login')) {
+              window.location.href = '/login'
+            }
+          } catch (storeError) {
+            console.warn('Auth store not available, clearing localStorage directly')
+            localStorage.removeItem('authToken')
+            localStorage.removeItem('currentUser')
+            localStorage.removeItem('tokenExpiry')
+            if (!window.location.pathname.includes('/login')) {
+              window.location.href = '/login'
+            }
+          }
           break
         case 403:
           // 禁止訪問
