@@ -281,7 +281,7 @@ class RanbowApp {
     }
 
     hasPagePermission(page) {
-        const publicPages = ['login', 'register', 'forgot-password', 'home', 'staff-auth'];
+        const publicPages = ['login', 'register', 'forgot-password', 'home', 'staff-auth', 'admin-auth'];
         
         if (publicPages.includes(page)) {
             return true;
@@ -294,7 +294,7 @@ class RanbowApp {
         const rolePages = {
             'CUSTOMER': ['home', 'menu', 'menu-item', 'cart', 'checkout', 'orders', 'profile', 'order-detail'],
             'STAFF': ['staff-dashboard', 'staff-orders', 'staff-profile', 'staff-kitchen', 'staff-stats', 'staff-notifications', 'staff-auth'],
-            'ADMIN': ['admin-dashboard', 'admin-menu', 'admin-orders', 'admin-users', 'admin-reports']
+            'ADMIN': ['admin-auth', 'admin-dashboard', 'admin-menu', 'admin-orders', 'admin-users', 'admin-reports', 'admin-settings']
         };
         
         return rolePages[this.currentUser.role]?.includes(page) || false;
@@ -425,6 +425,9 @@ class RanbowApp {
             'staff-stats': staffStatsPage.getStaffStatsTemplate(),
             'staff-notifications': staffNotificationsPage.getStaffNotificationsTemplate(),
             'staff-profile': staffProfilePage.getStaffProfileTemplate(),
+            'admin-auth': adminAuth.getAdminLoginPageTemplate(),
+            'admin-dashboard': adminDashboard.getDashboardTemplate(),
+            'admin-menu': adminMenu.getMenuManagementTemplate(),
             '404': this.get404PageTemplate(),
             'error': this.getErrorPageTemplate()
         };
@@ -490,6 +493,15 @@ class RanbowApp {
                 break;
             case 'staff-profile':
                 await staffProfilePage.initializeStaffProfilePage();
+                break;
+            case 'admin-auth':
+                adminAuth.render();
+                break;
+            case 'admin-dashboard':
+                adminDashboard.render();
+                break;
+            case 'admin-menu':
+                adminMenu.render();
                 break;
         }
     }

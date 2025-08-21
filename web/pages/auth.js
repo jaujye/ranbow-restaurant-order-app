@@ -123,6 +123,16 @@ class AuthPages {
                             立即註冊
                         </a>
                     </p>
+                    <div class="auth-additional-options">
+                        <a href="#staff-auth" onclick="app.navigateTo('staff-auth')" class="staff-login-link">
+                            <i class="fas fa-users"></i>
+                            員工登入
+                        </a>
+                        <a href="#admin-auth" onclick="app.navigateTo('admin-auth')" class="admin-login-link">
+                            <i class="fas fa-shield-alt"></i>
+                            管理員登入
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>`;
