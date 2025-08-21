@@ -246,10 +246,18 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         token: state.token
       }),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state._hasHydrated = true
-        }
+      onRehydrateStorage: () => (state, error) => {
+        // 記錄 rehydration 過程用於調試
+        console.log('[AuthStore] Rehydrating with state:', state, 'error:', error)
+        
+        // 設置 hydration 完成標誌
+        setTimeout(() => {
+          useAuthStore.setState({ _hasHydrated: true })
+          console.log('[AuthStore] Hydration completed, _hasHydrated set to true')
+        }, 0)
+        
+        // 返回 state 讓 Zustand 自動恢復，不需要手動設置
+        return state
       }
     }
   )

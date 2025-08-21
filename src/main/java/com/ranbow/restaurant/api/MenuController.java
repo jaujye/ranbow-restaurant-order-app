@@ -64,7 +64,7 @@ public class MenuController {
     }
     
     @GetMapping("/search")
-    public ResponseEntity<List<MenuItem>> searchMenuItems(@RequestParam String keyword) {
+    public ResponseEntity<List<MenuItem>> searchMenuItems(@RequestParam("keyword") String keyword) {
         List<MenuItem> items = menuService.searchMenuItems(keyword);
         return ResponseEntity.ok(items);
     }
