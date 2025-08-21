@@ -315,7 +315,7 @@ class AdminAuthPages {
                     id: response.admin.id,
                     name: response.admin.name,
                     email: response.admin.email,
-                    role: 'admin',
+                    role: 'ADMIN',
                     permissions: response.admin.permissions,
                     lastLogin: new Date().toISOString()
                 });
@@ -332,11 +332,13 @@ class AdminAuthPages {
                     <span>登入成功</span>
                 `;
                 
+                // Set current user immediately for permission checks
+                app.currentUser = Storage.getUser();
+                
                 app.showToast('歡迎進入管理控制台', 'success');
                 
                 // Navigate to admin dashboard
                 setTimeout(() => {
-                    app.currentUser = Storage.getUser();
                     app.navigateTo('admin-dashboard');
                 }, 1500);
                 
