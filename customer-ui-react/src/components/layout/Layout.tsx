@@ -24,11 +24,15 @@ const Layout: React.FC<LayoutProps> = ({
   // Pages that should not show header
   const hideHeaderPaths = ['/login', '/register']
   const shouldShowHeader = showHeader && !hideHeaderPaths.includes(location.pathname)
+  
+  // Pages that should not show back button
+  const hideBackButtonPaths = ['/']
+  const shouldShowBackButton = !hideBackButtonPaths.includes(location.pathname)
 
   return (
     <div className={cn('app-layout min-h-screen bg-background-default', className)}>
       {/* Header */}
-      {shouldShowHeader && <Header />}
+      {shouldShowHeader && <Header showBack={shouldShowBackButton} />}
       
       {/* Main Content */}
       <main

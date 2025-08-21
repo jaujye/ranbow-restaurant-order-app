@@ -39,9 +39,9 @@ const Register: React.FC = () => {
       }
       
       const success = await register({
-        name: data.name,
+        username: data.name,
         email: data.email,
-        phone: data.phone,
+        phoneNumber: data.phone,
         password: data.password
       })
       
