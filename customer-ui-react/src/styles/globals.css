@@ -137,11 +137,50 @@
   }
   
   /* 導航樣式 */
+  .top-nav {
+    @apply fixed top-0 left-0 right-0;
+    @apply flex items-center justify-between px-4 py-3;
+    @apply bg-white/95 backdrop-blur-sm border-b border-border-light;
+    @apply safe-top;
+    height: var(--header-height, 60px);
+    z-index: 1035;
+  }
+  
+  .nav-left, .nav-right {
+    @apply flex items-center gap-2;
+    @apply min-w-0 flex-1;
+  }
+  
+  .nav-center {
+    @apply flex items-center justify-center flex-1;
+  }
+  
+  .nav-title {
+    @apply text-lg font-semibold text-text-primary truncate;
+  }
+  
+  .nav-btn {
+    @apply flex items-center justify-center p-2 rounded-medium;
+    @apply text-text-secondary hover:text-primary-500 hover:bg-primary-50;
+    @apply transition-all duration-fast touch-target;
+    @apply active:scale-95;
+  }
+  
+  .bottom-nav {
+    @apply fixed bottom-0 left-0 right-0;
+    @apply flex items-center justify-around px-2 py-2;
+    @apply bg-white/95 backdrop-blur-sm border-t border-border-light;
+    @apply safe-bottom;
+    height: var(--bottom-nav-height, 80px);
+    z-index: 1040;
+  }
+  
   .nav-item {
     @apply flex flex-col items-center justify-center gap-1 p-2 rounded-medium;
     @apply text-text-secondary transition-all duration-fast touch-target;
     @apply hover:text-primary-500 hover:bg-primary-50;
     @apply active:scale-95;
+    min-width: 60px;
   }
   
   .nav-item-active {

@@ -19,6 +19,9 @@ const OrdersPage = React.lazy(() => import('@/pages/orders/OrderList'))
 const OrderDetailPage = React.lazy(() => import('@/pages/orders/OrderDetail'))
 const ProfilePage = React.lazy(() => import('@/pages/profile/Profile'))
 
+// Development tools (only load in development)
+const DevToolsPage = React.lazy(() => import('@/pages/dev/DevTools'))
+
 // 404 Page Component
 const NotFoundPage: React.FC = () => (
   <div className="min-h-screen flex items-center justify-center bg-background-default">
@@ -161,27 +164,24 @@ const App: React.FC = () => {
             path="/"
             element={
               <RequireAuth>
-                <Layout>
-                  <Routes>
-                    <Route index element={<HomePage />} />
-                    <Route path="menu" element={<MenuPage />} />
-                    <Route path="menu/:itemId" element={<MenuDetailPage />} />
-                    <Route path="cart" element={<CartPage />} />
-                    <Route path="checkout" element={<CheckoutPage />} />
-                    <Route path="orders" element={<OrdersPage />} />
-                    <Route path="orders/:orderId" element={<OrderDetailPage />} />
-                    <Route path="profile" element={<ProfilePage />} />
-                  </Routes>
-                </Layout>
+                <Layout />
               </RequireAuth>
             }
-          />
+          >
+            <Route index element={<HomePage />} />
+            <Route path="menu" element={<MenuPage />} />
+            <Route path="menu/:itemId" element={<MenuDetailPage />} />
+            <Route path="cart" element={<CartPage />} />
+            <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="orders" element={<OrdersPage />} />
+            <Route path="orders/:orderId" element={<OrderDetailPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+          </Route>
           
-          {/* Redirect root to home */}
-          <Route
-            path="/"
-            element={<Navigate to="/" replace />}
-          />
+          {/* Development Tools Route (only in development) */}
+          {import.meta.env.DEV && (
+            <Route path="/dev" element={<DevToolsPage />} />
+          )}
           
           {/* 404 Route */}
           <Route path="*" element={<NotFoundPage />} />

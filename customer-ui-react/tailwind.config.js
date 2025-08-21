@@ -177,11 +177,13 @@ export default {
         'dropdown': '1000',
         'sticky': '1020',
         'fixed': '1030',
-        'modal-backdrop': '1040',
-        'modal': '1050',
-        'popover': '1060',
-        'tooltip': '1070',
-        'toast': '1080',
+        'header': '1035',
+        'bottom-nav': '1040',
+        'modal-backdrop': '1050',
+        'modal': '1060',
+        'popover': '1070',
+        'tooltip': '1080',
+        'toast': '1090',
       },
       
       // 動畫與過渡

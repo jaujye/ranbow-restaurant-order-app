@@ -1,18 +1,16 @@
 import React from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, Outlet } from 'react-router-dom'
 import { cn } from '@/utils/cn'
 import Header from './Header'
 import BottomNav from './BottomNav'
 
 export interface LayoutProps {
-  children: React.ReactNode
   showBottomNav?: boolean
   showHeader?: boolean
   className?: string
 }
 
 const Layout: React.FC<LayoutProps> = ({
-  children,
   showBottomNav = true,
   showHeader = true,
   className,
@@ -42,7 +40,7 @@ const Layout: React.FC<LayoutProps> = ({
           'safe-left safe-right'
         )}
       >
-        {children}
+        <Outlet />
       </main>
       
       {/* Bottom Navigation */}

@@ -1,5 +1,5 @@
 // HTTP Client and base utilities
-export { HttpClient, type ApiResponse } from './client'
+export { HttpClient, apiUrlManager, type ApiResponse } from './client'
 
 // Type definitions
 export * from './types'
