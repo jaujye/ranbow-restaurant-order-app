@@ -9,38 +9,44 @@
 
 ## Project Description
 
-使用者可以透過這個手機應用程式來進行點餐並且付款，管理員可使用本應用程式完成訂單並查看統計營收
+使用者可以透過這個React單頁應用程式來進行點餐並且付款，管理員可使用本應用程式完成訂單並查看統計營收
 
-## 前後端架構說明
+## 🎯 現代化全端架構
 
-### 架構概述
-- **行動端**: Apache Cordova 混合式行動應用程式
-- **Web端**: 響應式網頁應用程式 (同一套後端API)
+### 系統架構概述
+- **前端**: React 18 + TypeScript + Tailwind CSS 單頁應用程式
 - **後端**: Spring Boot REST API 服務器
-- **數據庫**: PostgreSQL 關聯式數據庫
-- **通訊**: RESTful API (JSON格式)
+- **數據庫**: PostgreSQL 關聯式數據庫 + Redis 緩存
+- **通訊**: RESTful API (JSON格式) + Axios HTTP客戶端
+- **部署**: Vite構建 + Docker容器化
 
-### 系統架構流程
+### 現代化架構流程
 ```
-[手機應用程式] ←→ [Spring Boot API] ←→ [PostgreSQL 數據庫]
-     (Cordova)              (後端)              (數據層)
-        ↑                    ↑
-[Web瀏覽器應用] ←────────────┘
-   (響應式網頁)
+[React SPA客戶端] ←→ [Spring Boot API] ←→ [PostgreSQL + Redis]
+  (TypeScript +              (後端)           (數據層 + 緩存)
+   Tailwind CSS)
+        ↑                      ↑
+   [Vite開發服務器] ←──────────┘
+     (HMR熱更新)
 ```
 
-### 使用方式
-- **行動端**: 透過 Cordova 打包的原生應用程式
-- **Web端**: 直接使用瀏覽器訪問 `http://localhost:8080` (開發環境)
-- **管理端**: Web版提供完整的管理員功能介面
+### 開發與部署
+- **前端開發**: React開發服務器 `http://localhost:5173` (Vite)
+- **後端API**: Spring Boot服務器 `http://192.168.0.113:8087/api`
+- **生產部署**: 構建靜態資源到 `dist/` 資料夾並部署到Web服務器
 
-## Technical Stack 技術棧
+## ⚛️ Modern Technical Stack 現代化技術棧
 
-### 前端技術
-- **Apache Cordova**: 跨平台行動應用程式框架
-- **HTML5/CSS3/JavaScript**: 前端核心技術
-- **Bootstrap**: 響應式UI框架
-- **jQuery**: JavaScript函式庫
+### 前端技術 (React生態系)
+- **React 18**: 最新版本，支援Concurrent Features
+- **TypeScript 5.0+**: 完整類型安全和開發體驗增強  
+- **Tailwind CSS 3.3+**: 工具優先的CSS框架，自定義彩虹主題
+- **Vite 4.4+**: 極速構建工具，HMR熱更新
+- **Zustand**: 輕量級狀態管理，替代Redux
+- **React Router DOM 6**: 現代化路由系統
+- **React Hook Form + Zod**: 表單驗證和類型安全
+- **Axios**: HTTP客戶端，請求攔截和錯誤處理
+- **Lucide React**: 現代化圖標庫
 
 ### 後端技術
 - **Spring Boot**: Java企業級應用框架
@@ -57,35 +63,82 @@
 - **GitHub**: 代碼托管與自動備份
 - **Claude Code**: AI開發助手
 
+## 🚀 快速開始開發
+
+### React 前端開發
+```bash
+# 1. 進入React專案目錄
+cd customer-ui-react/
+
+# 2. 安裝依賴
+npm install
+
+# 3. 啟動開發服務器
+npm run dev  # 訪問 http://localhost:5173
+
+# 4. 開發工具指令
+npm run lint      # ESLint檢查
+npm run format    # Prettier格式化
+npm run build     # 生產構建
+npm run preview   # 預覽生產版本
+```
+
+### Spring Boot 後端開發
+```bash
+# 1. 編譯項目
+mvn clean compile
+
+# 2. 啟動後端API服務
+mvn spring-boot:run  # API運行在 http://192.168.0.113:8087
+
+# 3. 測試API健康檢查
+curl http://192.168.0.113:8087/api/health
+```
+
+## 📁 現代化專案結構
+
+### React 前端架構
+```
+customer-ui-react/
+├── src/
+│   ├── components/          # React組件架構
+│   │   ├── ui/              # UI基礎組件 (Button, Card, Input...)
+│   │   ├── layout/          # 佈局組件 (Header, Footer, Layout...)
+│   │   └── business/        # 業務組件 (MenuItemCard, CartItem...)
+│   ├── pages/               # 頁面組件
+│   │   ├── auth/            # 認證相關頁面
+│   │   ├── menu/            # 菜單相關頁面
+│   │   ├── cart/            # 購物車頁面
+│   │   ├── checkout/        # 結帳頁面
+│   │   └── orders/          # 訂單管理頁面
+│   ├── store/               # Zustand狀態管理
+│   ├── services/            # API服務層
+│   ├── lib/                 # 工具庫和驗證schemas
+│   └── types/               # TypeScript類型定義
+├── package.json             # NPM配置
+├── vite.config.ts           # Vite構建配置
+├── tailwind.config.js       # Tailwind CSS配置
+└── tsconfig.json            # TypeScript配置
+```
+
+### Java 後端架構
+```
+src/main/java/com/ranbow/restaurant/
+├── RestaurantApplication.java  # Spring Boot主應用類
+├── models/                     # Data models/entities
+├── dao/                        # Data Access Objects
+├── services/                   # Service layer
+└── api/                        # REST API Controllers
+```
+
 ## 技術文檔
 
 ### 🏗️ 後端架構設計
 - [後端架構技術文檔](BACKEND_ARCHITECTURE_DOCUMENTATION.md) - Spring Boot 架構設計、API 規範、資料庫設計和系統整合
 
-## UI設計文檔
-
-詳細的前端UI設計規範請參考以下文檔：
-
-### 📱 客戶端UI設計
-- [客戶界面設計](CUSTOMER_UI_SCREENS.md) - 顧客點餐和付款流程
-- [行動端UI設計規範](MOBILE_UI_DESIGN.md) - 手機應用程式UI設計標準
-
-### 👥 管理端UI設計  
-- [管理員界面設計](ADMIN_UI_SCREENS.md) - 系統管理和營收統計
-- [員工界面設計](STAFF_UI_SCREENS.md) - 廚房和服務人員操作介面
-
-## Standard Project Structure
-
-This project follows Java enterprise conventions with modular organization:
-
-```
-src/main/java/com/ranbow/restaurant/
-├── core/      # Core business logic
-├── utils/     # Utility functions/classes
-├── models/    # Data models/entities
-├── services/  # Service layer
-└── api/       # API endpoints/interfaces
-```
+### ⚛️ React前端架構
+- 詳細的React前端架構請參考 [CLAUDE.md](CLAUDE.md) 文檔中的 **REACT FRONTEND 開發架構** 章節
+- 包含組件設計、狀態管理、API整合、部署策略等完整指南
 
 ## Development Guidelines
 
