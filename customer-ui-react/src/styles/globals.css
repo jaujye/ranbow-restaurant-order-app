@@ -1,0 +1,262 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 字體導入 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap');
+
+/* 基礎樣式重置和設定 */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    @apply font-noto bg-background-default text-text-primary;
+    @apply overscroll-y-none;
+    /* 防止iOS上的彈性滾動 */
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  #root {
+    @apply w-full h-full overflow-auto;
+    @apply safe-top safe-bottom;
+  }
+  
+  /* 輸入框樣式重置 */
+  input, textarea, select, button {
+    @apply font-noto;
+  }
+  
+  /* 移除輸入框在iOS上的默認樣式 */
+  input[type="text"],
+  input[type="email"], 
+  input[type="password"],
+  input[type="tel"],
+  input[type="search"],
+  textarea {
+    @apply appearance-none;
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+  
+  /* 滾動條美化 */
+  ::-webkit-scrollbar {
+    @apply w-1;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary-300 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-500;
+  }
+}
+
+/* 組件層級樣式 */
+@layer components {
+  /* 按鈕基礎樣式 */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-medium font-medium;
+    @apply transition-all duration-fast touch-target;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-primary {
+    @apply bg-gradient-primary text-white shadow-small;
+    @apply hover:shadow-rainbow focus:ring-primary-500;
+    @apply active:bg-primary-600;
+  }
+  
+  .btn-secondary {
+    @apply bg-gradient-secondary text-white shadow-small;
+    @apply hover:shadow-medium focus:ring-secondary-500;
+    @apply active:bg-secondary-600;
+  }
+  
+  .btn-accent {
+    @apply bg-gradient-accent text-gray-800 shadow-small;
+    @apply hover:shadow-medium focus:ring-accent-500;
+    @apply active:bg-accent-600;
+  }
+  
+  .btn-ghost {
+    @apply bg-transparent text-text-primary border border-border-light;
+    @apply hover:bg-gray-50 focus:ring-gray-500;
+    @apply active:bg-gray-100;
+  }
+  
+  .btn-rainbow {
+    @apply bg-rainbow-horizontal text-white shadow-rainbow;
+    @apply hover:shadow-rainbow-lg hover:scale-105;
+    @apply focus:ring-primary-500;
+  }
+  
+  /* 輸入框樣式 */
+  .input {
+    @apply w-full px-3 py-2 border border-border-light rounded-medium;
+    @apply bg-white text-text-primary placeholder-text-disabled;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    @apply transition-all duration-fast;
+  }
+  
+  .input-error {
+    @apply border-error-500 focus:ring-error-500;
+  }
+  
+  /* 卡片樣式 */
+  .card {
+    @apply bg-background-card rounded-large shadow-small border border-border-light;
+    @apply transition-all duration-fast;
+  }
+  
+  .card-hover {
+    @apply hover:shadow-medium hover:-translate-y-1;
+  }
+  
+  .card-rainbow {
+    @apply border-2 border-transparent bg-gradient-to-r from-primary-500 via-accent-500 to-secondary-500 p-0.5;
+  }
+  
+  .card-rainbow-content {
+    @apply bg-white rounded-large p-4 h-full;
+  }
+  
+  /* 導航樣式 */
+  .nav-item {
+    @apply flex flex-col items-center justify-center gap-1 p-2 rounded-medium;
+    @apply text-text-secondary transition-all duration-fast touch-target;
+    @apply hover:text-primary-500 hover:bg-primary-50;
+    @apply active:scale-95;
+  }
+  
+  .nav-item-active {
+    @apply text-primary-500 bg-primary-50;
+  }
+  
+  /* 載入動畫 */
+  .loading-spinner {
+    @apply w-6 h-6 border-2 border-gray-300 border-t-primary-500 rounded-full;
+    animation: spin 1s linear infinite;
+  }
+  
+  .loading-skeleton {
+    @apply bg-gray-200 animate-pulse rounded;
+  }
+  
+  /* 模態框樣式 */
+  .modal-backdrop {
+    @apply fixed inset-0 bg-background-overlay z-modal-backdrop;
+    backdrop-filter: blur(4px);
+  }
+  
+  .modal-content {
+    @apply bg-white rounded-large shadow-large max-w-sm mx-auto mt-20 z-modal;
+    @apply transform transition-all duration-base;
+  }
+  
+  /* Toast通知樣式 */
+  .toast {
+    @apply px-4 py-2 rounded-medium shadow-medium z-toast;
+    @apply transform transition-all duration-fast;
+  }
+  
+  .toast-success {
+    @apply bg-success-500 text-white;
+  }
+  
+  .toast-error {
+    @apply bg-error-500 text-white;
+  }
+  
+  .toast-warning {
+    @apply bg-warning-500 text-white;
+  }
+  
+  .toast-info {
+    @apply bg-info-500 text-white;
+  }
+}
+
+/* 工具類 */
+@layer utilities {
+  /* 文字省略 */
+  .text-ellipsis {
+    @apply truncate;
+  }
+  
+  .text-ellipsis-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .text-ellipsis-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* 響應式隱藏/顯示 */
+  .mobile-only {
+    @apply block md:hidden;
+  }
+  
+  .desktop-only {
+    @apply hidden md:block;
+  }
+  
+  /* 無障礙樣式 */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  
+  /* 可聚焦元素樣式 */
+  .focus-visible {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
+  }
+}
+
+/* 動畫定義 */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Dark mode 支持 */
+@media (prefers-color-scheme: dark) {
+  .dark {
+    /* 深色模式變量可在此處定義 */
+  }
+}
+
+/* 列印樣式 */
+@media print {
+  * {
+    color: black !important;
+    background: white !important;
+  }
+}
