@@ -391,7 +391,3 @@ export const getPaymentMethodText = (method: PaymentMethod): string => {
   return methodMap[method] || method
 }
 
-// 格式化價格顯示
-export const formatPrice = (price: number): string => {
-  return `NT$ ${price.toLocaleString()}`
-}

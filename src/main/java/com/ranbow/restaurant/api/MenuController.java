@@ -46,9 +46,25 @@ public class MenuController {
     }
     
     @GetMapping
-    public ResponseEntity<List<MenuItem>> getAllMenuItems() {
-        List<MenuItem> items = menuService.getAllMenuItems();
+    public ResponseEntity<List<MenuItem>> getAllMenuItems(@RequestParam(required = false) String category) {
+        List<MenuItem> items;
+        if (category != null && !category.isEmpty()) {
+            try {
+                MenuCategory categoryEnum = MenuCategory.valueOf(category.toUpperCase());
+                items = menuService.getMenuItemsByCategory(categoryEnum);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().build();
+            }
+        } else {
+            items = menuService.getAllMenuItems();
+        }
         return ResponseEntity.ok(items);
+    }
+    
+    @GetMapping("/items")
+    public ResponseEntity<List<MenuItem>> getAllMenuItemsItems(@RequestParam(required = false) String category) {
+        // This endpoint is specifically for frontend compatibility
+        return getAllMenuItems(category);
     }
     
     @GetMapping("/available")
@@ -64,9 +80,19 @@ public class MenuController {
     }
     
     @GetMapping("/search")
-    public ResponseEntity<List<MenuItem>> searchMenuItems(@RequestParam("keyword") String keyword) {
-        List<MenuItem> items = menuService.searchMenuItems(keyword);
+    public ResponseEntity<List<MenuItem>> searchMenuItems(@RequestParam(value = "keyword", required = false) String keyword,
+                                                        @RequestParam(value = "query", required = false) String query) {
+        String searchTerm = keyword != null ? keyword : query;
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        List<MenuItem> items = menuService.searchMenuItems(searchTerm);
         return ResponseEntity.ok(items);
+    }
+    
+    @GetMapping("/categories")
+    public ResponseEntity<MenuCategory[]> getAllCategories() {
+        return ResponseEntity.ok(MenuCategory.values());
     }
     
     @GetMapping("/popular")

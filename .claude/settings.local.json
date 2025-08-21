@@ -82,7 +82,9 @@
       "mcp__chrome-devtools__execute_javascript",
       "mcp__chrome-devtools__get_console_error_summary",
       "mcp__chrome-devtools__clear_console",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": [],
