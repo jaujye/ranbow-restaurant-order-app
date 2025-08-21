@@ -1,9 +1,9 @@
+/* 字體導入 - 必須在最前面 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* 字體導入 */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap');
 
 /* 基礎樣式重置和設定 */
 @layer base {

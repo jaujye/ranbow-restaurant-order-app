@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
 // API 環境配置
 const API_CONFIG = {
-  development: 'http://localhost:8080/api',
+  development: 'http://192.168.0.113:8087/api',
   production: 'http://192.168.0.113:8087/api'
 }
 
