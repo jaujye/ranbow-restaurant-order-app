@@ -332,15 +332,22 @@ class AdminDashboard {
 
     hideNavigationBars() {
         const bottomNav = document.getElementById('bottom-nav');
-        const topNav = document.getElementById('top-nav');
+        // Don't hide top-nav for admin - let the main app handle navigation display
         
         if (bottomNav) {
             bottomNav.classList.add('hidden');
             bottomNav.style.display = 'none';
         }
+        
+        // Ensure top navigation is shown for admin users
+        this.showTopNavigation();
+    }
+    
+    showTopNavigation() {
+        const topNav = document.getElementById('top-nav');
         if (topNav) {
-            topNav.classList.add('hidden');
-            topNav.style.display = 'none';
+            topNav.classList.remove('hidden');
+            topNav.style.display = '';
         }
     }
     

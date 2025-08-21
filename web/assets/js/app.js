@@ -71,6 +71,8 @@ class RanbowApp {
         
         if (this.currentUser) {
             topNav?.classList.remove('hidden');
+            // Remove any inline display none style that might override CSS
+            if (topNav) topNav.style.display = '';
             
             // Update user dropdown info
             this.updateUserDropdownInfo();
@@ -82,6 +84,12 @@ class RanbowApp {
             } else if (this.currentUser.role === 'STAFF') {
                 bottomNav?.classList.add('hidden');
                 this.showStaffNavigation();
+            } else if (this.currentUser.role === 'ADMIN') {
+                // For admin: show top-nav but hide bottom-nav
+                bottomNav?.classList.add('hidden');
+                staffNav?.classList.add('hidden');
+                if (bottomNav) bottomNav.style.display = 'none';
+                if (staffNav) staffNav.style.display = 'none';
             }
         }
     }
