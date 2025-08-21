@@ -332,7 +332,7 @@ class AdminAuthPages {
                     <span>登入成功</span>
                 `;
                 
-                Toast.show('歡迎進入管理控制台', 'success');
+                app.showToast('歡迎進入管理控制台', 'success');
                 
                 // Navigate to admin dashboard
                 setTimeout(() => {
@@ -352,7 +352,7 @@ class AdminAuthPages {
             loginBtn.disabled = false;
             
             // Show error
-            Toast.show(error.message || '登入失敗，請檢查您的憑證', 'error');
+            app.showToast(error.message || '登入失敗，請檢查您的憑證', 'error');
             
             // Add error animation to form
             const authCard = document.querySelector('.admin-auth-card');
@@ -422,7 +422,7 @@ class AdminAuthPages {
                     return {
                         success: true,
                         admin: {
-                            id: response.user.id,
+                            id: response.user.userId,
                             name: response.user.username,
                             email: response.user.email,
                             permissions: ['all']
@@ -503,7 +503,7 @@ class AdminAuthPages {
                 <span>發送成功</span>
             `;
             
-            Toast.show('重設連結已發送到您的Email', 'success');
+            app.showToast('重設連結已發送到您的Email', 'success');
             
             setTimeout(() => {
                 this.showLoginForm();
@@ -512,7 +512,7 @@ class AdminAuthPages {
         } catch (error) {
             submitBtn.innerHTML = originalContent;
             submitBtn.disabled = false;
-            Toast.show('發送失敗，請稍後重試', 'error');
+            app.showToast('發送失敗，請稍後重試', 'error');
         }
     }
 }
