@@ -2,6 +2,7 @@ import React, { Suspense, useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { ToastContainer } from '@/components/ui'
 import { PageLoading } from '@/components/ui/Loading'
+import { useAuthStore } from '@/store/authStore'
 
 // Layout Components (will be created later)
 import Layout from '@/components/layout/Layout'
@@ -45,9 +46,17 @@ const NotFoundPage: React.FC = () => (
 
 // Route Guard for authentication
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // TODO: Implement authentication check with Zustand store
-  const isAuthenticated = false // This will be replaced with real auth state
+  // Import Zustand auth store
+  const { isAuthenticated, isLoading } = useAuthStore((state) => ({
+    isAuthenticated: state.isAuthenticated,
+    isLoading: state.isLoading
+  }))
   const location = useLocation()
+  
+  // Show loading while checking authentication
+  if (isLoading) {
+    return <PageLoading />
+  }
   
   if (!isAuthenticated) {
     // Redirect to login with the attempted location
@@ -64,6 +73,20 @@ const publicRoutes = ['/login', '/register']
 const App: React.FC = () => {
   const location = useLocation()
   const isPublicRoute = publicRoutes.includes(location.pathname)
+  
+  // Auth store for application initialization
+  const { token, refreshUser } = useAuthStore((state) => ({
+    token: state.token,
+    refreshUser: state.refreshUser
+  }))
+  
+  // Initialize authentication on app start
+  useEffect(() => {
+    // If user has a token, refresh their data
+    if (token) {
+      refreshUser().catch(console.warn)
+    }
+  }, [token, refreshUser])
   
   // Google Analytics or other tracking
   useEffect(() => {
