@@ -55,23 +55,27 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
   availableOnly: true,
 
   // Actions
-  fetchMenuItems: async () => {
+  fetchMenuItems: async (category?: string) => {
     set({ isLoading: true, error: null })
     
     try {
-      const response = await MenuService.getMenuItems()
+      // 使用後端推薦的方式：直接調用 /api/menu?category=CATEGORY
+      const url = category && category !== 'all' && category !== '全部' 
+        ? `/menu?category=${category}` 
+        : '/menu'
       
-      if (response.success && response.data) {
-        set({
-          items: response.data.data,
-          isLoading: false
-        })
-      } else {
-        set({
-          error: response.error || 'Failed to fetch menu items',
-          isLoading: false
-        })
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://192.168.0.113:8087/api'}${url}`)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
+      
+      const items = await response.json()
+      
+      set({
+        items: items || [],
+        isLoading: false
+      })
     } catch (error: any) {
       set({
         error: error.message || 'Failed to fetch menu items',
@@ -160,40 +164,8 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
 
   setSelectedCategory: (category: string) => {
     set({ selectedCategory: category })
-    
-    if (category === '全部' || category === 'all') {
-      get().fetchMenuItems()
-    } else {
-      // 獲取特定分類的商品
-      const fetchCategoryItems = async () => {
-        set({ isLoading: true })
-        
-        try {
-          const response = await MenuService.getMenuItemsByCategory(category, {
-            available: get().availableOnly
-          })
-          
-          if (response.success && response.data) {
-            set({
-              items: response.data.data,
-              isLoading: false
-            })
-          } else {
-            set({
-              error: response.error || 'Failed to fetch category items',
-              isLoading: false
-            })
-          }
-        } catch (error: any) {
-          set({
-            error: error.message || 'Failed to fetch category items',
-            isLoading: false
-          })
-        }
-      }
-      
-      fetchCategoryItems()
-    }
+    // 直接使用統一的fetchMenuItems方法
+    get().fetchMenuItems(category)
   },
 
   setSearchQuery: (query: string) => {

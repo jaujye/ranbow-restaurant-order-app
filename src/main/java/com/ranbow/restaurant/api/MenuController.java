@@ -47,16 +47,21 @@ public class MenuController {
     
     @GetMapping
     public ResponseEntity<List<MenuItem>> getAllMenuItems(@RequestParam(name = "category", required = false) String category) {
+        System.out.println("DEBUG: Received category parameter: " + category);
         List<MenuItem> items;
         if (category != null && !category.isEmpty()) {
             try {
                 MenuCategory categoryEnum = MenuCategory.valueOf(category.toUpperCase());
+                System.out.println("DEBUG: Converting to enum: " + categoryEnum);
                 items = menuService.getMenuItemsByCategory(categoryEnum);
+                System.out.println("DEBUG: Found " + items.size() + " items for category: " + categoryEnum);
             } catch (IllegalArgumentException e) {
+                System.out.println("DEBUG: Invalid category: " + category);
                 return ResponseEntity.badRequest().build();
             }
         } else {
             items = menuService.getAllMenuItems();
+            System.out.println("DEBUG: Returning all " + items.size() + " items");
         }
         return ResponseEntity.ok(items);
     }
