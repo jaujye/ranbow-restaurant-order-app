@@ -1,103 +1,325 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/**
+ * 🎨 Global Styles
+ * Tailwind CSS imports and custom global styles for Staff UI
+ */
 
-/* Staff UI Global Styles */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* 🌈 Rainbow Theme Global Styles */
 @layer base {
+  /* Font Face */
   html {
-    @apply antialiased;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 
+                 'Roboto', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  
+
+  /* Body Defaults */
   body {
-    @apply bg-gray-50 text-gray-900 font-sans;
-    margin: 0;
-    min-height: 100vh;
+    @apply bg-gray-50 text-gray-900;
+    @apply text-body leading-relaxed;
+  }
+
+  /* Scrollbar Styling */
+  ::-webkit-scrollbar {
+    @apply w-2;
   }
   
-  * {
-    @apply box-border;
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+
+  /* Focus Ring */
+  .focus-ring {
+    @apply focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none;
+  }
+
+  /* Selection Color */
+  ::selection {
+    @apply bg-primary-100 text-primary-900;
+  }
+
+  ::-moz-selection {
+    @apply bg-primary-100 text-primary-900;
   }
 }
 
 @layer components {
-  /* Rainbow theme button styles */
-  .btn-primary {
-    @apply bg-primary text-white px-4 py-2 rounded-lg font-medium 
-           hover:bg-primary-600 active:bg-primary-700 
-           transition-colors duration-150 
-           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  /* 🔘 Input Component Styles */
+  .input-staff {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-staff;
+    @apply focus:ring-2 focus:ring-primary focus:border-transparent;
+    @apply transition-all duration-200;
+    @apply placeholder-gray-400;
   }
-  
-  .btn-secondary {
-    @apply bg-secondary text-white px-4 py-2 rounded-lg font-medium 
-           hover:bg-secondary-600 active:bg-secondary-700 
-           transition-colors duration-150 
-           focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2;
+
+  .input-staff:disabled {
+    @apply bg-gray-50 text-gray-500 cursor-not-allowed;
   }
-  
-  .btn-urgent {
-    @apply bg-urgent text-white px-4 py-2 rounded-lg font-medium 
-           hover:bg-red-700 active:bg-red-800 
-           transition-colors duration-150 
-           focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
-           animate-pulse-slow;
+
+  .input-staff.error {
+    @apply border-urgent ring-1 ring-urgent;
   }
-  
-  /* Status badges */
-  .status-urgent {
-    @apply bg-urgent text-white px-3 py-1 rounded-full text-sm font-semibold;
+
+  /* 📋 Form Group */
+  .form-group {
+    @apply space-y-2;
   }
-  
-  .status-processing {
-    @apply bg-processing text-white px-3 py-1 rounded-full text-sm font-semibold;
+
+  .form-label {
+    @apply block text-body font-medium text-gray-700;
   }
-  
-  .status-completed {
-    @apply bg-completed text-white px-3 py-1 rounded-full text-sm font-semibold;
+
+  .form-error {
+    @apply text-small text-urgent font-medium;
   }
-  
+
+  .form-hint {
+    @apply text-small text-gray-500;
+  }
+
+  /* 🎯 Status Badges */
+  .status-badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-status-tag font-semibold;
+  }
+
   .status-pending {
-    @apply bg-pending text-white px-3 py-1 rounded-full text-sm font-semibold;
+    @apply bg-pending text-white;
   }
-  
+
+  .status-processing {
+    @apply bg-processing text-white;
+  }
+
+  .status-completed {
+    @apply bg-completed text-white;
+  }
+
   .status-cancelled {
-    @apply bg-cancelled text-gray-600 px-3 py-1 rounded-full text-sm font-semibold;
+    @apply bg-cancelled text-gray-800;
   }
-  
-  /* Special text styles as per specification */
-  .order-number {
-    @apply text-xl font-bold font-mono;
+
+  .status-urgent {
+    @apply bg-urgent text-white animate-pulse-alert;
   }
-  
+
+  /* 🔔 Notification Styles */
+  .notification-dot {
+    @apply absolute -top-1 -right-1 h-3 w-3 bg-urgent rounded-full;
+    @apply ring-2 ring-white;
+  }
+
+  .notification-badge {
+    @apply absolute -top-1 -right-1 h-5 w-5 bg-urgent text-white;
+    @apply text-xs font-bold rounded-full flex items-center justify-center;
+    @apply ring-2 ring-white;
+  }
+
+  /* ⏱️ Timer Styles */
   .timer-display {
-    @apply text-3xl font-bold font-mono;
+    @apply font-mono text-timer font-bold;
+    @apply text-gray-900;
   }
-  
-  .amount-display {
-    @apply text-lg font-semibold font-mono;
+
+  .timer-warning {
+    @apply text-processing animate-bounce-gentle;
   }
-  
-  .status-label {
-    @apply text-sm font-semibold uppercase;
+
+  .timer-danger {
+    @apply text-urgent animate-pulse-alert;
   }
-  
-  /* Touch target sizes */
+
+  /* 📊 Progress Bars */
+  .progress-bar {
+    @apply w-full bg-gray-200 rounded-full h-2;
+  }
+
+  .progress-fill {
+    @apply h-2 bg-primary rounded-full transition-all duration-300;
+  }
+
+  .progress-fill-warning {
+    @apply bg-processing;
+  }
+
+  .progress-fill-danger {
+    @apply bg-urgent;
+  }
+
+  /* 🎨 Gradient Text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+  }
+
+  /* 📱 Mobile Touch Targets */
   .touch-target {
-    @apply min-h-[48px] min-w-[48px];
+    @apply min-h-touch-md min-w-touch-md;
   }
-  
+
   .touch-target-large {
-    @apply min-h-[56px] min-w-[56px];
+    @apply min-h-touch-lg min-w-touch-lg;
+  }
+
+  /* 🔄 Loading States */
+  .loading-shimmer {
+    @apply bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200;
+    @apply bg-[length:200%_100%];
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* 📋 Table Styles */
+  .table-staff {
+    @apply w-full divide-y divide-gray-200;
+  }
+
+  .table-staff th {
+    @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+  }
+
+  .table-staff td {
+    @apply px-6 py-4 whitespace-nowrap text-body text-gray-900;
+  }
+
+  .table-staff tr:hover {
+    @apply bg-gray-50;
+  }
+
+  /* 🎯 Interactive Elements */
+  .interactive {
+    @apply cursor-pointer transition-all duration-200;
+    @apply hover:scale-105 hover:shadow-elevated;
+    @apply active:scale-95;
+  }
+
+  .interactive:disabled {
+    @apply cursor-not-allowed opacity-60;
+    @apply hover:scale-100 hover:shadow-none;
+    @apply active:scale-100;
+  }
+
+  /* 📱 Responsive Utilities */
+  .mobile-only {
+    @apply block tablet:hidden;
+  }
+
+  .tablet-up {
+    @apply hidden tablet:block;
+  }
+
+  .desktop-only {
+    @apply hidden desktop:block;
   }
 }
 
 @layer utilities {
-  /* Custom animations for staff notifications */
-  .animate-new-order {
-    animation: bounce 1s ease-in-out infinite;
+  /* 🎨 Rainbow Gradients */
+  .bg-rainbow-gradient {
+    background: linear-gradient(135deg, #FF6B35 0%, #2E8B57 50%, #FFD700 100%);
+  }
+
+  .bg-rainbow-subtle {
+    background: linear-gradient(135deg, #FFF8F5 0%, #F0FDF6 50%, #FEFCE8 100%);
+  }
+
+  /* 🔄 Animation Utilities */
+  .animate-fade-in {
+    animation: fadeIn 300ms ease-in-out;
+  }
+
+  .animate-slide-in {
+    animation: slideIn 300ms ease-in-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 200ms ease-out;
+  }
+
+  /* 🎯 Z-index Scale */
+  .z-dropdown { z-index: 1000; }
+  .z-sticky { z-index: 1010; }
+  .z-fixed { z-index: 1020; }
+  .z-modal-backdrop { z-index: 1030; }
+  .z-modal { z-index: 1040; }
+  .z-popover { z-index: 1050; }
+  .z-tooltip { z-index: 1060; }
+  .z-toast { z-index: 1070; }
+
+  /* 📱 Safe Area Utilities */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
   }
   
-  .animate-urgent-alert {
-    animation: pulse 2s ease-in-out infinite;
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* 🔍 Screen Reader Only */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+}
+
+/* 🌍 Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    @apply text-black bg-white;
+  }
+
+  .print-break {
+    page-break-after: always;
+  }
+}
+
+/* 🔧 Development Helpers */
+@media screen and (max-width: 640px) {
+  .debug-mobile::before {
+    content: 'MOBILE';
+    @apply fixed top-0 right-0 bg-urgent text-white px-2 py-1 text-xs z-[9999];
+  }
+}
+
+@media screen and (min-width: 641px) and (max-width: 1023px) {
+  .debug-tablet::before {
+    content: 'TABLET';
+    @apply fixed top-0 right-0 bg-processing text-white px-2 py-1 text-xs z-[9999];
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .debug-desktop::before {
+    content: 'DESKTOP';
+    @apply fixed top-0 right-0 bg-completed text-white px-2 py-1 text-xs z-[9999];
   }
 }
