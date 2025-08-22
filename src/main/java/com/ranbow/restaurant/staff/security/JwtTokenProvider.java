@@ -116,9 +116,8 @@ public class JwtTokenProvider {
      * Get all claims from JWT token
      */
     public Claims getClaimsFromToken(String token) {
-        return Jwts.parserBuilder()
+        return Jwts.parser()
                 .setSigningKey(secretKey)
-                .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
