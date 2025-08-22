@@ -50,7 +50,7 @@ export class AuthService {
     // 創建測試用戶資料
     const mockUsers = {
       customer: {
-        id: 'mock-customer-001',
+        id: '503f3c93-e229-4a53-9671-1f12cc375c27',
         email: 'customer@ranbow.com',
         name: '測試顧客',
         phone: '0912345678',

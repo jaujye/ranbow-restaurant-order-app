@@ -136,23 +136,19 @@ const Checkout: React.FC = () => {
       if (order) {
         setCreatedOrderId(order.id)
         
-        // 創建支付記錄
-        const payment = await createPayment(order.id, checkoutData.paymentMethod)
-        
-        if (payment) {
-          // 模擬支付處理（在實際應用中這裡會調用真實的支付 API）
-          const paymentSuccess = await processPayment(payment.id, {
-            transactionId: `tx_${Date.now()}`,
-            providerData: { mock: true }
-          })
-          
-          if (paymentSuccess) {
-            setOrderComplete(true)
-            clearCart()
-            resetCheckoutData()
-            setCurrentStep(3)
+        // 跳轉到支付頁面，傳遞訂單ID和支付方式
+        navigate(`/payment?orderId=${order.id}&paymentMethod=${checkoutData.paymentMethod}&amount=${cartTotal}`, {
+          state: {
+            orderId: order.id,
+            paymentMethod: checkoutData.paymentMethod,
+            amount: cartTotal,
+            orderDetails: {
+              items: cartItems,
+              tableNumber: checkoutData.tableNumber,
+              specialRequests: checkoutData.specialRequests
+            }
           }
-        }
+        })
       }
     } catch (error) {
       console.error('Order submission failed:', error)
