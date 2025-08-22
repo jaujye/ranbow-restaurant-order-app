@@ -115,9 +115,16 @@ const Checkout: React.FC = () => {
     }
 
     try {
+      // 檢查必填字段
+      if (!user?.id) {
+        showError('用戶身份驗證失敗，請重新登入')
+        navigate('/login?redirect=/checkout')
+        return
+      }
+
       // 創建訂單
       const orderData = {
-        customerId: user?.id,
+        customerId: user.id,
         tableNumber: checkoutData.tableNumber,
         items: cartItems.map(item => ({
           menuItemId: item.menuItem.itemId || item.menuItem.id?.toString() || '',
@@ -125,8 +132,14 @@ const Checkout: React.FC = () => {
           specialRequests: item.specialRequests
         })),
         paymentMethod: checkoutData.paymentMethod,
-        specialRequests: checkoutData.specialRequests
+        specialInstructions: checkoutData.specialRequests, // 修正欄位名稱
+        subtotal: subtotal,
+        tax: tax,
+        totalAmount: cartTotal
       }
+
+      // 調試信息
+      console.log('Creating order with data:', JSON.stringify(orderData, null, 2))
 
       const order = await createOrder(orderData)
       
