@@ -83,8 +83,9 @@ public class JwtTokenProvider {
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
-                .setSigningKey(secretKey)
-                .parseClaimsJws(token);
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token);
             return true;
         } catch (SecurityException ex) {
             System.err.println("Invalid JWT signature: " + ex.getMessage());
@@ -105,9 +106,10 @@ public class JwtTokenProvider {
      */
     public String getStaffIdFromToken(String token) {
         Claims claims = Jwts.parser()
-                .setSigningKey(secretKey)
-                .parseClaimsJws(token)
-                .getBody();
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
 
         return claims.getSubject();
     }
@@ -117,9 +119,10 @@ public class JwtTokenProvider {
      */
     public Claims getClaimsFromToken(String token) {
         return Jwts.parser()
-                .setSigningKey(secretKey)
-                .parseClaimsJws(token)
-                .getBody();
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     /**

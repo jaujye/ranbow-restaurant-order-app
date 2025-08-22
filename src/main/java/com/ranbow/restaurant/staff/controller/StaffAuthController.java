@@ -440,13 +440,15 @@ public class StaffAuthController {
             // Convert to response format
             var staffList = availableStaff.stream()
                 .map(staff -> {
+                    // Cast to enhanced StaffMemberSimple to access additional fields
+                    var enhancedStaff = (com.ranbow.restaurant.staff.repository.StaffAuthRepositorySimple.StaffMemberSimple) staff;
                     var dto = new QuickSwitchStaffInfo();
-                    dto.setStaffId(staff.getStaffId());
-                    dto.setEmployeeNumber(staff.getEmployeeNumber());
-                    dto.setName(staff.getName());
-                    dto.setRole(staff.getRole());
-                    dto.setDepartment(staff.getDepartment());
-                    dto.setAvatar(staff.getAvatarUrl());
+                    dto.setStaffId(enhancedStaff.getStaffId());
+                    dto.setEmployeeNumber(enhancedStaff.getEmployeeNumber());
+                    dto.setName(enhancedStaff.getName());
+                    dto.setRole(enhancedStaff.getRole() != null ? enhancedStaff.getRole().name() : "SERVICE");
+                    dto.setDepartment(enhancedStaff.getDepartment());
+                    dto.setAvatar(enhancedStaff.getAvatarUrl());
                     return dto;
                 })
                 .toList();

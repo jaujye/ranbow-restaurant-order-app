@@ -231,10 +231,6 @@ public class OrderAssignment {
         return priority;
     }
     
-    public void setPriority(OrderPriority priority) {
-        this.priority = priority;
-    }
-    
     public LocalDateTime getAssignedAt() {
         return assignedAt;
     }
