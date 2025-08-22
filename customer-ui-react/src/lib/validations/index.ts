@@ -7,6 +7,9 @@ export * from './order'
 // Menu validations
 export * from './menu'
 
+// Payment validations
+export * from './payment'
+
 // Common validation utilities
 export const createFormValidator = <T>(schema: any) => {
   return {

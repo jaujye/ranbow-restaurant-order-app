@@ -29,7 +29,7 @@ java -jar target/restaurant-order-app-1.0.0.jar
 
 ### 3. 檢查健康狀態
 ```bash
-curl http://localhost:8080/api/health
+curl http://localhost:8081/api/health
 ```
 
 ## 📡 API 端點測試
@@ -38,24 +38,24 @@ curl http://localhost:8080/api/health
 
 #### 應用程式健康狀態
 ```bash
-GET http://localhost:8080/api/health
+GET http://localhost:8081/api/health
 ```
 
 #### 資料庫健康狀態
 ```bash
-GET http://localhost:8080/api/health/database
+GET http://localhost:8081/api/health/database
 ```
 
 #### 應用程式資訊
 ```bash
-GET http://localhost:8080/api/health/info
+GET http://localhost:8081/api/health/info
 ```
 
 ### 👥 User Management APIs
 
 #### 創建新用戶 (註冊)
 ```bash
-curl -X POST http://localhost:8080/api/users \
+curl -X POST http://localhost:8081/api/users \
   -H "Content-Type: application/json" \
   -d '{
     "username": "test_customer",
@@ -67,7 +67,7 @@ curl -X POST http://localhost:8080/api/users \
 
 #### 用戶登入驗證
 ```bash
-curl -X POST http://localhost:8080/api/users/authenticate \
+curl -X POST http://localhost:8081/api/users/authenticate \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@ranbow.com",
@@ -77,39 +77,39 @@ curl -X POST http://localhost:8080/api/users/authenticate \
 
 #### 獲取所有用戶
 ```bash
-curl http://localhost:8080/api/users
+curl http://localhost:8081/api/users
 ```
 
 #### 根據 ID 獲取用戶
 ```bash
-curl http://localhost:8080/api/users/{userId}
+curl http://localhost:8081/api/users/{userId}
 ```
 
 #### 獲取用戶統計
 ```bash
-curl http://localhost:8080/api/users/stats
+curl http://localhost:8081/api/users/stats
 ```
 
 ### 🍽️ Menu Management APIs
 
 #### 獲取可用菜單
 ```bash
-curl http://localhost:8080/api/menu/available
+curl http://localhost:8081/api/menu/available
 ```
 
 #### 根據分類獲取菜單
 ```bash
-curl http://localhost:8080/api/menu/category/MAIN_COURSE
+curl http://localhost:8081/api/menu/category/MAIN_COURSE
 ```
 
 #### 搜尋菜單項目
 ```bash
-curl http://localhost:8080/api/menu/search?keyword=漢堡
+curl http://localhost:8081/api/menu/search?keyword=漢堡
 ```
 
 #### 添加新菜品 (管理員)
 ```bash
-curl -X POST http://localhost:8080/api/menu \
+curl -X POST http://localhost:8081/api/menu \
   -H "Content-Type: application/json" \
   -d '{
     "name": "測試菜品",
@@ -122,7 +122,7 @@ curl -X POST http://localhost:8080/api/menu \
 
 #### 更新菜品可用性
 ```bash
-curl -X PUT http://localhost:8080/api/menu/{itemId}/availability \
+curl -X PUT http://localhost:8081/api/menu/{itemId}/availability \
   -H "Content-Type: application/json" \
   -d '{
     "available": false
@@ -131,14 +131,14 @@ curl -X PUT http://localhost:8080/api/menu/{itemId}/availability \
 
 #### 獲取菜單統計
 ```bash
-curl http://localhost:8080/api/menu/stats
+curl http://localhost:8081/api/menu/stats
 ```
 
 ### 📋 Order Management APIs
 
 #### 創建新訂單
 ```bash
-curl -X POST http://localhost:8080/api/orders \
+curl -X POST http://localhost:8081/api/orders \
   -H "Content-Type: application/json" \
   -d '{
     "customerId": "{user_id_here}",
@@ -148,7 +148,7 @@ curl -X POST http://localhost:8080/api/orders \
 
 #### 添加項目到訂單
 ```bash
-curl -X POST http://localhost:8080/api/orders/{orderId}/items \
+curl -X POST http://localhost:8081/api/orders/{orderId}/items \
   -H "Content-Type: application/json" \
   -d '{
     "menuItemId": "{menu_item_id_here}",
@@ -159,12 +159,12 @@ curl -X POST http://localhost:8080/api/orders/{orderId}/items \
 
 #### 確認訂單
 ```bash
-curl -X PUT http://localhost:8080/api/orders/{orderId}/confirm
+curl -X PUT http://localhost:8081/api/orders/{orderId}/confirm
 ```
 
 #### 更新訂單狀態 (員工/管理員)
 ```bash
-curl -X PUT http://localhost:8080/api/orders/{orderId}/status \
+curl -X PUT http://localhost:8081/api/orders/{orderId}/status \
   -H "Content-Type: application/json" \
   -d '{
     "status": "PREPARING"
@@ -173,24 +173,24 @@ curl -X PUT http://localhost:8080/api/orders/{orderId}/status \
 
 #### 獲取待處理訂單
 ```bash
-curl http://localhost:8080/api/orders/pending
+curl http://localhost:8081/api/orders/pending
 ```
 
 #### 獲取今日訂單
 ```bash
-curl http://localhost:8080/api/orders/today
+curl http://localhost:8081/api/orders/today
 ```
 
 #### 獲取訂單統計
 ```bash
-curl http://localhost:8080/api/orders/stats
+curl http://localhost:8081/api/orders/stats
 ```
 
 ### 💳 Payment Processing APIs
 
 #### 創建付款
 ```bash
-curl -X POST http://localhost:8080/api/payments \
+curl -X POST http://localhost:8081/api/payments \
   -H "Content-Type: application/json" \
   -d '{
     "orderId": "{order_id_here}",
@@ -201,12 +201,12 @@ curl -X POST http://localhost:8080/api/payments \
 
 #### 處理付款
 ```bash
-curl -X POST http://localhost:8080/api/payments/{paymentId}/process
+curl -X POST http://localhost:8081/api/payments/{paymentId}/process
 ```
 
 #### 退款
 ```bash
-curl -X POST http://localhost:8080/api/payments/{paymentId}/refund \
+curl -X POST http://localhost:8081/api/payments/{paymentId}/refund \
   -H "Content-Type: application/json" \
   -d '{
     "reason": "客戶要求退款"
@@ -215,39 +215,39 @@ curl -X POST http://localhost:8080/api/payments/{paymentId}/refund \
 
 #### 獲取今日營收
 ```bash
-curl http://localhost:8080/api/payments/revenue/today
+curl http://localhost:8081/api/payments/revenue/today
 ```
 
 #### 獲取總營收
 ```bash
-curl http://localhost:8080/api/payments/revenue/total
+curl http://localhost:8081/api/payments/revenue/total
 ```
 
 #### 獲取付款統計
 ```bash
-curl http://localhost:8080/api/payments/stats
+curl http://localhost:8081/api/payments/stats
 ```
 
 ### 📊 Reports APIs
 
 #### 獲取每日報告
 ```bash
-curl http://localhost:8080/api/reports/daily
+curl http://localhost:8081/api/reports/daily
 ```
 
 #### 獲取格式化每日報告
 ```bash
-curl http://localhost:8080/api/reports/daily/formatted
+curl http://localhost:8081/api/reports/daily/formatted
 ```
 
 #### 獲取系統總覽
 ```bash
-curl http://localhost:8080/api/reports/system-overview
+curl http://localhost:8081/api/reports/system-overview
 ```
 
 #### 獲取格式化系統總覽
 ```bash
-curl http://localhost:8080/api/reports/system-overview/formatted
+curl http://localhost:8081/api/reports/system-overview/formatted
 ```
 
 ## 🧪 完整測試流程
@@ -255,7 +255,7 @@ curl http://localhost:8080/api/reports/system-overview/formatted
 ### 1. 創建測試用戶
 ```bash
 # 創建顧客帳戶
-CUSTOMER_RESPONSE=$(curl -s -X POST http://localhost:8080/api/users \
+CUSTOMER_RESPONSE=$(curl -s -X POST http://localhost:8081/api/users \
   -H "Content-Type: application/json" \
   -d '{
     "username": "測試顧客",
@@ -272,10 +272,10 @@ echo "Customer ID: $CUSTOMER_ID"
 ### 2. 瀏覽菜單並創建訂單
 ```bash
 # 獲取可用菜單
-curl -s http://localhost:8080/api/menu/available | jq
+curl -s http://localhost:8081/api/menu/available | jq
 
 # 創建訂單
-ORDER_RESPONSE=$(curl -s -X POST http://localhost:8080/api/orders \
+ORDER_RESPONSE=$(curl -s -X POST http://localhost:8081/api/orders \
   -H "Content-Type: application/json" \
   -d "{
     \"customerId\": \"$CUSTOMER_ID\",
@@ -289,10 +289,10 @@ echo "Order ID: $ORDER_ID"
 ### 3. 添加菜品到訂單
 ```bash
 # 獲取第一個菜品 ID
-MENU_ITEM_ID=$(curl -s http://localhost:8080/api/menu/available | jq -r '.[0].itemId')
+MENU_ITEM_ID=$(curl -s http://localhost:8081/api/menu/available | jq -r '.[0].itemId')
 
 # 添加菜品到訂單
-curl -X POST http://localhost:8080/api/orders/$ORDER_ID/items \
+curl -X POST http://localhost:8081/api/orders/$ORDER_ID/items \
   -H "Content-Type: application/json" \
   -d "{
     \"menuItemId\": \"$MENU_ITEM_ID\",
@@ -304,10 +304,10 @@ curl -X POST http://localhost:8080/api/orders/$ORDER_ID/items \
 ### 4. 確認訂單並處理付款
 ```bash
 # 確認訂單
-curl -X PUT http://localhost:8080/api/orders/$ORDER_ID/confirm
+curl -X PUT http://localhost:8081/api/orders/$ORDER_ID/confirm
 
 # 創建付款
-PAYMENT_RESPONSE=$(curl -s -X POST http://localhost:8080/api/payments \
+PAYMENT_RESPONSE=$(curl -s -X POST http://localhost:8081/api/payments \
   -H "Content-Type: application/json" \
   -d "{
     \"orderId\": \"$ORDER_ID\",
@@ -318,27 +318,27 @@ PAYMENT_RESPONSE=$(curl -s -X POST http://localhost:8080/api/payments \
 PAYMENT_ID=$(echo $PAYMENT_RESPONSE | jq -r '.paymentId')
 
 # 處理付款
-curl -X POST http://localhost:8080/api/payments/$PAYMENT_ID/process
+curl -X POST http://localhost:8081/api/payments/$PAYMENT_ID/process
 ```
 
 ### 5. 更新訂單狀態 (員工操作)
 ```bash
 # 更新為準備中
-curl -X PUT http://localhost:8080/api/orders/$ORDER_ID/status \
+curl -X PUT http://localhost:8081/api/orders/$ORDER_ID/status \
   -H "Content-Type: application/json" \
   -d '{
     "status": "PREPARING"
   }'
 
 # 更新為準備完成
-curl -X PUT http://localhost:8080/api/orders/$ORDER_ID/status \
+curl -X PUT http://localhost:8081/api/orders/$ORDER_ID/status \
   -H "Content-Type: application/json" \
   -d '{
     "status": "READY"
   }'
 
 # 更新為已完成
-curl -X PUT http://localhost:8080/api/orders/$ORDER_ID/status \
+curl -X PUT http://localhost:8081/api/orders/$ORDER_ID/status \
   -H "Content-Type: application/json" \
   -d '{
     "status": "COMPLETED"
@@ -348,17 +348,17 @@ curl -X PUT http://localhost:8080/api/orders/$ORDER_ID/status \
 ### 6. 查看報告
 ```bash
 # 查看每日報告
-curl -s http://localhost:8080/api/reports/daily/formatted
+curl -s http://localhost:8081/api/reports/daily/formatted
 
 # 查看系統總覽
-curl -s http://localhost:8080/api/reports/system-overview/formatted
+curl -s http://localhost:8081/api/reports/system-overview/formatted
 ```
 
 ## 🛠️ 測試工具推薦
 
 ### 使用 Postman
 1. 導入 API 集合：可以根據上述端點創建 Postman 集合
-2. 設置環境變數：BASE_URL = http://localhost:8080/api
+2. 設置環境變數：BASE_URL = http://localhost:8081/api
 3. 創建測試腳本來驗證響應
 
 ### 使用 curl 腳本
@@ -368,7 +368,7 @@ curl -s http://localhost:8080/api/reports/system-overview/formatted
 #!/bin/bash
 # test_api.sh
 
-BASE_URL="http://localhost:8080/api"
+BASE_URL="http://localhost:8081/api"
 
 echo "🧪 Testing Ranbow Restaurant API..."
 
@@ -393,7 +393,7 @@ echo "✅ All tests passed!"
 ### 2. 應用程式啟動失敗
 - 檢查 Java 17+ 是否安裝
 - 確認 Maven 依賴下載完成
-- 檢查端口 8080 是否被占用
+- 檢查端口 8081 是否被占用
 
 ### 3. API 響應錯誤
 - 檢查請求格式是否正確

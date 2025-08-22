@@ -21,7 +21,7 @@ npm run dev
 
 | 環境 | API基礎位址 | 描述 |
 |------|-------------|------|
-| 本地開發 | `http://localhost:8080/api` | Spring Boot本地開發服務器 |
+| 本地開發 | `http://localhost:8081/api` | Spring Boot本地開發服務器 |
 | Ubuntu Server | `http://192.168.0.113:8087/api` | 生產環境Ubuntu部署 |
 | 測試服務器 | `http://localhost:8087/api` | 本地測試環境 |
 

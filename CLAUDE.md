@@ -87,38 +87,13 @@ This file provides essential guidance to Claude Code (claude.ai/code) when worki
 - **Database Integration**: ✅ Completed (PostgreSQL + Redis)
 - **User Management**: ✅ Completed
 - **Order Management**: ✅ Completed & Status-Fixed
-- **Payment Processing**: ✅ Completed & Error-Resolved
-- **System Testing**: ✅ Completed
+- **Payment Processing**: Testing
+- **System Testing**: Testing
 - **Documentation**: ✅ Updated & Current
 
 ## 🎯 **SYSTEM STABILITY & RECENT FIXES**
 
-### ✅ **最近完成的關鍵修正 (2025-08-18)**
 
-**核心問題修正:**
-1. **訂單ID重複使用邏輯** - 修正前端checkout.js中重複使用PENDING_PAYMENT訂單的問題
-2. **付款API重複檢查** - 改善PaymentService.java的付款驗證邏輯
-3. **資料庫狀態更新** - 修正OrderService中狀態更新不寫入資料庫的關鍵錯誤
-4. **前端狀態顯示** - 修正「我的訂單」頁面狀態顯示和日期格式化問題
-
-**技術債務清理:**
-- Order.java: 新增前端兼容性方法 (getItems, getCreatedAt)
-- helpers.js: 強化日期解析和格式化功能，支援Java LocalDateTime
-- orders.js: 完善所有訂單狀態的中文化和圖標顯示
-- storage.js: 修正訂單緩存的ID匹配邏輯
-
-**系統可靠性提升:**
-- ✅ 訂單和付款流程完全穩定
-- ✅ 前後端狀態同步一致性
-- ✅ 資料庫操作事務完整性
-- ✅ 用戶界面回饋準確性
-
-### 🏆 **Production Readiness Status**
-- **核心功能**: 🟢 Production Ready
-- **API穩定性**: 🟢 All Endpoints Stable  
-- **資料庫一致性**: 🟢 ACID Compliant
-- **前端UX**: 🟢 Fully Functional
-- **錯誤處理**: 🟢 Comprehensive Coverage
 
 ## 📋 JAVA PROJECT GUIDELINES
 
@@ -183,7 +158,8 @@ mvn clean package -DskipTests # 打包（跳過測試）
 - **端口**: `8081`
 - **基礎URL**: `http://localhost:8081/api`
 - **健康檢查**: `http://localhost:8081/api/health`
-- **數據庫**: H2 (內存數據庫)
+- **數據庫**: PostgreSQL (192.168.0.114:5432)
+- **緩存**: Redis (192.168.0.113:6379)
 
 **🚀 Ubuntu Server生產環境:**
 - **主類**: `com.ranbow.restaurant.RestaurantApplication`
@@ -941,12 +917,12 @@ npm run build
 # 1️⃣ 進入React專案並啟動開發
 cd customer-ui-react/
 npm install
-npm run dev  # → http://localhost:5173
+npm run dev  # → http://localhost:3xxx
 
 # 2️⃣ 並行啟動後端API服務
 # 新終端窗口
 cd ../
-mvn spring-boot:run  # → http://192.168.0.113:8087
+mvn spring-boot:run  # → http://localhost:8081
 
 # 3️⃣ 開發工具
 npm run lint      # ESLint檢查

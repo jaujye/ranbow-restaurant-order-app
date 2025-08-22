@@ -75,13 +75,13 @@ public class OrderController {
             // Get parameters with defaults
             String limitParam = request.getParameter("limit");
             String pageParam = request.getParameter("page");
+            String userIdParam = request.getParameter("userId");
             
             int limit = limitParam != null ? Integer.parseInt(limitParam) : 50;
             int page = pageParam != null ? Integer.parseInt(pageParam) : 1;
             
-            // For demo purposes, we'll use a default user ID
-            // In a real application, this would come from the authenticated user's session/JWT token
-            String currentUserId = "2ab1d1ba-3ec6-4892-b4d6-ff445802cdb7"; // This should be extracted from authentication context
+            // Use provided userId parameter or fallback to default for backward compatibility
+            String currentUserId = userIdParam != null ? userIdParam : "2ab1d1ba-3ec6-4892-b4d6-ff445802cdb7";
             
             List<Order> allOrders = orderService.getOrdersByCustomerId(currentUserId);
             List<Order> orders = allOrders != null ? allOrders : new ArrayList<>();
@@ -307,7 +307,10 @@ public class OrderController {
         CreateCompleteOrderRequest completeRequest = new CreateCompleteOrderRequest();
         
         completeRequest.setCustomerId((String) request.get("customerId"));
-        completeRequest.setTableNumber((String) request.get("tableNumber"));
+        Object tableNumberObj = request.get("tableNumber");
+        if (tableNumberObj != null) {
+            completeRequest.setTableNumber(String.valueOf(tableNumberObj));
+        }
         completeRequest.setSpecialInstructions((String) request.get("specialInstructions"));
         completeRequest.setPaymentMethod((String) request.get("paymentMethod"));
         completeRequest.setStatus((String) request.get("status"));

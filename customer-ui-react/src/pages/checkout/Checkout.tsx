@@ -117,8 +117,8 @@ const Checkout: React.FC = () => {
     try {
       // 創建訂單 - 符合CreateOrderRequest接口
       const orderData = {
-        customerId: user?.id,
-        tableNumber: checkoutData.tableNumber,
+        customerId: user?.userId || user?.id || 'guest-user',
+        tableNumber: parseInt(checkoutData.tableNumber.replace(/[^\d]/g, '') || '1'),
         items: cartItems.map(item => ({
           menuItemId: item.menuItem.itemId || item.menuItem.id?.toString() || '',
           quantity: item.quantity,

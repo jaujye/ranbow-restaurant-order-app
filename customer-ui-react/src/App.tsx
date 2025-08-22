@@ -15,6 +15,7 @@ const MenuPage = React.lazy(() => import('@/pages/menu/MenuList'))
 const MenuDetailPage = React.lazy(() => import('@/pages/menu/MenuDetail'))
 const CartPage = React.lazy(() => import('@/pages/cart/Cart'))
 const CheckoutPage = React.lazy(() => import('@/pages/checkout/Checkout'))
+const PaymentPage = React.lazy(() => import('@/pages/payment/PaymentPage'))
 const OrdersPage = React.lazy(() => import('@/pages/orders/OrderList'))
 const OrderDetailPage = React.lazy(() => import('@/pages/orders/OrderDetail'))
 const ProfilePage = React.lazy(() => import('@/pages/profile/Profile'))
@@ -181,6 +182,7 @@ const App: React.FC = () => {
               <Route path="menu/:itemId" element={<MenuDetailPage />} />
               <Route path="cart" element={<CartPage />} />
               <Route path="checkout" element={<CheckoutPage />} />
+              <Route path="payment" element={<PaymentPage />} />
               <Route path="orders" element={<OrdersPage />} />
               <Route path="orders/:orderId" element={<OrderDetailPage />} />
               <Route path="profile" element={<ProfilePage />} />
