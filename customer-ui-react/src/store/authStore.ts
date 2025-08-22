@@ -7,7 +7,6 @@ interface AuthState {
   token: string | null
   isLoading: boolean
   error: string | null
-  _hasHydrated: boolean
   
   // Actions
   login: (credentials: LoginRequest) => Promise<boolean>
@@ -17,7 +16,6 @@ interface AuthState {
   refreshUser: () => Promise<void>
   updateProfile: (userData: Partial<User>) => Promise<boolean>
   clearError: () => void
-  setHasHydrated: (state: boolean) => void
   
   // Getters
   isAuthenticated: boolean
@@ -32,7 +30,6 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isLoading: false,
       error: null,
-      _hasHydrated: false,
 
       // Actions
       login: async (credentials: LoginRequest) => {
@@ -226,20 +223,21 @@ export const useAuthStore = create<AuthState>()(
       },
 
       clearError: () => set({ error: null }),
-      
-      setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
 
       // Getters (computed values)
       get isAuthenticated() {
-        return get().token !== null && get().user !== null
+        const state = get()
+        return state?.token !== null && state?.user !== null
       },
 
       get isAdmin() {
-        return get().user?.role === 'ADMIN'
+        const state = get()
+        return state?.user?.role === 'ADMIN'
       },
 
       get isStaffOrAdmin() {
-        const role = get().user?.role
+        const state = get()
+        const role = state?.user?.role
         return role === 'STAFF' || role === 'ADMIN'
       }
     }),
@@ -247,23 +245,21 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-store',
       partialize: (state) => ({
         user: state.user,
-        token: state.token,
-        _hasHydrated: state._hasHydrated
+        token: state.token
+        // 只持久化業務數據，不持久化控制狀態 (_hasHydrated, isLoading, error)
       }),
-      onRehydrateStorage: () => (state) => {
-        console.log('[AuthStore] Rehydrating from localStorage')
-        if (state) {
-          // Ensure all fields have proper default values after hydration
-          state._hasHydrated = true
-          state.isLoading = false
-          state.error = null
-          console.log('[AuthStore] Rehydrated successfully:', { 
-            hasUser: !!state.user, 
-            hasToken: !!state.token,
-            isLoading: state.isLoading,
-            _hasHydrated: state._hasHydrated
-          })
+      onRehydrateStorage: () => (state, error) => {
+        console.log('[AuthStore] onRehydrateStorage called')
+        
+        if (error) {
+          console.error('[AuthStore] Rehydration error:', error)
+          return
         }
+        
+        console.log('[AuthStore] Rehydration completed successfully', {
+          hasState: !!state,
+          stateKeys: state ? Object.keys(state) : []
+        })
       }
     }
   )
@@ -278,8 +274,7 @@ export const useAuth = () => useAuthStore((state) => ({
   error: state.error,
   isAuthenticated: state.token !== null && state.user !== null,
   isAdmin: state.user?.role === 'ADMIN',
-  isStaffOrAdmin: state.user?.role === 'STAFF' || state.user?.role === 'ADMIN',
-  _hasHydrated: state._hasHydrated
+  isStaffOrAdmin: state.user?.role === 'STAFF' || state.user?.role === 'ADMIN'
 }))
 
 export const useAuthActions = () => useAuthStore((state) => ({

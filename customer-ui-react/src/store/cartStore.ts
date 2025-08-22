@@ -141,19 +141,23 @@ export const useCartStore = create<CartState>()(
 
       // Getters
       get itemCount() {
-        return get().items.reduce((count, item) => count + item.quantity, 0)
+        const state = get()
+        return state?.items?.reduce((count, item) => count + item.quantity, 0) || 0
       },
 
       get hasItems() {
-        return get().items.length > 0
+        const state = get()
+        return (state?.items?.length || 0) > 0
       },
 
       getItemById: (itemId: string) => {
-        return get().items.find(item => item.id === itemId)
+        const state = get()
+        return state?.items?.find(item => item.id === itemId)
       },
 
       getItemByMenuId: (menuItemId: number | string) => {
-        return get().items.find(item => (item.menuItem.itemId || item.menuItem.id) === menuItemId)
+        const state = get()
+        return state?.items?.find(item => (item.menuItem.itemId || item.menuItem.id) === menuItemId)
       }
     }),
     {
@@ -168,8 +172,14 @@ export const useCartStore = create<CartState>()(
         serviceCharge: state.serviceCharge,
         totalAmount: state.totalAmount
       }),
-      onRehydrateStorage: () => (state) => {
-        // 重新計算總金額（以防稅率或服務費有變更）
+      onRehydrateStorage: () => (state, error) => {
+        console.log('[CartStore] onRehydrateStorage called')
+        
+        if (error) {
+          console.error('[CartStore] Rehydration error:', error)
+          return
+        }
+        
         if (state) {
           try {
             console.log('[CartStore] Rehydrating cart state with items:', state.items?.length || 0)
@@ -190,7 +200,7 @@ export const useCartStore = create<CartState>()(
                   console.warn('[CartStore] Error converting date for item:', item.id, dateError)
                   return {
                     ...item,
-                    addedAt: new Date() // 使用當前時間作為後備
+                    addedAt: new Date()
                   }
                 }
               })
@@ -202,28 +212,10 @@ export const useCartStore = create<CartState>()(
             state.serviceCharge = Number(state.serviceCharge) || 0
             state.totalAmount = Number(state.totalAmount) || 0
             
-            // 重新計算總金額以確保一致性
-            if (state.items.length > 0) {
-              state.calculateTotals()
-              console.log('[CartStore] Rehydration successful, cart has', state.items.length, 'items')
-            } else {
-              console.log('[CartStore] Rehydration successful, cart is empty')
-            }
+            console.log('[CartStore] Rehydration completed successfully, cart has', state.items.length, 'items')
           } catch (error) {
             console.error('[CartStore] Critical error during rehydration:', error)
-            // 只在真正無法恢復時才清空購物車，並記錄詳細錯誤
             console.error('[CartStore] Original state that failed to rehydrate:', state)
-            
-            // 嘗試至少保留items數據，即使其他計算失敗
-            if (state.items && Array.isArray(state.items) && state.items.length > 0) {
-              console.warn('[CartStore] Attempting to preserve items despite calculation errors')
-              try {
-                state.calculateTotals()
-                return // 如果計算成功就不清空
-              } catch (calcError) {
-                console.error('[CartStore] Calculation also failed:', calcError)
-              }
-            }
             
             // 只有在完全無法恢復時才清空
             state.items = []

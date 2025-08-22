@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { ToastContainer, DialogProvider } from '@/components/ui'
 import { PageLoading } from '@/components/ui/Loading'
@@ -49,22 +49,23 @@ const NotFoundPage: React.FC = () => (
 
 // Route Guard for authentication
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Import Zustand auth store - checking token, user, and hydration state
-  const { token, user, isLoading, _hasHydrated } = useAuthStore((state) => ({
+  const [isInitialized, setIsInitialized] = useState(false)
+  // Import Zustand auth store - checking token, user, and loading state
+  const { token, user, isLoading } = useAuthStore((state) => ({
     token: state.token,
     user: state.user,
-    isLoading: state.isLoading,
-    _hasHydrated: state._hasHydrated
+    isLoading: state.isLoading
   }))
   const location = useLocation()
   
-  // Show loading while the store is hydrating from localStorage
-  if (!_hasHydrated) {
-    return <PageLoading />
-  }
+  // Initialize after component mount to allow Zustand hydration
+  useEffect(() => {
+    const timer = setTimeout(() => setIsInitialized(true), 500)  // 增加延遲到500ms
+    return () => clearTimeout(timer)
+  }, [])
   
-  // Show loading while checking authentication
-  if (isLoading) {
+  // Show loading while initializing or during auth operations
+  if (!isInitialized || isLoading) {
     return <PageLoading />
   }
   
