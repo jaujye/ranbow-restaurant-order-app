@@ -172,16 +172,60 @@ export const useCartStore = create<CartState>()(
         // 重新計算總金額（以防稅率或服務費有變更）
         if (state) {
           try {
-            // 將字符串轉換回 Date 對象
-            state.items = state.items.map(item => ({
-              ...item,
-              addedAt: typeof item.addedAt === 'string' ? new Date(item.addedAt) : item.addedAt
-            }))
-            // 確保計算總金額
-            state.calculateTotals()
+            console.log('[CartStore] Rehydrating cart state with items:', state.items?.length || 0)
+            
+            // 確保 items 存在且為數組
+            if (!Array.isArray(state.items)) {
+              console.warn('[CartStore] Invalid items array, initializing empty cart')
+              state.items = []
+            } else {
+              // 將字符串轉換回 Date 對象
+              state.items = state.items.map(item => {
+                try {
+                  return {
+                    ...item,
+                    addedAt: typeof item.addedAt === 'string' ? new Date(item.addedAt) : item.addedAt
+                  }
+                } catch (dateError) {
+                  console.warn('[CartStore] Error converting date for item:', item.id, dateError)
+                  return {
+                    ...item,
+                    addedAt: new Date() // 使用當前時間作為後備
+                  }
+                }
+              })
+            }
+            
+            // 確保數值類型正確
+            state.subtotal = Number(state.subtotal) || 0
+            state.tax = Number(state.tax) || 0
+            state.serviceCharge = Number(state.serviceCharge) || 0
+            state.totalAmount = Number(state.totalAmount) || 0
+            
+            // 重新計算總金額以確保一致性
+            if (state.items.length > 0) {
+              state.calculateTotals()
+              console.log('[CartStore] Rehydration successful, cart has', state.items.length, 'items')
+            } else {
+              console.log('[CartStore] Rehydration successful, cart is empty')
+            }
           } catch (error) {
-            console.warn('Failed to rehydrate cart state:', error)
-            // 如果恢復失敗，清空購物車
+            console.error('[CartStore] Critical error during rehydration:', error)
+            // 只在真正無法恢復時才清空購物車，並記錄詳細錯誤
+            console.error('[CartStore] Original state that failed to rehydrate:', state)
+            
+            // 嘗試至少保留items數據，即使其他計算失敗
+            if (state.items && Array.isArray(state.items) && state.items.length > 0) {
+              console.warn('[CartStore] Attempting to preserve items despite calculation errors')
+              try {
+                state.calculateTotals()
+                return // 如果計算成功就不清空
+              } catch (calcError) {
+                console.error('[CartStore] Calculation also failed:', calcError)
+              }
+            }
+            
+            // 只有在完全無法恢復時才清空
             state.items = []
             state.subtotal = 0
             state.tax = 0
