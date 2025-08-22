@@ -35,7 +35,7 @@ const MenuList: React.FC = () => {
   } = useMenuStore()
 
   const [localSearchQuery, setLocalSearchQuery] = useState('')
-  const [filteredItems, setFilteredItems] = useState(items)
+  const [filteredItems, setFilteredItems] = useState<typeof items>([])  // 初始化為空陣列，類型與items相同
 
   // 初始化數據
   useEffect(() => {
@@ -46,8 +46,8 @@ const MenuList: React.FC = () => {
   useEffect(() => {
     let filtered = items
 
-    // 分類篩選
-    if (selectedCategory !== 'all') {
+    // 分類篩選 - 檢查'全部'和'all'兩種情況
+    if (selectedCategory !== 'all' && selectedCategory !== '全部') {
       filtered = filtered.filter(item => 
         item.category?.toUpperCase() === selectedCategory.toUpperCase()
       )

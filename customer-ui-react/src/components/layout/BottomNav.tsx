@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { cn } from '@/utils/cn'
+import { useCartStore } from '@/store/cartStore'
 import {
   HomeIcon,
   Squares2X2Icon,
@@ -33,8 +34,9 @@ const BottomNav: React.FC<BottomNavProps> = ({ className }) => {
   const navigate = useNavigate()
   const location = useLocation()
   
-  // TODO: Get cart item count from Zustand store
-  const cartItemCount = 0
+  // 從 Zustand store 獲取購物車項目數量
+  const cartItems = useCartStore((state) => state.items)
+  const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0)
   
   const navItems: NavItem[] = [
     {
@@ -109,7 +111,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ className }) => {
               
               {/* Badge for cart */}
               {item.badge && item.badge > 0 && (
-                <span className="cart-badge absolute -top-2 -right-2 min-w-[18px] h-[18px] flex items-center justify-center text-xs font-medium text-white bg-primary-500 rounded-full px-1">
+                <span className="cart-badge absolute -top-2 -right-2 min-w-[20px] h-[20px] flex items-center justify-center text-xs font-bold text-white bg-red-500 rounded-full px-1 shadow-sm border border-white">
                   {item.badge > 99 ? '99+' : item.badge}
                 </span>
               )}
