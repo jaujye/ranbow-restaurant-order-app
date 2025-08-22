@@ -287,12 +287,14 @@ export default {
           border: '1px solid rgba(255, 255, 255, 0.18)',
         },
         
-        // 彩虹文字效果
+        // 彩虹文字效果 - 加強對比度
         '.text-rainbow': {
           background: 'linear-gradient(90deg, #FF3B30 0%, #FF9500 14.28%, #FFCC00 28.56%, #34C759 42.84%, #007AFF 57.12%, #5856D6 71.4%, #AF52DE 85.68%, #FF2D92 100%)',
           '-webkit-background-clip': 'text',
           '-webkit-text-fill-color': 'transparent',
           backgroundClip: 'text',
+          filter: 'drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 6px rgba(0, 0, 0, 0.6))',
+          fontWeight: '800',
         },
         
         // 安全區域內邊距
