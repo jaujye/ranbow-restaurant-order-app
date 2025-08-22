@@ -154,7 +154,7 @@ public class StaffSecurityConfig {
                 .contentTypeOptions().and() // Prevent MIME sniffing
                 .httpStrictTransportSecurity(hstsConfig -> hstsConfig
                     .maxAgeInSeconds(31536000) // 1 year HSTS
-                    .includeSubdomains(true)
+                    .includeSubDomains(true)
                     .preload(true)
                 )
             )
