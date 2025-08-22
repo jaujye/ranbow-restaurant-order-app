@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, Button, Input } from '@/components/ui'
+import { Card, Button, Input, useDialogContext } from '@/components/ui'
 import { useCheckoutStore } from '@/store'
 import { getOrderStatusText, getPaymentMethodText } from '@/store/orderStore'
 import { formatPrice } from '@/store/cartStore'
@@ -20,6 +20,7 @@ import {
 
 const Checkout: React.FC = () => {
   const navigate = useNavigate()
+  const { error: showError } = useDialogContext()
   const {
     user,
     isAuthenticated,
@@ -109,7 +110,7 @@ const Checkout: React.FC = () => {
 
   const handleSubmitOrder = async () => {
     if (!checkoutData.tableNumber || !checkoutData.paymentMethod) {
-      alert('請填寫完整的訂單資訊')
+      showError('請填寫完整的訂單資訊')
       return
     }
 
@@ -151,7 +152,7 @@ const Checkout: React.FC = () => {
       }
     } catch (error) {
       console.error('Order submission failed:', error)
-      alert('訂單提交失敗，請重試')
+      showError('訂單提交失敗，請重試')
     }
   }
 

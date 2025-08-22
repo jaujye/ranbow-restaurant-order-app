@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { ToastContainer } from '@/components/ui'
+import { ToastContainer, DialogProvider } from '@/components/ui'
 import { PageLoading } from '@/components/ui/Loading'
 import { useAuthStore } from '@/store/authStore'
 
@@ -140,60 +140,62 @@ const App: React.FC = () => {
   }, [])
 
   return (
-    <div className="app">
-      {/* Toast Notifications */}
-      <ToastContainer position="top-center" />
-      
-      {/* Main Routes */}
-      <Suspense fallback={<PageLoading />}>
-        <Routes>
-          {/* Public Routes */}
-          <Route
-            path="/login"
-            element={
-              <div className="min-h-screen">
-                <LoginPage />
-              </div>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <div className="min-h-screen">
-                <RegisterPage />
-              </div>
-            }
-          />
-          
-          {/* Protected Routes with Layout */}
-          <Route
-            path="/"
-            element={
-              <RequireAuth>
-                <Layout />
-              </RequireAuth>
-            }
-          >
-            <Route index element={<HomePage />} />
-            <Route path="menu" element={<MenuPage />} />
-            <Route path="menu/:itemId" element={<MenuDetailPage />} />
-            <Route path="cart" element={<CartPage />} />
-            <Route path="checkout" element={<CheckoutPage />} />
-            <Route path="orders" element={<OrdersPage />} />
-            <Route path="orders/:orderId" element={<OrderDetailPage />} />
-            <Route path="profile" element={<ProfilePage />} />
-          </Route>
-          
-          {/* Development Tools Route (only in development) */}
-          {import.meta.env.DEV && (
-            <Route path="/dev" element={<DevToolsPage />} />
-          )}
-          
-          {/* 404 Route */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Suspense>
-    </div>
+    <DialogProvider>
+      <div className="app">
+        {/* Toast Notifications */}
+        <ToastContainer position="top-center" />
+        
+        {/* Main Routes */}
+        <Suspense fallback={<PageLoading />}>
+          <Routes>
+            {/* Public Routes */}
+            <Route
+              path="/login"
+              element={
+                <div className="min-h-screen">
+                  <LoginPage />
+                </div>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <div className="min-h-screen">
+                  <RegisterPage />
+                </div>
+              }
+            />
+            
+            {/* Protected Routes with Layout */}
+            <Route
+              path="/"
+              element={
+                <RequireAuth>
+                  <Layout />
+                </RequireAuth>
+              }
+            >
+              <Route index element={<HomePage />} />
+              <Route path="menu" element={<MenuPage />} />
+              <Route path="menu/:itemId" element={<MenuDetailPage />} />
+              <Route path="cart" element={<CartPage />} />
+              <Route path="checkout" element={<CheckoutPage />} />
+              <Route path="orders" element={<OrdersPage />} />
+              <Route path="orders/:orderId" element={<OrderDetailPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+            </Route>
+            
+            {/* Development Tools Route (only in development) */}
+            {import.meta.env.DEV && (
+              <Route path="/dev" element={<DevToolsPage />} />
+            )}
+            
+            {/* 404 Route */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
+      </div>
+    </DialogProvider>
   )
 }
 

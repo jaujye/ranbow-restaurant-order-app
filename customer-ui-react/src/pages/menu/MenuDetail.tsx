@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Button, Input } from '@/components/ui'
+import { Card, Button, Input, useDialogContext } from '@/components/ui'
 import { useMenuActions, useCartActions, formatPrice } from '@/store'
 import { useAuth } from '@/store/authStore'
 import { MenuItem } from '@/services/api'
@@ -25,6 +25,7 @@ const MenuDetail: React.FC = () => {
   const { getItemById } = useMenuActions()
   const { addItem } = useCartActions()
   const { isAuthenticated } = useAuth()
+  const { success, error } = useDialogContext()
 
   const [menuItem, setMenuItem] = useState<MenuItem | null>(null)
   const [quantity, setQuantity] = useState(1)
@@ -96,7 +97,7 @@ const MenuDetail: React.FC = () => {
     addItem(menuItem, quantity, specialRequests.trim() || undefined)
     
     // Show success feedback
-    alert(`已將 ${quantity} 份 ${menuItem.name} 加入購物車！`)
+    success(`已將 ${quantity} 份 ${menuItem.name} 加入購物車！`)
   }
 
   const handleShare = () => {
@@ -109,7 +110,7 @@ const MenuDetail: React.FC = () => {
     } else {
       // Fallback to clipboard
       navigator.clipboard.writeText(window.location.href)
-      alert('連結已複製到剪貼板')
+      success('連結已複製到剪貼板')
     }
   }
 
@@ -239,7 +240,7 @@ const MenuDetail: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => alert('加入最愛功能開發中...')}
+                onClick={() => error('加入最愛功能開發中...')}
                 className="p-2"
               >
                 <Heart className="w-5 h-5" />
