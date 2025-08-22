@@ -29,14 +29,16 @@ export interface AuthResponse {
 
 // 菜單相關類型定義
 export interface MenuItem {
-  id: number
+  itemId: string  // 後端使用UUID字符串
+  id?: number     // 向後兼容
   name: string
   description: string
   price: number
   category: string
-  imageUrl?: string
+  imageUrl?: string | null
   available: boolean
-  popular: boolean
+  popular?: boolean
+  preparationTime?: number
   createdAt: string
   updatedAt: string
 }

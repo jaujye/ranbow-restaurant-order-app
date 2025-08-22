@@ -222,7 +222,7 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
   },
 
   getItemById: (id: number) => {
-    return get().items.find(item => item.id === id)
+    return get().items.find(item => (item.itemId || item.id) === id)
   },
 
   isItemAvailable: (id: number) => {

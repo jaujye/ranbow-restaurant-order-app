@@ -163,7 +163,7 @@ const MenuList: React.FC = () => {
           {filteredItems.length > 0 ? (
             filteredItems.map((item) => (
               <MenuItemCard
-                key={item.id}
+                key={item.itemId || item.id || `item-${Math.random()}`}
                 item={item}
                 variant="default"
                 showAddToCart={true}

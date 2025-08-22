@@ -56,7 +56,7 @@ export const useCartStore = create<CartState>()(
         
         // 檢查是否已存在相同的商品（包含特殊需求）
         const existingItem = state.items.find(
-          item => item.menuItem.id === menuItem.id && item.specialRequests === specialRequests
+          item => (item.menuItem.itemId || item.menuItem.id) === (menuItem.itemId || menuItem.id) && item.specialRequests === specialRequests
         )
         
         if (existingItem) {
@@ -85,7 +85,7 @@ export const useCartStore = create<CartState>()(
 
       removeItem: (itemId: string) => {
         set((state) => ({
-          items: state.items.filter(item => item.id !== itemId)
+          items: state.items.filter(item => (item.itemId || item.id) !== itemId)
         }))
         
         get().calculateTotals()
@@ -99,7 +99,7 @@ export const useCartStore = create<CartState>()(
         
         set((state) => ({
           items: state.items.map(item => 
-            item.id === itemId 
+            (item.itemId || item.id) === itemId 
               ? {
                   ...item,
                   quantity,
@@ -149,11 +149,11 @@ export const useCartStore = create<CartState>()(
       },
 
       getItemById: (itemId: string) => {
-        return get().items.find(item => item.id === itemId)
+        return get().items.find(item => (item.itemId || item.id) === itemId)
       },
 
-      getItemByMenuId: (menuItemId: number) => {
-        return get().items.find(item => item.menuItem.id === menuItemId)
+      getItemByMenuId: (menuItemId: number | string) => {
+        return get().items.find(item => (item.menuItem.itemId || item.menuItem.id) === menuItemId)
       }
     }),
     {

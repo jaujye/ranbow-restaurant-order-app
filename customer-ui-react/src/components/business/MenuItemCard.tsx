@@ -37,7 +37,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
   const [isFavorite, setIsFavorite] = useState(false)
 
   const handleViewDetails = () => {
-    navigate(`/menu/${item.id}`)
+    navigate(`/menu/${item.itemId || item.id}`)
   }
 
   const handleAddToCart = async (e: React.MouseEvent) => {
