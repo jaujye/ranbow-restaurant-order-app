@@ -7,6 +7,7 @@ interface AuthState {
   token: string | null
   isLoading: boolean
   error: string | null
+  _hasHydrated: boolean
   
   // Actions
   login: (credentials: LoginRequest) => Promise<boolean>
@@ -16,6 +17,7 @@ interface AuthState {
   refreshUser: () => Promise<void>
   updateProfile: (userData: Partial<User>) => Promise<boolean>
   clearError: () => void
+  setHasHydrated: (state: boolean) => void
   
   // Getters
   isAuthenticated: boolean
@@ -30,6 +32,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isLoading: false,
       error: null,
+      _hasHydrated: false,
 
       // Actions
       login: async (credentials: LoginRequest) => {
@@ -223,6 +226,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       clearError: () => set({ error: null }),
+      
+      setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
 
       // Getters (computed values)
       get isAuthenticated() {
@@ -242,13 +247,21 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-store',
       partialize: (state) => ({
         user: state.user,
-        token: state.token
+        token: state.token,
+        _hasHydrated: state._hasHydrated
       }),
       onRehydrateStorage: () => (state) => {
+        console.log('[AuthStore] Rehydrating from localStorage')
         if (state) {
-          console.log('[AuthStore] Rehydrated from storage:', { 
+          // Ensure all fields have proper default values after hydration
+          state._hasHydrated = true
+          state.isLoading = false
+          state.error = null
+          console.log('[AuthStore] Rehydrated successfully:', { 
             hasUser: !!state.user, 
-            hasToken: !!state.token 
+            hasToken: !!state.token,
+            isLoading: state.isLoading,
+            _hasHydrated: state._hasHydrated
           })
         }
       }
@@ -256,15 +269,17 @@ export const useAuthStore = create<AuthState>()(
   )
 )
 
+
 // Selectors for convenient access
 export const useAuth = () => useAuthStore((state) => ({
   user: state.user,
   token: state.token,
   isLoading: state.isLoading,
   error: state.error,
-  isAuthenticated: state.isAuthenticated,
-  isAdmin: state.isAdmin,
-  isStaffOrAdmin: state.isStaffOrAdmin
+  isAuthenticated: state.token !== null && state.user !== null,
+  isAdmin: state.user?.role === 'ADMIN',
+  isStaffOrAdmin: state.user?.role === 'STAFF' || state.user?.role === 'ADMIN',
+  _hasHydrated: state._hasHydrated
 }))
 
 export const useAuthActions = () => useAuthStore((state) => ({
