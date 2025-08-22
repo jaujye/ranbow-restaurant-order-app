@@ -145,7 +145,7 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
       
       if (response.success && response.data) {
         set({
-          items: response.data.data,
+          items: response.data, // 修復：response.data 直接是 MenuItem[]，不是 PaginatedResponse
           isLoading: false
         })
       } else {

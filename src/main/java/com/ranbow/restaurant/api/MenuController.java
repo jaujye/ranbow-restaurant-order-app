@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.List;
@@ -86,12 +87,15 @@ public class MenuController {
     }
     
     @GetMapping("/search")
-    public ResponseEntity<List<MenuItem>> searchMenuItems(@RequestParam(name = "keyword", required = false) String keyword,
-                                                        @RequestParam(name = "query", required = false) String query) {
+    public ResponseEntity<List<MenuItem>> searchMenuItems(HttpServletRequest request) {
+        String keyword = request.getParameter("keyword");
+        String query = request.getParameter("query"); // Fallback parameter
+        
         String searchTerm = keyword != null ? keyword : query;
         if (searchTerm == null || searchTerm.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
+        
         List<MenuItem> items = menuService.searchMenuItems(searchTerm);
         return ResponseEntity.ok(items);
     }

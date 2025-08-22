@@ -47,13 +47,13 @@ export class MenuService {
   static async searchMenuItems(
     query: string, 
     params?: Omit<MenuQueryParams, 'search'>
-  ): Promise<ApiResponse<PaginatedResponse<MenuItem>>> {
+  ): Promise<ApiResponse<MenuItem[]>> {
     const searchParams = new URLSearchParams({
-      search: query,
+      keyword: query, // 修復：後端期望 keyword 參數
       ...(params as any)
     }).toString()
     
-    return HttpClient.get<PaginatedResponse<MenuItem>>(`/menu/search?${searchParams}`)
+    return HttpClient.get<MenuItem[]>(`/menu/search?${searchParams}`)
   }
 
   /**
