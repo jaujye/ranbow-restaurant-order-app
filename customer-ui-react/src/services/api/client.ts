@@ -30,7 +30,7 @@ const getApiUrl = (): string => {
   // 預設根據環境選擇
   return process.env.NODE_ENV === 'production' 
     ? API_CONFIG.production 
-    : API_CONFIG.development
+    : API_CONFIG.local
 }
 
 // 提供 API URL 切換功能
