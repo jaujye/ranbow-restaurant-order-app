@@ -86,7 +86,9 @@
       "Bash(npm run type-check:*)",
       "Bash(grep:*)",
       "Bash(tar:*)",
-      "mcp__playwright__browser_handle_dialog"
+      "mcp__playwright__browser_handle_dialog",
+      "Bash(tskill:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": [],
