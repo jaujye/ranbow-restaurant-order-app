@@ -293,7 +293,6 @@ export default {
           '-webkit-background-clip': 'text',
           '-webkit-text-fill-color': 'transparent',
           backgroundClip: 'text',
-          filter: 'drop-shadow(0 1px 3px rgba(166, 13, 209, 1)) drop-shadow(0 0 6px rgba(197, 18, 146, 1))',
           fontWeight: '800',
         },
         
