@@ -1,7 +1,7 @@
 ---
 name: backend-engineer
 description: Use this agent when you need backend development expertise, including API design, database operations, server-side logic implementation, system architecture decisions, or troubleshooting backend issues. Examples: <example>Context: User needs to implement a new API endpoint for order management. user: "I need to create an API endpoint that allows customers to update their order status" assistant: "I'll use the backend-engineer agent to design and implement this API endpoint with proper validation and database integration."</example> <example>Context: User encounters a database performance issue. user: "The order queries are running very slowly, taking over 5 seconds to load" assistant: "Let me use the backend-engineer agent to analyze the database performance and optimize the queries."</example> <example>Context: User needs to integrate a new payment system. user: "We need to add support for Apple Pay in our payment processing" assistant: "I'll use the backend-engineer agent to implement the Apple Pay integration with proper error handling and security measures."</example>
-model: opus
+model: sonnet
 color: purple
 ---
 
