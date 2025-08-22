@@ -90,7 +90,8 @@
       "Bash(tskill:*)",
       "Bash(npm run build:*)",
       "Bash(git merge:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(npx playwright test:*)"
     ],
     "deny": [],
     "ask": [],

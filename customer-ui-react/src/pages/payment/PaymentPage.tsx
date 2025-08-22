@@ -53,13 +53,20 @@ const PaymentPage: React.FC<PaymentPageProps> = ({
   // 從URL參數獲取訂單信息
   const finalOrderId = orderId || searchParams.get('orderId')
   const finalAmount = amount || parseFloat(searchParams.get('amount') || '0') || cartTotal
+  const urlPaymentMethod = searchParams.get('paymentMethod') as PaymentMethod
 
   useEffect(() => {
     if (!finalOrderId) {
       showError('缺少訂單信息')
       navigate('/orders')
+      return
     }
-  }, [finalOrderId, navigate, showError])
+    
+    // 直接設置從URL參數獲取的付款方式
+    if (urlPaymentMethod) {
+      setSelectedMethod(urlPaymentMethod)
+    }
+  }, [finalOrderId, urlPaymentMethod, navigate, showError])
 
   // 支付方式配置
   const paymentMethods = [
@@ -315,59 +322,40 @@ const PaymentPage: React.FC<PaymentPageProps> = ({
         </div>
       </div>
 
-      {/* Payment Method Selection or Payment Form */}
-      {!selectedMethod ? (
+      {/* Payment Form - directly show based on selected method */}
+      {selectedMethod ? (
         <div className="space-y-6">
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">選擇支付方式</h2>
-            
-            <div className="space-y-4">
-              {paymentMethods.map((method) => (
-                <button
-                  key={method.value}
-                  onClick={() => method.enabled && handlePaymentMethodSelect(method.value)}
-                  disabled={!method.enabled}
-                  className={`w-full p-6 rounded-xl border-2 text-left transition-all group ${
-                    selectedMethod === method.value
-                      ? 'border-primary-500 bg-primary-50 shadow-rainbow'
-                      : method.enabled
-                      ? 'border-border-light hover:border-primary-300 hover:shadow-medium'
-                      : 'border-border-light bg-gray-50 opacity-50 cursor-not-allowed'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-lg bg-gradient-to-r ${method.gradient} text-white`}>
-                      {method.icon}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg flex items-center gap-2">
-                        {method.label}
-                        {method.badges.map((badge, index) => (
-                          <span
-                            key={index}
-                            className="text-xs bg-gradient-to-r from-primary-100 to-accent-100 text-primary-600 px-2 py-1 rounded-full"
-                          >
-                            {badge}
-                          </span>
-                        ))}
-                      </h3>
-                      <p className="text-text-secondary">
-                        {method.description}
-                      </p>
-                    </div>
-                    <div className="text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ArrowLeft className="w-5 h-5 rotate-180" />
-                    </div>
-                  </div>
-                </button>
-              ))}
+          {/* Payment Method Header */}
+          <Card className="p-4 bg-gradient-to-r from-rainbow-red/5 to-rainbow-purple/5">
+            <div className="flex items-center gap-4">
+              <div className={`p-3 rounded-lg bg-gradient-to-r ${paymentMethods.find(m => m.value === selectedMethod)?.gradient || 'from-primary-500 to-primary-600'} text-white`}>
+                {paymentMethods.find(m => m.value === selectedMethod)?.icon}
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">
+                  {paymentMethods.find(m => m.value === selectedMethod)?.label}
+                </h2>
+                <p className="text-text-secondary">
+                  {paymentMethods.find(m => m.value === selectedMethod)?.description}
+                </p>
+              </div>
             </div>
           </Card>
-        </div>
-      ) : (
-        <div className="space-y-6">
+          
           {renderPaymentMethod()}
         </div>
+      ) : (
+        // 如果沒有選擇的付款方式，顯示錯誤並返回
+        <Card className="p-8 text-center">
+          <div className="text-error-500 mb-4">
+            <AlertCircle className="w-16 h-16 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold mb-4">付款方式錯誤</h2>
+          <p className="text-text-secondary mb-6">無法識別指定的付款方式</p>
+          <Button onClick={handleCancel} className="w-full">
+            返回結帳頁面
+          </Button>
+        </Card>
       )}
 
       {/* Order Summary */}

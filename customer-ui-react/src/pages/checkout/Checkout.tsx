@@ -64,35 +64,36 @@ const Checkout: React.FC = () => {
     label: string
     icon: React.ReactNode
     description: string
+    badges: string[]
     enabled: boolean
+    gradient: string
   }> = [
     {
-      value: 'CASH',
-      label: '現金付款',
-      icon: <DollarSign className="w-6 h-6" />,
-      description: '到店付款',
-      enabled: true
-    },
-    {
       value: 'CREDIT_CARD',
-      label: '信用卡',
+      label: '信用卡支付',
       icon: <CreditCard className="w-6 h-6" />,
-      description: '支援 Visa、MasterCard',
-      enabled: true
+      description: '支援 Visa、MasterCard、JCB',
+      badges: ['安全', '快速'],
+      enabled: true,
+      gradient: 'from-blue-500 to-purple-600'
     },
     {
       value: 'LINE_PAY',
       label: 'LINE Pay',
       icon: <Smartphone className="w-6 h-6" />,
-      description: '快速便利的行動支付',
-      enabled: true
+      description: 'LINE 官方行動支付',
+      badges: ['便利', '免手續費'],
+      enabled: true,
+      gradient: 'from-green-500 to-emerald-600'
     },
     {
       value: 'APPLE_PAY',
       label: 'Apple Pay',
       icon: <Wallet className="w-6 h-6" />,
-      description: 'Touch ID 或 Face ID',
-      enabled: false // 暫時停用
+      description: 'Touch ID 或 Face ID 驗證',
+      badges: ['生物識別', '極速'],
+      enabled: true,
+      gradient: 'from-gray-700 to-gray-900'
     }
   ]
 
@@ -370,45 +371,50 @@ const Checkout: React.FC = () => {
               <Card className="p-6">
                 <h2 className="text-xl font-semibold mb-4">選擇付款方式</h2>
                 
-                <div className="grid gap-4">
+                <div className="space-y-4">
                   {paymentMethods.map((method) => (
-                    <div key={method.value}>
-                      <button
-                        onClick={() => method.enabled && handlePaymentMethodSelect(method.value)}
-                        disabled={!method.enabled}
-                        className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
-                          checkoutData.paymentMethod === method.value
-                            ? 'border-primary-500 bg-primary-50'
-                            : method.enabled
-                            ? 'border-border-default hover:border-primary-300'
-                            : 'border-border-light bg-gray-50 opacity-50 cursor-not-allowed'
-                        }`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className={`${method.enabled ? 'text-primary-500' : 'text-gray-400'}`}>
-                            {method.icon}
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-medium flex items-center gap-2">
-                              {method.label}
-                              {!method.enabled && (
-                                <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">
-                                  暫停服務
-                                </span>
-                              )}
-                            </h3>
-                            <p className="text-text-secondary text-sm">
-                              {method.description}
-                            </p>
-                          </div>
-                          {checkoutData.paymentMethod === method.value && (
-                            <div className="text-primary-500">
-                              <CheckCircle className="w-5 h-5" />
-                            </div>
-                          )}
+                    <button
+                      key={method.value}
+                      onClick={() => method.enabled && handlePaymentMethodSelect(method.value)}
+                      disabled={!method.enabled}
+                      className={`w-full p-6 rounded-xl border-2 text-left transition-all group ${
+                        checkoutData.paymentMethod === method.value
+                          ? 'border-primary-500 bg-primary-50 shadow-rainbow'
+                          : method.enabled
+                          ? 'border-border-light hover:border-primary-300 hover:shadow-medium'
+                          : 'border-border-light bg-gray-50 opacity-50 cursor-not-allowed'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-lg bg-gradient-to-r ${method.gradient} text-white`}>
+                          {method.icon}
                         </div>
-                      </button>
-                    </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg flex items-center gap-2">
+                            {method.label}
+                            {method.badges.map((badge, index) => (
+                              <span
+                                key={index}
+                                className="text-xs bg-gradient-to-r from-primary-100 to-accent-100 text-primary-600 px-2 py-1 rounded-full"
+                              >
+                                {badge}
+                              </span>
+                            ))}
+                          </h3>
+                          <p className="text-text-secondary">
+                            {method.description}
+                          </p>
+                        </div>
+                        {checkoutData.paymentMethod === method.value && (
+                          <div className="text-primary-500">
+                            <CheckCircle className="w-5 h-5" />
+                          </div>
+                        )}
+                        <div className="text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ArrowLeft className="w-5 h-5 rotate-180" />
+                        </div>
+                      </div>
+                    </button>
                   ))}
                 </div>
               </Card>
