@@ -68,6 +68,40 @@ public class OrderController {
         return ResponseEntity.ok(orders);
     }
     
+    @GetMapping("/my-orders")
+    public ResponseEntity<?> getMyOrders(@RequestParam(value = "limit", defaultValue = "50") int limit,
+                                       @RequestParam(value = "page", defaultValue = "1") int page) {
+        try {
+            // For demo purposes, we'll use a default user ID
+            // In a real application, this would come from the authenticated user's session/JWT token
+            String currentUserId = "user123"; // This should be extracted from authentication context
+            
+            List<Order> allOrders = orderService.getOrdersByCustomerId(currentUserId);
+            List<Order> orders = allOrders != null ? allOrders : new ArrayList<>();
+            
+            // Simple pagination
+            int startIndex = Math.max(0, (page - 1) * limit);
+            int endIndex = Math.min(orders.size(), startIndex + limit);
+            List<Order> paginatedOrders = orders.subList(startIndex, endIndex);
+            
+            // Return in the expected paginated format
+            Map<String, Object> response = Map.of(
+                "data", paginatedOrders,
+                "total", orders.size(),
+                "page", page,
+                "limit", limit,
+                "totalPages", (int) Math.ceil((double) orders.size() / limit)
+            );
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error getting user's orders: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "無法載入訂單資料", "details", e.getMessage()));
+        }
+    }
+    
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<?> getOrdersByCustomer(@PathVariable("customerId") String customerId) {
         try {

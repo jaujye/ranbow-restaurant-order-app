@@ -85,7 +85,7 @@ export const useCartStore = create<CartState>()(
 
       removeItem: (itemId: string) => {
         set((state) => ({
-          items: state.items.filter(item => (item.itemId || item.id) !== itemId)
+          items: state.items.filter(item => item.id !== itemId)
         }))
         
         get().calculateTotals()
@@ -99,7 +99,7 @@ export const useCartStore = create<CartState>()(
         
         set((state) => ({
           items: state.items.map(item => 
-            (item.itemId || item.id) === itemId 
+            item.id === itemId 
               ? {
                   ...item,
                   quantity,
@@ -149,7 +149,7 @@ export const useCartStore = create<CartState>()(
       },
 
       getItemById: (itemId: string) => {
-        return get().items.find(item => (item.itemId || item.id) === itemId)
+        return get().items.find(item => item.id === itemId)
       },
 
       getItemByMenuId: (menuItemId: number | string) => {
@@ -159,7 +159,10 @@ export const useCartStore = create<CartState>()(
     {
       name: 'cart-store',
       partialize: (state) => ({
-        items: state.items,
+        items: state.items.map(item => ({
+          ...item,
+          addedAt: item.addedAt.toISOString() // 將 Date 轉換為字符串
+        })),
         subtotal: state.subtotal,
         tax: state.tax,
         serviceCharge: state.serviceCharge,
@@ -168,6 +171,11 @@ export const useCartStore = create<CartState>()(
       onRehydrateStorage: () => (state) => {
         // 重新計算總金額（以防稅率或服務費有變更）
         if (state) {
+          // 將字符串轉換回 Date 對象
+          state.items = state.items.map(item => ({
+            ...item,
+            addedAt: new Date(item.addedAt)
+          }))
           state.calculateTotals()
         }
       }

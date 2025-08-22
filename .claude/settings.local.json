@@ -84,7 +84,8 @@
       "mcp__chrome-devtools__clear_console",
       "Bash(find:*)",
       "Bash(npm run type-check:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(tar:*)"
     ],
     "deny": [],
     "ask": [],
