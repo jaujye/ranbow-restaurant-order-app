@@ -144,10 +144,10 @@ export interface CreateOrderRequest {
   items: Array<{
     menuItemId: string
     quantity: number
-    specialRequests?: string
+    specialRequests?: string  // 商品級別特殊要求
   }>
   paymentMethod: PaymentMethod
-  specialRequests?: string
+  specialInstructions?: string  // 訂單級別特殊指示，與後端API匹配
 }
 
 export interface UpdateOrderStatusRequest {

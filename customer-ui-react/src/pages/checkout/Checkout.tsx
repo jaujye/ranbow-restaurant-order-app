@@ -115,7 +115,7 @@ const Checkout: React.FC = () => {
     }
 
     try {
-      // 創建訂單
+      // 創建訂單 - 符合CreateOrderRequest接口
       const orderData = {
         customerId: user?.id,
         tableNumber: checkoutData.tableNumber,
@@ -125,10 +125,7 @@ const Checkout: React.FC = () => {
           specialRequests: item.specialRequests
         })),
         paymentMethod: checkoutData.paymentMethod,
-        specialInstructions: checkoutData.specialRequests, // 修正欄位名稱
-        subtotal: subtotal,
-        tax: tax,
-        totalAmount: cartTotal
+        specialInstructions: checkoutData.specialRequests // 與後端API匹配的欄位名稱
       }
 
       // 調試信息
