@@ -6,62 +6,16 @@ const getAuthStore = () => {
   return useAuthStore.getState()
 }
 
-// API 環境配置
-const API_CONFIG = {
-  local: 'http://localhost:8081/api',
-  localTest: 'http://localhost:8087/api',
-  development: 'http://192.168.0.113:8087/api',
-  production: 'http://192.168.0.113:8087/api'
-}
-
-// 獲取當前環境的 API URL (支援動態切換)
+// 獲取 API URL - 完全依賴 .env 檔案配置
 const getApiUrl = (): string => {
-  // 優先檢查 localStorage 中的自定義 API URL
-  const customApiUrl = localStorage.getItem('API_BASE_URL')
-  if (customApiUrl) {
-    return customApiUrl
-  }
-  
-  // 檢查環境變數
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL
-  }
-  
-  // 預設根據環境選擇
-  return process.env.NODE_ENV === 'production' 
-    ? API_CONFIG.production 
-    : API_CONFIG.local
+  // 直接使用環境變數，如果未定義則使用預設值
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api'
 }
 
-// 提供 API URL 切換功能
+// 提供簡化的 API URL 管理功能
 export const apiUrlManager = {
   // 獲取當前 API URL
   getCurrentUrl: (): string => getApiUrl(),
-  
-  // 切換到預設環境
-  switchToEnvironment: (env: keyof typeof API_CONFIG) => {
-    localStorage.setItem('API_BASE_URL', API_CONFIG[env])
-    updateHttpClientBaseUrl()
-    console.log(`✅ API 位址已切換至 ${env}: ${API_CONFIG[env]}`)
-  },
-  
-  // 設置自定義 API URL
-  setCustomUrl: (url: string) => {
-    localStorage.setItem('API_BASE_URL', url)
-    updateHttpClientBaseUrl()
-    console.log(`✅ API 位址已設置為: ${url}`)
-  },
-  
-  // 重置為預設 API URL
-  resetToDefault: () => {
-    localStorage.removeItem('API_BASE_URL')
-    updateHttpClientBaseUrl()
-    const defaultUrl = getApiUrl()
-    console.log(`✅ API 位址已重置為預設: ${defaultUrl}`)
-  },
-  
-  // 獲取所有可用的環境選項
-  getAvailableEnvironments: () => API_CONFIG,
   
   // 測試 API 連接
   testConnection: async (): Promise<{ success: boolean; url: string; message: string }> => {

@@ -149,7 +149,7 @@ mvn clean package
 java -jar target/restaurant-order-app-1.0.0.jar
 
 # 4. 測試API健康檢查
-curl http://localhost:8080/api/health
+curl http://localhost:8081/api/health
 ```
 
 ### 🔧 **開發工作流程**
@@ -159,7 +159,7 @@ curl http://localhost:8080/api/health
 # 完整開發啟動流程
 1. mvn clean compile          # 編譯源碼
 2. mvn spring-boot:run        # 啟動Spring Boot服務器
-3. 訪問 http://localhost:8080/api/health # 驗證服務器狀態
+3. 訪問 http://localhost:8081/api/health # 驗證服務器狀態
 
 # 測試相關指令
 mvn test                      # 運行測試
@@ -180,9 +180,9 @@ mvn clean package -DskipTests # 打包（跳過測試）
 
 **🏠 本地開發環境:**
 - **主類**: `com.ranbow.restaurant.RestaurantApplication`
-- **端口**: `8080`
-- **基礎URL**: `http://localhost:8080/api`
-- **健康檢查**: `http://localhost:8080/api/health`
+- **端口**: `8081`
+- **基礎URL**: `http://localhost:8081/api`
+- **健康檢查**: `http://localhost:8081/api/health`
 - **數據庫**: H2 (內存數據庫)
 
 **🚀 Ubuntu Server生產環境:**
@@ -643,9 +643,9 @@ customer-ui-react/
 **📡 HTTP 客戶端配置 (services/api.ts):**
 ```typescript
 // Axios 攔截器設定，自動處理認證和錯誤
-// 本地開發測試用 baseURL: http://localhost:8080/api
+// 本地開發測試用 baseURL: http://localhost:8081/api
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: 'http://localhost:8081/api',
   timeout: 10000,
   headers: { 'Content-Type': 'application/json' }
 })
@@ -793,7 +793,7 @@ cd customer-ui-react/
 npm install
 
 # 啟動開發服務器 (Vite)
-npm run dev  # 運行在 http://localhost:5173
+npm run dev  # 運行在 http://localhost:3xxx
 
 # 類型檢查
 npm run type-check
