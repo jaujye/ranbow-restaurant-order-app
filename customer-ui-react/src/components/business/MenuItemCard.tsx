@@ -86,12 +86,25 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
 
   const getCategoryDisplayName = (category: string) => {
     const categoryMap: Record<string, string> = {
+      'APPETIZER': '前菜',
+      'MAIN_COURSE': '主菜', 
+      'MAIN': '主菜',
+      'DESSERT': '甜點',
+      'BEVERAGE': '飲料',
+      'SOUP': '湯品',
+      'SALAD': '沙拉',
+      'SIDE_DISH': '配菜',
+      // 向後兼容小寫
       'appetizer': '前菜',
+      'main_course': '主菜',
       'main': '主菜',
       'dessert': '甜點',
-      'beverage': '飲料'
+      'beverage': '飲料',
+      'soup': '湯品',
+      'salad': '沙拉',
+      'side_dish': '配菜'
     }
-    return categoryMap[category] || category
+    return categoryMap[category.toUpperCase()] || categoryMap[category.toLowerCase()] || category
   }
 
   // Compact variant for search results or lists

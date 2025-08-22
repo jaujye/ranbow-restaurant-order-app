@@ -72,7 +72,8 @@ const MenuDetail: React.FC = () => {
 
   useEffect(() => {
     if (itemId) {
-      const item = getItemById(parseInt(itemId))
+      // itemId是字符串UUID，直接使用而不是parseInt
+      const item = getItemById(itemId)
       setMenuItem(item || null)
       setIsLoading(false)
     }

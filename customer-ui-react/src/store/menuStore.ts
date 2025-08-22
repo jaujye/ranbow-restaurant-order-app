@@ -221,11 +221,11 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
     return items.filter(item => item.category === categoryName)
   },
 
-  getItemById: (id: number) => {
+  getItemById: (id: number | string) => {
     return get().items.find(item => (item.itemId || item.id) === id)
   },
 
-  isItemAvailable: (id: number) => {
+  isItemAvailable: (id: number | string) => {
     const item = get().getItemById(id)
     return item?.available ?? false
   }
@@ -264,12 +264,25 @@ export const useMenuActions = () => useMenuStore((state) => ({
 // 工具函數
 export const getCategoryDisplayName = (categoryName: string): string => {
   const categoryMap: Record<string, string> = {
+    'APPETIZER': '前菜',
+    'MAIN_COURSE': '主菜',
+    'MAIN': '主菜', 
+    'DESSERT': '甜點',
+    'BEVERAGE': '飲料',
+    'SOUP': '湯品',
+    'SALAD': '沙拉',
+    'SIDE_DISH': '配菜',
+    // 向後兼容小寫
     'appetizer': '前菜',
+    'main_course': '主菜',
     'main': '主菜', 
     'dessert': '甜點',
     'beverage': '飲料',
+    'soup': '湯品',
+    'salad': '沙拉',
+    'side_dish': '配菜',
     'all': '全部'
   }
   
-  return categoryMap[categoryName] || categoryName
+  return categoryMap[categoryName.toUpperCase()] || categoryMap[categoryName.toLowerCase()] || categoryName
 }
