@@ -1,11 +1,13 @@
 package com.ranbow.restaurant.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class User {
     private String userId;
+    @JsonProperty(value = "username")
     private String username;
     private String email;
     private String phoneNumber;
@@ -53,6 +55,17 @@ public class User {
     
     public void setUsername(String username) {
         this.username = username;
+    }
+    
+    // Frontend compatibility - allow "name" field to map to "username"
+    @JsonProperty("name")
+    public String getName() {
+        return username;
+    }
+    
+    @JsonProperty("name")
+    public void setName(String name) {
+        this.username = name;
     }
     
     public String getEmail() {

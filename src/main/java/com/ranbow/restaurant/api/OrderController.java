@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,12 +70,18 @@ public class OrderController {
     }
     
     @GetMapping("/my-orders")
-    public ResponseEntity<?> getMyOrders(@RequestParam(value = "limit", defaultValue = "50") int limit,
-                                       @RequestParam(value = "page", defaultValue = "1") int page) {
+    public ResponseEntity<?> getMyOrders(HttpServletRequest request) {
         try {
+            // Get parameters with defaults
+            String limitParam = request.getParameter("limit");
+            String pageParam = request.getParameter("page");
+            
+            int limit = limitParam != null ? Integer.parseInt(limitParam) : 50;
+            int page = pageParam != null ? Integer.parseInt(pageParam) : 1;
+            
             // For demo purposes, we'll use a default user ID
             // In a real application, this would come from the authenticated user's session/JWT token
-            String currentUserId = "user123"; // This should be extracted from authentication context
+            String currentUserId = "2ab1d1ba-3ec6-4892-b4d6-ff445802cdb7"; // This should be extracted from authentication context
             
             List<Order> allOrders = orderService.getOrdersByCustomerId(currentUserId);
             List<Order> orders = allOrders != null ? allOrders : new ArrayList<>();
@@ -137,6 +144,11 @@ public class OrderController {
     public ResponseEntity<List<Order>> getTodaysOrders() {
         List<Order> orders = orderService.getTodaysOrders();
         return ResponseEntity.ok(orders);
+    }
+    
+    @GetMapping("/test-endpoint")
+    public ResponseEntity<?> testEndpoint() {
+        return ResponseEntity.ok(Map.of("message", "Test endpoint working", "timestamp", System.currentTimeMillis()));
     }
     
     @PostMapping("/{orderId}/items")

@@ -643,8 +643,9 @@ customer-ui-react/
 **📡 HTTP 客戶端配置 (services/api.ts):**
 ```typescript
 // Axios 攔截器設定，自動處理認證和錯誤
+// 本地開發測試用 baseURL: http://localhost:8080/api
 const apiClient = axios.create({
-  baseURL: 'http://192.168.0.113:8087/api',
+  baseURL: 'http://localhost:8080/api',
   timeout: 10000,
   headers: { 'Content-Type': 'application/json' }
 })

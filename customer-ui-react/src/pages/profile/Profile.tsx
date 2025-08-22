@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, Button, Input } from '@/components/ui'
+import { Card, Button, Input, AlertDialog, ConfirmDialog } from '@/components/ui'
 import { useAuth, useAuthActions, useGlobalReset } from '@/store'
+import { useDialog } from '@/hooks/useDialog'
 import { User, ProfileService, UpdateProfileRequest, ChangePasswordRequest } from '@/services/api'
 import { 
   ArrowLeft, 
@@ -27,6 +28,17 @@ const Profile: React.FC = () => {
   const { user, isLoading } = useAuth()
   const { updateProfile, logout, clearError } = useAuthActions()
   const globalReset = useGlobalReset()
+  const { 
+    alertState, 
+    confirmState, 
+    closeAlert, 
+    closeConfirm, 
+    alert: showAlert, 
+    success: showSuccess, 
+    error: showError, 
+    warning: showWarning,
+    confirm: showConfirm 
+  } = useDialog()
 
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState<Partial<User>>({})
@@ -65,7 +77,7 @@ const Profile: React.FC = () => {
 
   const handleSaveProfile = async () => {
     if (!editForm.name?.trim() || !editForm.email?.trim() || !editForm.phone?.trim()) {
-      alert('請填寫完整的個人資料')
+      showWarning('請填寫完整的個人資料')
       return
     }
 
@@ -84,12 +96,12 @@ const Profile: React.FC = () => {
         const success = await updateProfile(editForm)
         setIsEditing(false)
         setEditForm({})
-        alert('個人資料已更新')
+        showSuccess('個人資料已更新')
       } else {
-        alert(`更新失敗: ${response.error || '請重試'}`)
+        showError(`更新失敗: ${response.error || '請重試'}`)
       }
     } catch (error: any) {
-      alert(`更新失敗: ${error.message || '請重試'}`)
+      showError(`更新失敗: ${error.message || '請重試'}`)
     } finally {
       setIsSaving(false)
     }
@@ -108,17 +120,17 @@ const Profile: React.FC = () => {
     const { currentPassword, newPassword, confirmPassword } = passwordForm
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      alert('請填寫完整的密碼資料')
+      showWarning('請填寫完整的密碼資料')
       return
     }
 
     if (newPassword !== confirmPassword) {
-      alert('新密碼與確認密碼不一致')
+      showWarning('新密碼與確認密碼不一致')
       return
     }
 
     if (newPassword.length < 6) {
-      alert('新密碼至少需要6個字符')
+      showWarning('新密碼至少需要6個字符')
       return
     }
 
@@ -138,28 +150,28 @@ const Profile: React.FC = () => {
           newPassword: '',
           confirmPassword: ''
         })
-        alert('密碼已成功更新')
+        showSuccess('密碼已成功更新')
       } else {
-        alert(`密碼更新失敗: ${response.error || '請重試'}`)
+        showError(`密碼更新失敗: ${response.error || '請重試'}`)
       }
     } catch (error: any) {
-      alert(`密碼更新失敗: ${error.message || '請重試'}`)
+      showError(`密碼更新失敗: ${error.message || '請重試'}`)
     } finally {
       setIsSaving(false)
     }
   }
 
   const handleLogout = async () => {
-    if (window.confirm('確定要登出嗎？')) {
+    showConfirm('確定要登出嗎？', async () => {
       await globalReset()
       navigate('/login')
-    }
+    })
   }
 
   const handleDeleteAccount = () => {
-    if (window.confirm('確定要刪除帳號嗎？此操作無法復原。')) {
-      alert('帳號刪除功能開發中...')
-    }
+    showConfirm('確定要刪除帳號嗎？此操作無法復原。', () => {
+      showAlert('帳號刪除功能開發中...')
+    }, 'error')
   }
 
   const getRoleDisplayName = (role: string) => {
@@ -504,7 +516,7 @@ const Profile: React.FC = () => {
                 
                 <Button
                   variant="ghost"
-                  onClick={() => alert('付款方式管理功能開發中...')}
+                  onClick={() => showAlert('付款方式管理功能開發中...')}
                   className="w-full justify-start flex items-center gap-3"
                 >
                   <CreditCard className="w-4 h-4" />
@@ -513,7 +525,7 @@ const Profile: React.FC = () => {
                 
                 <Button
                   variant="ghost"
-                  onClick={() => alert('地址管理功能開發中...')}
+                  onClick={() => showAlert('地址管理功能開發中...')}
                   className="w-full justify-start flex items-center gap-3"
                 >
                   <MapPin className="w-4 h-4" />
@@ -564,6 +576,27 @@ const Profile: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Dialog Components */}
+      <AlertDialog
+        isOpen={alertState.isOpen}
+        onClose={closeAlert}
+        title={alertState.options.title}
+        message={alertState.options.message}
+        type={alertState.options.type}
+        confirmText={alertState.options.confirmText}
+      />
+      
+      <ConfirmDialog
+        isOpen={confirmState.isOpen}
+        onClose={closeConfirm}
+        onConfirm={confirmState.onConfirm || (() => {})}
+        title={confirmState.options.title}
+        message={confirmState.options.message}
+        confirmText={confirmState.options.confirmText}
+        cancelText={confirmState.options.cancelText}
+        type={confirmState.options.type}
+      />
     </div>
   )
 }

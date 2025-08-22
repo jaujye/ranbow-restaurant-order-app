@@ -161,7 +161,7 @@ export const useCartStore = create<CartState>()(
       partialize: (state) => ({
         items: state.items.map(item => ({
           ...item,
-          addedAt: item.addedAt.toISOString() // 將 Date 轉換為字符串
+          addedAt: item.addedAt instanceof Date ? item.addedAt.toISOString() : item.addedAt
         })),
         subtotal: state.subtotal,
         tax: state.tax,
@@ -171,12 +171,23 @@ export const useCartStore = create<CartState>()(
       onRehydrateStorage: () => (state) => {
         // 重新計算總金額（以防稅率或服務費有變更）
         if (state) {
-          // 將字符串轉換回 Date 對象
-          state.items = state.items.map(item => ({
-            ...item,
-            addedAt: new Date(item.addedAt)
-          }))
-          state.calculateTotals()
+          try {
+            // 將字符串轉換回 Date 對象
+            state.items = state.items.map(item => ({
+              ...item,
+              addedAt: typeof item.addedAt === 'string' ? new Date(item.addedAt) : item.addedAt
+            }))
+            // 確保計算總金額
+            state.calculateTotals()
+          } catch (error) {
+            console.warn('Failed to rehydrate cart state:', error)
+            // 如果恢復失敗，清空購物車
+            state.items = []
+            state.subtotal = 0
+            state.tax = 0
+            state.serviceCharge = 0
+            state.totalAmount = 0
+          }
         }
       }
     }

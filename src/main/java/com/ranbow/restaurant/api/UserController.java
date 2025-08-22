@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -256,6 +257,72 @@ public class UserController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("success", false, "error", "Failed to get user information"));
+        }
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<?> updateCurrentUser(@RequestHeader("Authorization") String authHeader, 
+                                               @RequestBody Map<String, Object> updateData) {
+        try {
+            String token = extractTokenFromHeader(authHeader);
+            if (token != null) {
+                JwtService.TokenInfo tokenInfo = jwtService.validateToken(token);
+                if (tokenInfo != null) {
+                    Optional<User> userOpt = userService.findUserById(tokenInfo.getUserId());
+                    if (userOpt.isPresent()) {
+                        User user = userOpt.get();
+                        
+                        // Update user fields based on provided data
+                        if (updateData.containsKey("name")) {
+                            user.setUsername((String) updateData.get("name"));
+                        }
+                        if (updateData.containsKey("username")) {
+                            user.setUsername((String) updateData.get("username"));
+                        }
+                        if (updateData.containsKey("email")) {
+                            user.setEmail((String) updateData.get("email"));
+                        }
+                        if (updateData.containsKey("phoneNumber")) {
+                            user.setPhoneNumber((String) updateData.get("phoneNumber"));
+                        }
+                        if (updateData.containsKey("avatarUrl")) {
+                            user.setAvatarUrl((String) updateData.get("avatarUrl"));
+                        }
+                        if (updateData.containsKey("birthday")) {
+                            String birthdayStr = (String) updateData.get("birthday");
+                            if (birthdayStr != null && !birthdayStr.isEmpty()) {
+                                try {
+                                    user.setBirthday(LocalDate.parse(birthdayStr));
+                                } catch (Exception dateEx) {
+                                    System.err.println("Invalid birthday format: " + birthdayStr);
+                                }
+                            }
+                        }
+                        
+                        // Update user via service
+                        User updatedUser = userService.updateUser(tokenInfo.getUserId(), user);
+                        
+                        return ResponseEntity.ok(Map.of(
+                                "success", true,
+                                "user", updatedUser,
+                                "message", "Profile updated successfully"
+                        ));
+                    } else {
+                        return ResponseEntity.notFound().build();
+                    }
+                } else {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(Map.of("success", false, "error", "Invalid token"));
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("success", false, "error", "Missing authorization header"));
+            }
+        } catch (Exception e) {
+            System.err.println("Update current user failed: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "error", "Failed to update user profile"));
         }
     }
 

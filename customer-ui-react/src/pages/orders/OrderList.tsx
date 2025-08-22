@@ -281,7 +281,7 @@ const OrderList: React.FC = () => {
                 <div className="flex flex-wrap gap-2">
                   {order.items.slice(0, 3).map((item, index) => (
                     <span
-                      key={index}
+                      key={`${order.id}-item-${item.id || item.menuItem.id}-${index}`}
                       className="px-2 py-1 bg-background-light rounded text-xs text-text-secondary"
                     >
                       {item.menuItem.name} × {item.quantity}
