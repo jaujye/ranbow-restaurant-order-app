@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, Button, Input } from '@/components/ui'
 import { useCheckoutStore } from '@/store'
-import { formatPrice, getOrderStatusText, getPaymentMethodText } from '@/store/orderStore'
+import { getOrderStatusText, getPaymentMethodText } from '@/store/orderStore'
+import { formatPrice } from '@/store/cartStore'
 import { PaymentMethod } from '@/services/api'
 import { 
   ArrowLeft, 
