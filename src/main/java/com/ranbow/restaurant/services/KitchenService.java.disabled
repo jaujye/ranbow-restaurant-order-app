@@ -1,11 +1,15 @@
 package com.ranbow.restaurant.services;
 
+import com.ranbow.restaurant.dao.CookingTimerDAO;
 import com.ranbow.restaurant.dao.KitchenOrderDAO;
 import com.ranbow.restaurant.dao.OrderDAO;
 import com.ranbow.restaurant.models.*;
+import com.ranbow.restaurant.services.KitchenCapacityEngine.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +32,18 @@ public class KitchenService {
     
     @Autowired
     private NotificationService notificationService;
+    
+    @Autowired
+    private CookingTimerDAO cookingTimerDAO;
+    
+    @Autowired
+    private CookingTimerEngine cookingTimerEngine;
+    
+    @Autowired
+    private KitchenCapacityEngine capacityEngine;
+    
+    @Autowired
+    private KitchenWebSocketService webSocketService;
 
     /**
      * Get kitchen preparation queue

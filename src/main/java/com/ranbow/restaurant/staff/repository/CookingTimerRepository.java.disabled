@@ -1,6 +1,6 @@
 package com.ranbow.restaurant.staff.repository;
 
-import com.ranbow.restaurant.staff.model.entity.CookingTimer;
+import com.ranbow.restaurant.models.CookingTimer;
 import com.ranbow.restaurant.staff.model.entity.CookingStage;
 import com.ranbow.restaurant.staff.model.entity.TimerStatus;
 import org.springframework.data.jpa.repository.JpaRepository;

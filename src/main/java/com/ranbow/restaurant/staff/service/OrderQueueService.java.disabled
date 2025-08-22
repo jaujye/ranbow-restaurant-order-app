@@ -1,0 +1,862 @@
+package com.ranbow.restaurant.staff.service;
+
+import com.ranbow.restaurant.dao.OrderDAO;
+import com.ranbow.restaurant.models.Order;
+import com.ranbow.restaurant.models.OrderStatus;
+import com.ranbow.restaurant.staff.model.dto.*;
+import com.ranbow.restaurant.staff.model.entity.OrderPriority;
+import com.ranbow.restaurant.staff.model.entity.StaffMember;
+import com.ranbow.restaurant.staff.repository.OrderAssignmentRepository;
+import com.ranbow.restaurant.staff.repository.StaffMemberRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+
+import java.time.LocalDateTime;
+import java.time.Duration;
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * Order Queue Service
+ * Core business logic for staff order management, assignment, and queue processing
+ * 
+ * Features:
+ * - Intelligent order queue management with priority handling
+ * - Smart assignment based on staff workload and capacity
+ * - Real-time status updates with validation
+ * - Performance analytics and bottleneck detection
+ * - Redis caching for high-performance queue operations
+ * - Comprehensive error handling and validation
+ */
+@Service
+@Transactional
+public class OrderQueueService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(OrderQueueService.class);
+    
+    // Service dependencies
+    @Autowired
+    private OrderDAO orderDAO;
+    
+    @Autowired
+    private StaffMemberRepository staffMemberRepository;
+    
+    @Autowired
+    private OrderAssignmentRepository orderAssignmentRepository;
+    
+    // Configuration constants
+    private static final int MAX_ORDERS_PER_STAFF = 8;
+    private static final int OVERDUE_THRESHOLD_MINUTES = 30;
+    private static final int URGENT_ESCALATION_MINUTES = 45;
+    private static final double HIGH_WORKLOAD_THRESHOLD = 0.8;
+    
+    /**
+     * Get Order Queue with Filtering and Pagination
+     * Returns paginated list of orders with comprehensive filtering options
+     */
+    @Cacheable(value = "orderQueue", key = "#filter.toString() + '_' + #pageable.toString()")
+    public ApiResponse<OrderQueueResponseEnhanced> getOrderQueue(OrderQueueFilter filter, Pageable pageable) {
+        try {
+            logger.info("Fetching order queue with filter: {} and page: {}", filter, pageable);
+            
+            // Validate input parameters
+            if (filter == null) {
+                filter = new OrderQueueFilter();
+            }
+            
+            // Fetch filtered orders from database
+            Page<Order> orderPage = orderDAO.findOrdersWithFilter(filter, pageable);
+            
+            // Convert to staff order summaries
+            List<StaffOrderSummary> staffOrderSummaries = orderPage.getContent().stream()
+                .map(this::convertToStaffOrderSummary)
+                .collect(Collectors.toList());
+            
+            // Generate queue summary statistics
+            OrderQueueSummary queueSummary = generateQueueSummary();
+            
+            // Get current workload status
+            WorkloadStatus workloadStatus = calculateWorkloadStatus();
+            
+            // Create pagination info
+            PaginationInfo paginationInfo = PaginationInfo.fromPage(orderPage);
+            
+            // Build enhanced response
+            OrderQueueResponseEnhanced response = new OrderQueueResponseEnhanced();
+            response.setOrders(staffOrderSummaries);
+            response.setPagination(paginationInfo);
+            response.setSummary(queueSummary);
+            response.setWorkloadStatus(workloadStatus);
+            response.setLastUpdated(LocalDateTime.now());
+            
+            logger.info("Successfully fetched order queue: {} orders, {} pages", 
+                       staffOrderSummaries.size(), paginationInfo.getTotalPages());
+            
+            return ApiResponse.success("Order queue retrieved successfully", response);
+            
+        } catch (Exception e) {
+            logger.error("Error fetching order queue: ", e);
+            return ApiResponse.internalError("Failed to retrieve order queue: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Update Order Status with Comprehensive Validation
+     * Handles status transitions with business rule validation
+     */
+    @CacheEvict(value = {"orderQueue", "orderStatistics"}, allEntries = true)
+    public ApiResponse<OrderStatusUpdateResponse> updateOrderStatus(Long orderId, 
+                                                                   OrderStatusUpdateRequest request, 
+                                                                   String staffId) {
+        try {
+            logger.info("Updating order {} status from {} to {} by staff {}", 
+                       orderId, request.getCurrentStatus(), request.getNewStatus(), staffId);
+            
+            // Validate request
+            if (!isValidStatusTransition(request.getCurrentStatus(), request.getNewStatus())) {
+                return ApiResponse.validationError("Invalid status transition from " + 
+                                                  request.getCurrentStatus() + " to " + request.getNewStatus());
+            }
+            
+            // Fetch order
+            Order order = orderDAO.findById(orderId);
+            if (order == null) {
+                return ApiResponse.orderNotFound(orderId.toString());
+            }
+            
+            // Verify current status matches
+            if (!order.getStatus().equals(request.getCurrentStatus())) {
+                return ApiResponse.conflict("Order status has changed. Expected: " + 
+                                          request.getCurrentStatus() + ", Actual: " + order.getStatus());
+            }
+            
+            // Fetch staff member
+            StaffMember staff = staffMemberRepository.findByStaffId(staffId);
+            if (staff == null) {
+                return ApiResponse.staffNotFound(staffId);
+            }
+            
+            // Validate staff permissions for this status change
+            if (!canStaffUpdateStatus(staff, request.getNewStatus())) {
+                return ApiResponse.insufficientPermissions();
+            }
+            
+            // Store previous status for response
+            OrderStatus previousStatus = order.getStatus();
+            
+            // Update order status
+            order.setStatus(request.getNewStatus());
+            
+            // Handle status-specific logic
+            handleStatusSpecificLogic(order, request.getNewStatus(), staffId);
+            
+            // Save order
+            orderDAO.save(order);
+            
+            // Create status history record
+            createStatusHistoryRecord(orderId, previousStatus, request.getNewStatus(), 
+                                    staffId, request.getReason(), request.getNotes());
+            
+            // Create response
+            OrderStatusUpdateResponse response = OrderStatusUpdateResponse.success(
+                orderId, order.getOrderId(), previousStatus, request.getNewStatus(), 
+                staffId, staff.getDisplayName());
+            
+            response.setReason(request.getReason());
+            response.setNotes(request.getNotes());
+            response.setEstimatedCompleteTime(calculateEstimatedCompleteTime(order));
+            
+            // Check if priority escalation is needed
+            if (shouldEscalatePriority(order)) {
+                escalateOrderPriority(orderId);
+                response.setPriorityEscalated(true);
+            }
+            
+            // Determine next required action
+            response.setNextRequiredAction(determineNextAction(order));
+            
+            logger.info("Successfully updated order {} status to {}", orderId, request.getNewStatus());
+            return ApiResponse.success("Order status updated successfully", response);
+            
+        } catch (Exception e) {
+            logger.error("Error updating order status for order {}: ", orderId, e);
+            return ApiResponse.internalError("Failed to update order status: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Assign Order to Staff Member
+     * Smart assignment with workload consideration
+     */
+    @CacheEvict(value = {"orderQueue", "workloadStatus"}, allEntries = true)
+    public ApiResponse<OrderAssignmentResponse> assignOrder(Long orderId, String staffId) {
+        try {
+            logger.info("Assigning order {} to staff {}", orderId, staffId);
+            
+            // Fetch order and staff
+            Order order = orderDAO.findById(orderId);
+            if (order == null) {
+                return ApiResponse.orderNotFound(orderId.toString());
+            }
+            
+            StaffMember staff = staffMemberRepository.findByStaffId(staffId);
+            if (staff == null) {
+                return ApiResponse.staffNotFound(staffId);
+            }
+            
+            // Check if order can be assigned
+            if (!order.getStatus().equals(OrderStatus.PENDING)) {
+                return ApiResponse.conflict("Order is not in assignable state. Current status: " + order.getStatus());
+            }
+            
+            // Check staff capacity
+            int currentWorkload = getCurrentStaffWorkload(staffId);
+            if (currentWorkload >= MAX_ORDERS_PER_STAFF) {
+                return ApiResponse.error("Staff member has reached maximum capacity (" + 
+                                       MAX_ORDERS_PER_STAFF + " orders)", "STAFF_OVERLOADED");
+            }
+            
+            // Store previous assignment if exists
+            StaffMember previousStaff = getCurrentAssignedStaff(orderId);
+            
+            // Create assignment
+            createOrderAssignment(orderId, staffId, "Manual assignment");
+            
+            // Update order status to assigned
+            order.setStatus(OrderStatus.CONFIRMED);
+            orderDAO.save(order);
+            
+            // Create response
+            OrderAssignmentResponse response = OrderAssignmentResponse.success(
+                orderId, order.getOrderId(), staffId, staff.getDisplayName(), 
+                staffId, staff.getDisplayName());
+            
+            response.setPreviousAssignedStaff(previousStaff);
+            response.setEstimatedCompleteTime(calculateEstimatedCompleteTime(order));
+            response.updateWorkloadStatus(currentWorkload + 1, MAX_ORDERS_PER_STAFF);
+            response.setNextRequiredAction("Start order preparation");
+            
+            logger.info("Successfully assigned order {} to staff {} ({})", 
+                       orderId, staffId, staff.getDisplayName());
+            
+            return ApiResponse.success("Order assigned successfully", response);
+            
+        } catch (Exception e) {
+            logger.error("Error assigning order {} to staff {}: ", orderId, staffId, e);
+            return ApiResponse.internalError("Failed to assign order: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Batch Assign Multiple Orders to Staff Member
+     * Efficient bulk assignment with capacity validation
+     */
+    @CacheEvict(value = {"orderQueue", "workloadStatus"}, allEntries = true)
+    public ApiResponse<BatchAssignmentResponse> batchAssignOrders(List<Long> orderIds, String staffId) {
+        try {
+            logger.info("Batch assigning {} orders to staff {}", orderIds.size(), staffId);
+            
+            // Validate input
+            if (orderIds == null || orderIds.isEmpty()) {
+                return ApiResponse.badRequest("Order IDs list cannot be empty");
+            }
+            
+            // Fetch staff
+            StaffMember staff = staffMemberRepository.findByStaffId(staffId);
+            if (staff == null) {
+                return ApiResponse.staffNotFound(staffId);
+            }
+            
+            // Check staff capacity for batch assignment
+            int currentWorkload = getCurrentStaffWorkload(staffId);
+            int availableCapacity = MAX_ORDERS_PER_STAFF - currentWorkload;
+            
+            if (orderIds.size() > availableCapacity) {
+                return ApiResponse.error("Staff capacity exceeded. Available capacity: " + 
+                                       availableCapacity + ", Requested: " + orderIds.size(), 
+                                       "INSUFFICIENT_CAPACITY");
+            }
+            
+            // Process each order
+            List<BatchAssignmentResponse.OrderAssignmentResult> results = new ArrayList<>();
+            int successCount = 0;
+            
+            for (Long orderId : orderIds) {
+                try {
+                    Order order = orderDAO.findById(orderId);
+                    if (order == null) {
+                        results.add(BatchAssignmentResponse.OrderAssignmentResult.failure(
+                            orderId, "N/A", "Order not found"));
+                        continue;
+                    }
+                    
+                    if (!order.getStatus().equals(OrderStatus.PENDING)) {
+                        results.add(BatchAssignmentResponse.OrderAssignmentResult.failure(
+                            orderId, order.getOrderId(), "Order not in assignable state"));
+                        continue;
+                    }
+                    
+                    // Create assignment
+                    createOrderAssignment(orderId, staffId, "Batch assignment");
+                    
+                    // Update order status
+                    order.setStatus(OrderStatus.CONFIRMED);
+                    orderDAO.save(order);
+                    
+                    results.add(BatchAssignmentResponse.OrderAssignmentResult.success(
+                        orderId, order.getOrderId()));
+                    successCount++;
+                    
+                } catch (Exception e) {
+                    logger.error("Error processing order {} in batch assignment: ", orderId, e);
+                    results.add(BatchAssignmentResponse.OrderAssignmentResult.failure(
+                        orderId, "N/A", "Processing error: " + e.getMessage()));
+                }
+            }
+            
+            // Create response
+            BatchAssignmentResponse response = BatchAssignmentResponse.success(
+                orderIds.size(), staffId, staff.getDisplayName(), 
+                staffId, staff.getDisplayName(), results);
+            
+            response.updateWorkloadStatus(currentWorkload + successCount, MAX_ORDERS_PER_STAFF);
+            
+            logger.info("Batch assignment completed: {}/{} orders successfully assigned to {}", 
+                       successCount, orderIds.size(), staff.getDisplayName());
+            
+            return ApiResponse.success("Batch assignment completed", response);
+            
+        } catch (Exception e) {
+            logger.error("Error in batch assignment: ", e);
+            return ApiResponse.internalError("Batch assignment failed: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Get Detailed Order Information for Staff
+     */
+    @Cacheable(value = "orderDetails", key = "#orderId")
+    public ApiResponse<StaffOrderDetails> getOrderDetails(Long orderId) {
+        try {
+            logger.info("Fetching detailed order information for order {}", orderId);
+            
+            Order order = orderDAO.findById(orderId);
+            if (order == null) {
+                return ApiResponse.orderNotFound(orderId.toString());
+            }
+            
+            // Convert to detailed staff order
+            StaffOrderDetails details = convertToStaffOrderDetails(order);
+            
+            // Add additional staff-specific information
+            enrichStaffOrderDetails(details);
+            
+            return ApiResponse.success("Order details retrieved successfully", details);
+            
+        } catch (Exception e) {
+            logger.error("Error fetching order details for order {}: ", orderId, e);
+            return ApiResponse.internalError("Failed to retrieve order details: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Generate Comprehensive Order Statistics
+     */
+    @Cacheable(value = "orderStatistics", key = "#period + '_' + #staffId")
+    public ApiResponse<OrderStatistics> getOrderStatistics(String period, String staffId) {
+        try {
+            logger.info("Generating order statistics for period: {}, staff: {}", period, staffId);
+            
+            // Determine time range based on period
+            LocalDateTime startTime = calculatePeriodStart(period);
+            LocalDateTime endTime = LocalDateTime.now();
+            
+            // Generate comprehensive statistics
+            OrderStatistics statistics = generateOrderStatistics(startTime, endTime, staffId);
+            
+            return ApiResponse.success("Order statistics generated successfully", statistics);
+            
+        } catch (Exception e) {
+            logger.error("Error generating order statistics: ", e);
+            return ApiResponse.internalError("Failed to generate statistics: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Auto-assign Pending Orders Based on Workload
+     */
+    public void autoAssignPendingOrders() {
+        try {
+            logger.info("Starting auto-assignment of pending orders");
+            
+            // Get all pending orders
+            List<Order> pendingOrders = orderDAO.findByStatus(OrderStatus.PENDING);
+            
+            if (pendingOrders.isEmpty()) {
+                logger.info("No pending orders found for auto-assignment");
+                return;
+            }
+            
+            // Get available staff with capacity
+            List<StaffMember> availableStaff = getAvailableStaffWithCapacity();
+            
+            if (availableStaff.isEmpty()) {
+                logger.warn("No available staff found for auto-assignment");
+                return;
+            }
+            
+            // Sort orders by priority and order time
+            pendingOrders.sort((o1, o2) -> {
+                // Compare by priority first
+                int priorityCompare = getPriorityWeight(o1).compareTo(getPriorityWeight(o2));
+                if (priorityCompare != 0) return priorityCompare;
+                
+                // Then by order time
+                return o1.getOrderTime().compareTo(o2.getOrderTime());
+            });
+            
+            // Assign orders to best available staff
+            int assignedCount = 0;
+            for (Order order : pendingOrders) {
+                StaffMember bestStaff = findBestStaffForOrder(order, availableStaff);
+                if (bestStaff != null) {
+                    try {
+                        createOrderAssignment(Long.parseLong(order.getOrderId()), 
+                                            bestStaff.getStaffId(), "Auto-assignment");
+                        order.setStatus(OrderStatus.CONFIRMED);
+                        orderDAO.save(order);
+                        assignedCount++;
+                        
+                        logger.info("Auto-assigned order {} to staff {}", 
+                                   order.getOrderId(), bestStaff.getDisplayName());
+                    } catch (Exception e) {
+                        logger.error("Error auto-assigning order {}: ", order.getOrderId(), e);
+                    }
+                }
+            }
+            
+            logger.info("Auto-assignment completed: {} orders assigned", assignedCount);
+            
+        } catch (Exception e) {
+            logger.error("Error in auto-assignment process: ", e);
+        }
+    }
+    
+    /**
+     * Escalate Priority for Overdue Orders
+     */
+    public void escalateOrderPriority(Long orderId) {
+        try {
+            // Implementation for priority escalation
+            logger.info("Escalating priority for order {}", orderId);
+            // Priority escalation logic would be implemented here
+        } catch (Exception e) {
+            logger.error("Error escalating priority for order {}: ", orderId, e);
+        }
+    }
+    
+    /**
+     * Get List of Overdue Orders
+     */
+    public List<Order> getOverdueOrders() {
+        try {
+            LocalDateTime overdueThreshold = LocalDateTime.now().minusMinutes(OVERDUE_THRESHOLD_MINUTES);
+            return orderDAO.findOverdueOrders(overdueThreshold);
+        } catch (Exception e) {
+            logger.error("Error fetching overdue orders: ", e);
+            return Collections.emptyList();
+        }
+    }
+    
+    // Private helper methods
+    
+    private StaffOrderSummary convertToStaffOrderSummary(Order order) {
+        StaffOrderSummary summary = new StaffOrderSummary();
+        summary.setOrderId(Long.parseLong(order.getOrderId()));
+        summary.setOrderNumber(order.getOrderId());
+        summary.setTableNumber(order.getTableNumber());
+        summary.setStatus(order.getStatus());
+        summary.setTotalAmount(order.getTotalAmount());
+        summary.setOrderTime(order.getOrderTime());
+        summary.setEstimatedCompleteTime(calculateEstimatedCompleteTime(order));
+        
+        // Calculate if overdue
+        if (summary.getEstimatedCompleteTime() != null && 
+            summary.getEstimatedCompleteTime().isBefore(LocalDateTime.now())) {
+            summary.setOverdue(true);
+            summary.setOverdueMinutes(Duration.between(summary.getEstimatedCompleteTime(), 
+                                                     LocalDateTime.now()).toMinutes());
+        }
+        
+        return summary;
+    }
+    
+    private StaffOrderDetails convertToStaffOrderDetails(Order order) {
+        StaffOrderDetails details = new StaffOrderDetails();
+        details.setOrderId(Long.parseLong(order.getOrderId()));
+        details.setOrderNumber(order.getOrderId());
+        details.setTableNumber(order.getTableNumber());
+        details.setStatus(order.getStatus());
+        details.setTotalAmount(order.getTotalAmount());
+        details.setOrderTime(order.getOrderTime());
+        details.setSpecialInstructions(order.getSpecialInstructions());
+        details.setCreatedAt(order.getOrderTime());
+        details.setUpdatedAt(LocalDateTime.now());
+        
+        // Convert order items
+        if (order.getOrderItems() != null) {
+            List<OrderItemDetails> itemDetails = order.getOrderItems().stream()
+                .map(this::convertToOrderItemDetails)
+                .collect(Collectors.toList());
+            details.setItems(itemDetails);
+        }
+        
+        return details;
+    }
+    
+    private OrderItemDetails convertToOrderItemDetails(com.ranbow.restaurant.models.OrderItem orderItem) {
+        OrderItemDetails details = new OrderItemDetails();
+        details.setItemId(Long.parseLong(orderItem.getMenuItem().getMenuItemId()));
+        details.setName(orderItem.getMenuItem().getName());
+        details.setQuantity(orderItem.getQuantity());
+        details.setUnitPrice(orderItem.getMenuItem().getPrice());
+        details.setTotalPrice(orderItem.getMenuItem().getPrice().multiply(
+            java.math.BigDecimal.valueOf(orderItem.getQuantity())));
+        details.setCategory(orderItem.getMenuItem().getCategory().getName());
+        return details;
+    }
+    
+    private boolean isValidStatusTransition(OrderStatus current, OrderStatus target) {
+        // Define valid status transitions
+        Map<OrderStatus, Set<OrderStatus>> validTransitions = Map.of(
+            OrderStatus.PENDING, Set.of(OrderStatus.CONFIRMED, OrderStatus.CANCELLED),
+            OrderStatus.CONFIRMED, Set.of(OrderStatus.PREPARING, OrderStatus.CANCELLED),
+            OrderStatus.PREPARING, Set.of(OrderStatus.READY, OrderStatus.CANCELLED),
+            OrderStatus.READY, Set.of(OrderStatus.DELIVERED),
+            OrderStatus.DELIVERED, Set.of(OrderStatus.COMPLETED)
+        );
+        
+        return validTransitions.getOrDefault(current, Collections.emptySet()).contains(target);
+    }
+    
+    private boolean canStaffUpdateStatus(StaffMember staff, OrderStatus newStatus) {
+        // Check if staff role has permission to update to this status
+        return switch (newStatus) {
+            case CONFIRMED -> staff.getRole().canAccessKitchen() || staff.getRole().isManagerRole();
+            case PREPARING, READY -> staff.getRole().canAccessKitchen();
+            case DELIVERED -> staff.getRole() == com.ranbow.restaurant.staff.model.entity.StaffRole.SERVICE || 
+                             staff.getRole().isManagerRole();
+            case COMPLETED -> true; // All staff can mark as completed
+            case CANCELLED -> staff.getRole().isManagerRole();
+            default -> false;
+        };
+    }
+    
+    private void handleStatusSpecificLogic(Order order, OrderStatus newStatus, String staffId) {
+        switch (newStatus) {
+            case PREPARING -> {
+                // Start preparation timer
+                // Send kitchen notification
+            }
+            case READY -> {
+                // Notify service staff
+                // Update completion time
+                order.setCompletedTime(LocalDateTime.now());
+            }
+            case DELIVERED -> {
+                // Update delivery time
+                // Send customer notification
+            }
+            case COMPLETED -> {
+                // Finalize order
+                // Update statistics
+                order.setCompletedTime(LocalDateTime.now());
+            }
+            case CANCELLED -> {
+                // Handle cancellation logic
+                // Send notifications
+            }
+        }
+    }
+    
+    private LocalDateTime calculateEstimatedCompleteTime(Order order) {
+        // Calculate based on order complexity and current kitchen load
+        int basePreparationTime = 15; // minutes
+        int itemCount = order.getOrderItems() != null ? order.getOrderItems().size() : 1;
+        int totalPreparationTime = basePreparationTime + (itemCount * 3);
+        
+        return order.getOrderTime().plusMinutes(totalPreparationTime);
+    }
+    
+    private boolean shouldEscalatePriority(Order order) {
+        LocalDateTime escalationThreshold = LocalDateTime.now().minusMinutes(URGENT_ESCALATION_MINUTES);
+        return order.getOrderTime().isBefore(escalationThreshold);
+    }
+    
+    private String determineNextAction(Order order) {
+        return switch (order.getStatus()) {
+            case PENDING -> "Assign to staff member";
+            case CONFIRMED -> "Start preparation";
+            case PREPARING -> "Complete preparation";
+            case READY -> "Deliver to customer";
+            case DELIVERED -> "Confirm completion";
+            case COMPLETED -> "Order completed";
+            case CANCELLED -> "Order cancelled";
+            default -> "Unknown status";
+        };
+    }
+    
+    private void createStatusHistoryRecord(Long orderId, OrderStatus previousStatus, 
+                                         OrderStatus newStatus, String staffId, 
+                                         String reason, String notes) {
+        // Implementation for creating status history record
+        logger.info("Creating status history record for order {}", orderId);
+    }
+    
+    private OrderQueueSummary generateQueueSummary() {
+        // Generate queue summary statistics
+        OrderQueueSummary summary = new OrderQueueSummary();
+        
+        // Count orders by status
+        summary.setPendingCount(orderDAO.countByStatus(OrderStatus.PENDING));
+        summary.setProcessingCount(orderDAO.countByStatus(OrderStatus.PREPARING));
+        summary.setUrgentCount(getUrgentOrderCount());
+        
+        // Calculate average wait time
+        summary.setAverageWaitTime(calculateAverageWaitTime());
+        summary.setTotalActiveOrders(summary.getPendingCount() + summary.getProcessingCount());
+        
+        return summary;
+    }
+    
+    private WorkloadStatus calculateWorkloadStatus() {
+        // Calculate current workload status
+        List<StaffMember> activeStaff = staffMemberRepository.findActiveStaff();
+        int totalCapacity = activeStaff.size() * MAX_ORDERS_PER_STAFF;
+        int currentWorkload = getCurrentTotalWorkload();
+        
+        return new WorkloadStatus(activeStaff.size(), totalCapacity, currentWorkload);
+    }
+    
+    private int getCurrentStaffWorkload(String staffId) {
+        return orderAssignmentRepository.countActiveAssignmentsByStaff(staffId);
+    }
+    
+    private StaffMember getCurrentAssignedStaff(Long orderId) {
+        return orderAssignmentRepository.findAssignedStaff(orderId);
+    }
+    
+    private void createOrderAssignment(Long orderId, String staffId, String reason) {
+        orderAssignmentRepository.createAssignment(orderId, staffId, reason);
+    }
+    
+    private void enrichStaffOrderDetails(StaffOrderDetails details) {
+        // Add staff-specific enrichment
+        details.setAssignedStaff(getCurrentAssignedStaff(details.getOrderId()));
+        
+        // Check if overdue
+        if (details.getEstimatedCompleteTime() != null && 
+            details.getEstimatedCompleteTime().isBefore(LocalDateTime.now())) {
+            details.markAsOverdue();
+        }
+        
+        // Load status history
+        details.setStatusHistory(getOrderStatusHistory(details.getOrderId()));
+    }
+    
+    private List<OrderStatusHistory> getOrderStatusHistory(Long orderId) {
+        // Implementation to fetch order status history
+        return Collections.emptyList(); // Placeholder
+    }
+    
+    private LocalDateTime calculatePeriodStart(String period) {
+        return switch (period.toUpperCase()) {
+            case "TODAY" -> LocalDateTime.now().toLocalDate().atStartOfDay();
+            case "WEEK" -> LocalDateTime.now().minusWeeks(1);
+            case "MONTH" -> LocalDateTime.now().minusMonths(1);
+            default -> LocalDateTime.now().toLocalDate().atStartOfDay();
+        };
+    }
+    
+    private OrderStatistics generateOrderStatistics(LocalDateTime startTime, LocalDateTime endTime, String staffId) {
+        OrderStatistics stats = new OrderStatistics();
+        stats.setPeriodStart(startTime);
+        stats.setPeriodEnd(endTime);
+        
+        // Generate statistics based on time period and staff filter
+        stats.setTotalOrders(orderDAO.countOrdersInPeriod(startTime, endTime, staffId));
+        stats.setCompletedOrders(orderDAO.countCompletedOrdersInPeriod(startTime, endTime, staffId));
+        stats.setAverageCompletionTime(orderDAO.getAverageCompletionTime(startTime, endTime, staffId));
+        
+        // Calculate completion rate
+        if (stats.getTotalOrders() > 0) {
+            stats.setCompletionRate((double) stats.getCompletedOrders() / stats.getTotalOrders() * 100);
+        }
+        
+        return stats;
+    }
+    
+    private List<StaffMember> getAvailableStaffWithCapacity() {
+        return staffMemberRepository.findActiveStaff().stream()
+            .filter(staff -> getCurrentStaffWorkload(staff.getStaffId()) < MAX_ORDERS_PER_STAFF)
+            .collect(Collectors.toList());
+    }
+    
+    private Integer getPriorityWeight(Order order) {
+        // Assign weight based on order priority and age
+        int baseWeight = 1;
+        long ageInMinutes = Duration.between(order.getOrderTime(), LocalDateTime.now()).toMinutes();
+        
+        // Higher weight for older orders
+        if (ageInMinutes > URGENT_ESCALATION_MINUTES) baseWeight += 3;
+        else if (ageInMinutes > OVERDUE_THRESHOLD_MINUTES) baseWeight += 2;
+        
+        return baseWeight;
+    }
+    
+    private StaffMember findBestStaffForOrder(Order order, List<StaffMember> availableStaff) {
+        // Find the staff member with the lowest current workload
+        return availableStaff.stream()
+            .min(Comparator.comparing(staff -> getCurrentStaffWorkload(staff.getStaffId())))
+            .orElse(null);
+    }
+    
+    private int getUrgentOrderCount() {
+        LocalDateTime urgentThreshold = LocalDateTime.now().minusMinutes(URGENT_ESCALATION_MINUTES);
+        return orderDAO.countUrgentOrders(urgentThreshold);
+    }
+    
+    private double calculateAverageWaitTime() {
+        return orderDAO.getAverageWaitTime();
+    }
+    
+    private int getCurrentTotalWorkload() {
+        return orderAssignmentRepository.countTotalActiveAssignments();
+    }
+    
+    // Helper classes for internal use
+    public static class OrderQueueFilter {
+        private String status;
+        private String priority;
+        private String assignedTo;
+        private LocalDateTime startDate;
+        private LocalDateTime endDate;
+        
+        // Getters and setters
+        public String getStatus() { return status; }
+        public void setStatus(String status) { this.status = status; }
+        
+        public String getPriority() { return priority; }
+        public void setPriority(String priority) { this.priority = priority; }
+        
+        public String getAssignedTo() { return assignedTo; }
+        public void setAssignedTo(String assignedTo) { this.assignedTo = assignedTo; }
+        
+        public LocalDateTime getStartDate() { return startDate; }
+        public void setStartDate(LocalDateTime startDate) { this.startDate = startDate; }
+        
+        public LocalDateTime getEndDate() { return endDate; }
+        public void setEndDate(LocalDateTime endDate) { this.endDate = endDate; }
+        
+        @Override
+        public String toString() {
+            return "OrderQueueFilter{status='" + status + "', priority='" + priority + 
+                   "', assignedTo='" + assignedTo + "'}";
+        }
+    }
+    
+    public static class OrderQueueSummary {
+        private int pendingCount;
+        private int processingCount;
+        private int urgentCount;
+        private double averageWaitTime;
+        private int totalActiveOrders;
+        
+        // Getters and setters
+        public int getPendingCount() { return pendingCount; }
+        public void setPendingCount(int pendingCount) { this.pendingCount = pendingCount; }
+        
+        public int getProcessingCount() { return processingCount; }
+        public void setProcessingCount(int processingCount) { this.processingCount = processingCount; }
+        
+        public int getUrgentCount() { return urgentCount; }
+        public void setUrgentCount(int urgentCount) { this.urgentCount = urgentCount; }
+        
+        public double getAverageWaitTime() { return averageWaitTime; }
+        public void setAverageWaitTime(double averageWaitTime) { this.averageWaitTime = averageWaitTime; }
+        
+        public int getTotalActiveOrders() { return totalActiveOrders; }
+        public void setTotalActiveOrders(int totalActiveOrders) { this.totalActiveOrders = totalActiveOrders; }
+    }
+    
+    public static class OrderQueueResponseEnhanced {
+        private List<StaffOrderSummary> orders;
+        private PaginationInfo pagination;
+        private OrderQueueSummary summary;
+        private WorkloadStatus workloadStatus;
+        private LocalDateTime lastUpdated;
+        
+        // Getters and setters
+        public List<StaffOrderSummary> getOrders() { return orders; }
+        public void setOrders(List<StaffOrderSummary> orders) { this.orders = orders; }
+        
+        public PaginationInfo getPagination() { return pagination; }
+        public void setPagination(PaginationInfo pagination) { this.pagination = pagination; }
+        
+        public OrderQueueSummary getSummary() { return summary; }
+        public void setSummary(OrderQueueSummary summary) { this.summary = summary; }
+        
+        public WorkloadStatus getWorkloadStatus() { return workloadStatus; }
+        public void setWorkloadStatus(WorkloadStatus workloadStatus) { this.workloadStatus = workloadStatus; }
+        
+        public LocalDateTime getLastUpdated() { return lastUpdated; }
+        public void setLastUpdated(LocalDateTime lastUpdated) { this.lastUpdated = lastUpdated; }
+    }
+    
+    public static class StaffOrderSummary {
+        private Long orderId;
+        private String orderNumber;
+        private String tableNumber;
+        private OrderStatus status;
+        private java.math.BigDecimal totalAmount;
+        private LocalDateTime orderTime;
+        private LocalDateTime estimatedCompleteTime;
+        private boolean isOverdue;
+        private long overdueMinutes;
+        
+        // Getters and setters
+        public Long getOrderId() { return orderId; }
+        public void setOrderId(Long orderId) { this.orderId = orderId; }
+        
+        public String getOrderNumber() { return orderNumber; }
+        public void setOrderNumber(String orderNumber) { this.orderNumber = orderNumber; }
+        
+        public String getTableNumber() { return tableNumber; }
+        public void setTableNumber(String tableNumber) { this.tableNumber = tableNumber; }
+        
+        public OrderStatus getStatus() { return status; }
+        public void setStatus(OrderStatus status) { this.status = status; }
+        
+        public java.math.BigDecimal getTotalAmount() { return totalAmount; }
+        public void setTotalAmount(java.math.BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+        
+        public LocalDateTime getOrderTime() { return orderTime; }
+        public void setOrderTime(LocalDateTime orderTime) { this.orderTime = orderTime; }
+        
+        public LocalDateTime getEstimatedCompleteTime() { return estimatedCompleteTime; }
+        public void setEstimatedCompleteTime(LocalDateTime estimatedCompleteTime) { this.estimatedCompleteTime = estimatedCompleteTime; }
+        
+        public boolean isOverdue() { return isOverdue; }
+        public void setOverdue(boolean overdue) { isOverdue = overdue; }
+        
+        public long getOverdueMinutes() { return overdueMinutes; }
+        public void setOverdueMinutes(long overdueMinutes) { this.overdueMinutes = overdueMinutes; }
+    }
+}

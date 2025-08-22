@@ -382,3 +382,94 @@ export interface OrderDashboard {
     avgCookingTime: number
   }
 }
+
+// 👨‍💼 Staff-Specific Order Types
+export interface StaffOrder extends Order {
+  // Enhanced for staff interface
+  canAccept: boolean
+  canReject: boolean
+  canAssignToSelf: boolean
+  canStartCooking: boolean
+  canMarkReady: boolean
+  canComplete: boolean
+  urgencyLevel: 'EMERGENCY' | 'URGENT' | 'HIGH' | 'NORMAL' | 'LOW'
+  estimatedRemainingTime: number  // minutes
+  actualWaitTime: number          // minutes
+  delayedMinutes: number          // how many minutes delayed
+  staffNotes?: string[]
+  lastUpdateBy?: string
+  lastUpdateTime?: Date
+  priorityReason?: string         // why this order is high priority
+  customerPreferences?: string[]
+  allergyWarnings?: string[]
+}
+
+// 🎯 Staff Order Actions
+export interface StaffOrderActions {
+  onStatusUpdate: (orderId: number, newStatus: OrderStatus, note?: string) => Promise<boolean>
+  onAssignToSelf: (orderId: number) => Promise<boolean>
+  onStartCooking: (orderId: number, estimatedMinutes?: number) => Promise<boolean>
+  onMarkReady: (orderId: number) => Promise<boolean>
+  onComplete: (orderId: number) => Promise<boolean>
+  onCancel: (orderId: number, reason: string) => Promise<boolean>
+  onAddNote: (orderId: number, note: string) => Promise<boolean>
+  onUpdatePriority: (orderId: number, priority: OrderPriority, reason?: string) => Promise<boolean>
+}
+
+// 📱 Order Card Props Interface
+export interface OrderCardProps {
+  order: StaffOrder
+  onStatusUpdate: (orderId: number, newStatus: OrderStatus) => void
+  onAssignToSelf: (orderId: number) => void
+  onStartCooking: (orderId: number) => void
+  isSelected?: boolean
+  showQuickActions?: boolean
+  variant?: 'compact' | 'standard' | 'detailed'
+  disabled?: boolean
+}
+
+// 🔍 Enhanced Filtering for Staff
+export interface StaffOrderFilters extends OrderFilters {
+  urgencyLevel?: StaffOrder['urgencyLevel'][]
+  isDelayed?: boolean
+  isAssignedToMe?: boolean
+  isOverdue?: boolean
+  hasAllergyWarnings?: boolean
+  hasSpecialRequests?: boolean
+  estimatedTimeRange?: {
+    min: number  // minutes
+    max: number  // minutes
+  }
+}
+
+// 📊 Order Selection State
+export interface OrderSelectionState {
+  selectedOrderIds: number[]
+  isAllSelected: boolean
+  selectionMode: boolean
+  lastSelectedOrderId?: number
+}
+
+// 🎛️ Bulk Operations
+export interface BulkOrderOperations {
+  selectedOrders: StaffOrder[]
+  availableActions: BulkActionType[]
+  execute: (action: BulkActionType, options?: any) => Promise<BulkOperationResult>
+}
+
+export type BulkActionType = 
+  | 'ASSIGN_TO_SELF'
+  | 'UPDATE_STATUS'
+  | 'SET_PRIORITY'
+  | 'ADD_NOTE'
+  | 'PRINT_ORDERS'
+  | 'EXPORT_TO_CSV'
+  | 'ARCHIVE'
+
+export interface BulkOperationResult {
+  success: boolean
+  processedCount: number
+  failedCount: number
+  errors?: string[]
+  message: string
+}

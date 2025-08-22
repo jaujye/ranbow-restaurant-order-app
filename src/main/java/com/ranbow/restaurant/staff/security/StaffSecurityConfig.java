@@ -58,15 +58,6 @@ public class StaffSecurityConfig {
     private ObjectMapper objectMapper;
     
     /**
-     * Password encoder for staff credentials
-     * Uses BCrypt with strength 12 for enhanced security
-     */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12);
-    }
-    
-    /**
      * Authentication manager for staff authentication
      */
     @Bean

@@ -1,0 +1,662 @@
+package com.ranbow.restaurant.services;
+
+import com.ranbow.restaurant.dao.CookingTimerDAO;
+import com.ranbow.restaurant.dao.OrderDAO;
+import com.ranbow.restaurant.models.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * Kitchen Capacity Engine
+ * Calculates and manages kitchen capacity, workload distribution, and wait times
+ */
+@Component
+public class KitchenCapacityEngine {
+
+    @Autowired
+    private CookingTimerDAO cookingTimerDAO;
+    
+    @Autowired
+    private OrderDAO orderDAO;
+    
+    @Autowired
+    private CookingTimerEngine cookingTimerEngine;
+    
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    // Capacity constants
+    public static final int CAPACITY_WARNING = 80;   // 80%
+    public static final int CAPACITY_CRITICAL = 95;  // 95%
+    public static final int MAX_CONCURRENT_ORDERS = 20;
+    
+    private static final String REDIS_KEY_CAPACITY = "kitchen:capacity:current";
+    private static final String REDIS_KEY_STATION_CAPACITY = "kitchen:station:capacity:";
+
+    /**
+     * Calculate current kitchen capacity
+     * @return Current capacity metrics
+     */
+    public KitchenCapacity calculateCurrentCapacity() {
+        try {
+            List<CookingTimer> activeTimers = cookingTimerEngine.getActiveTimers();
+            List<Order> pendingOrders = orderDAO.findByStatus(OrderStatus.CONFIRMED);
+            
+            // Calculate overall capacity
+            int currentActiveOrders = activeTimers.size();
+            int queuedOrders = pendingOrders.size();
+            int totalLoad = currentActiveOrders + queuedOrders;
+            
+            double capacityPercentage = Math.min(100.0, (double) totalLoad / MAX_CONCURRENT_ORDERS * 100);
+            
+            // Calculate station capacities
+            Map<String, StationCapacity> stationCapacities = calculateStationCapacities();
+            
+            // Determine capacity status
+            CapacityStatus status = determineCapacityStatus(capacityPercentage);
+            
+            // Calculate estimated wait time
+            EstimatedWaitTime waitTime = calculateWaitTime(activeTimers, queuedOrders);
+            
+            KitchenCapacity capacity = new KitchenCapacity(
+                (int) capacityPercentage,
+                currentActiveOrders,
+                queuedOrders,
+                status,
+                stationCapacities,
+                waitTime,
+                LocalDateTime.now()
+            );
+            
+            // Cache capacity data
+            cacheCapacityData(capacity);
+            
+            return capacity;
+            
+        } catch (Exception e) {
+            System.err.println("Error calculating kitchen capacity: " + e.getMessage());
+            e.printStackTrace();
+            return createEmptyCapacity();
+        }
+    }
+
+    /**
+     * Calculate capacity for a specific station
+     * @param stationId Station identifier
+     * @return Station capacity metrics
+     */
+    public StationCapacity calculateStationCapacity(String stationId) {
+        try {
+            WorkstationType stationType = WorkstationType.valueOf(stationId);
+            List<CookingTimer> stationTimers = cookingTimerEngine.getTimersByWorkstation(stationId);
+            
+            int activeOrders = stationTimers.size();
+            int maxCapacity = stationType.getMaxCapacity();
+            double capacityPercentage = Math.min(100.0, (double) activeOrders / maxCapacity * 100);
+            
+            // Calculate efficiency metrics
+            double avgEfficiency = calculateStationEfficiency(stationTimers);
+            
+            // Get assigned staff
+            Set<String> assignedStaff = stationTimers.stream()
+                    .map(timer -> timer.getChef() != null ? timer.getChef().getStaffId() : null)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            
+            StationCapacity capacity = new StationCapacity(
+                stationId,
+                stationType.getName(),
+                (int) capacityPercentage,
+                activeOrders,
+                maxCapacity,
+                new ArrayList<>(assignedStaff),
+                avgEfficiency,
+                stationTimers.stream()
+                        .map(this::createTimerSummary)
+                        .collect(Collectors.toList())
+            );
+            
+            // Cache station capacity
+            cacheStationCapacity(stationId, capacity);
+            
+            return capacity;
+            
+        } catch (Exception e) {
+            System.err.println("Error calculating station capacity: " + e.getMessage());
+            e.printStackTrace();
+            return createEmptyStationCapacity(stationId);
+        }
+    }
+
+    /**
+     * Check if kitchen can accept a new order
+     * @param order Order to check
+     * @return true if can accept, false otherwise
+     */
+    public boolean canAcceptNewOrder(Order order) {
+        try {
+            KitchenCapacity currentCapacity = calculateCurrentCapacity();
+            
+            // Check overall capacity
+            if (currentCapacity.getCapacityPercentage() >= CAPACITY_CRITICAL) {
+                return false;
+            }
+            
+            // Check if any required stations are at capacity
+            List<String> requiredStations = determineRequiredStations(order);
+            for (String stationId : requiredStations) {
+                StationCapacity stationCapacity = calculateStationCapacity(stationId);
+                if (stationCapacity.getCapacityPercentage() >= 100) {
+                    return false;
+                }
+            }
+            
+            return true;
+            
+        } catch (Exception e) {
+            System.err.println("Error checking order acceptance: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Calculate estimated wait time for new orders
+     * @param order Order to estimate wait time for
+     * @return Estimated wait time
+     */
+    public EstimatedWaitTime calculateWaitTime(Order order) {
+        try {
+            List<CookingTimer> activeTimers = cookingTimerEngine.getActiveTimers();
+            List<Order> queuedOrders = orderDAO.findByStatus(OrderStatus.CONFIRMED);
+            
+            return calculateWaitTime(activeTimers, queuedOrders.size());
+            
+        } catch (Exception e) {
+            System.err.println("Error calculating wait time: " + e.getMessage());
+            e.printStackTrace();
+            return new EstimatedWaitTime(30, 15, LocalDateTime.now().plusMinutes(30));
+        }
+    }
+
+    /**
+     * Check capacity thresholds and generate alerts
+     * @return Workload alert if thresholds exceeded
+     */
+    public WorkloadAlert checkCapacityThresholds() {
+        try {
+            KitchenCapacity capacity = calculateCurrentCapacity();
+            
+            if (capacity.getCapacityPercentage() >= CAPACITY_CRITICAL) {
+                return new WorkloadAlert(
+                    WorkloadAlertLevel.CRITICAL,
+                    "廚房容量已達臨界值",
+                    String.format("當前容量: %d%% (臨界值: %d%%)", 
+                            capacity.getCapacityPercentage(), CAPACITY_CRITICAL),
+                    "建議暫停接單或增加人手",
+                    LocalDateTime.now()
+                );
+            } else if (capacity.getCapacityPercentage() >= CAPACITY_WARNING) {
+                return new WorkloadAlert(
+                    WorkloadAlertLevel.WARNING,
+                    "廚房容量接近上限",
+                    String.format("當前容量: %d%% (警告值: %d%%)", 
+                            capacity.getCapacityPercentage(), CAPACITY_WARNING),
+                    "請注意監控並準備應對措施",
+                    LocalDateTime.now()
+                );
+            }
+            
+            return null; // No alert needed
+            
+        } catch (Exception e) {
+            System.err.println("Error checking capacity thresholds: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Get workload distribution across stations
+     * @return Workload distribution metrics
+     */
+    public WorkloadDistribution getWorkloadByStation() {
+        try {
+            Map<String, StationCapacity> stationCapacities = calculateStationCapacities();
+            
+            List<StationWorkload> stationWorkloads = stationCapacities.entrySet().stream()
+                    .map(entry -> new StationWorkload(
+                        entry.getKey(),
+                        entry.getValue().getStationName(),
+                        entry.getValue().getActiveOrders(),
+                        entry.getValue().getMaxCapacity(),
+                        entry.getValue().getCapacityPercentage(),
+                        entry.getValue().getAverageEfficiency()
+                    ))
+                    .sorted((a, b) -> Integer.compare(b.getCapacityPercentage(), a.getCapacityPercentage()))
+                    .collect(Collectors.toList());
+            
+            // Calculate overall statistics
+            double avgCapacity = stationWorkloads.stream()
+                    .mapToInt(StationWorkload::getCapacityPercentage)
+                    .average()
+                    .orElse(0.0);
+            
+            int totalActiveOrders = stationWorkloads.stream()
+                    .mapToInt(StationWorkload::getActiveOrders)
+                    .sum();
+            
+            int totalMaxCapacity = stationWorkloads.stream()
+                    .mapToInt(StationWorkload::getMaxCapacity)
+                    .sum();
+            
+            return new WorkloadDistribution(
+                (int) avgCapacity,
+                totalActiveOrders,
+                totalMaxCapacity,
+                stationWorkloads,
+                LocalDateTime.now()
+            );
+            
+        } catch (Exception e) {
+            System.err.println("Error getting workload distribution: " + e.getMessage());
+            e.printStackTrace();
+            return new WorkloadDistribution(0, 0, 0, List.of(), LocalDateTime.now());
+        }
+    }
+
+    /**
+     * Optimize station assignments for new orders
+     * @param orders Orders to assign
+     * @return Recommended station assignments
+     */
+    public Map<String, String> optimizeStationAssignments(List<Order> orders) {
+        Map<String, String> assignments = new HashMap<>();
+        
+        try {
+            Map<String, StationCapacity> stationCapacities = calculateStationCapacities();
+            
+            for (Order order : orders) {
+                String optimalStation = findOptimalStation(order, stationCapacities);
+                assignments.put(order.getOrderId(), optimalStation);
+                
+                // Update capacity simulation for next assignment
+                if (optimalStation != null && stationCapacities.containsKey(optimalStation)) {
+                    StationCapacity station = stationCapacities.get(optimalStation);
+                    station.simulateAddOrder();
+                }
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Error optimizing station assignments: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return assignments;
+    }
+
+    // Private helper methods
+    
+    private Map<String, StationCapacity> calculateStationCapacities() {
+        Map<String, StationCapacity> capacities = new HashMap<>();
+        
+        for (WorkstationType stationType : WorkstationType.values()) {
+            String stationId = stationType.getStationId();
+            StationCapacity capacity = calculateStationCapacity(stationId);
+            capacities.put(stationId, capacity);
+        }
+        
+        return capacities;
+    }
+    
+    private CapacityStatus determineCapacityStatus(double capacityPercentage) {
+        if (capacityPercentage >= CAPACITY_CRITICAL) {
+            return CapacityStatus.CRITICAL;
+        } else if (capacityPercentage >= CAPACITY_WARNING) {
+            return CapacityStatus.WARNING;
+        } else if (capacityPercentage >= 50) {
+            return CapacityStatus.BUSY;
+        } else {
+            return CapacityStatus.NORMAL;
+        }
+    }
+    
+    private EstimatedWaitTime calculateWaitTime(List<CookingTimer> activeTimers, int queuedOrders) {
+        if (activeTimers.isEmpty()) {
+            return new EstimatedWaitTime(15, 0, LocalDateTime.now().plusMinutes(15));
+        }
+        
+        // Calculate average remaining time for active orders
+        double avgRemainingTime = activeTimers.stream()
+                .mapToInt(CookingTimer::getEstimatedMinutesRemaining)
+                .average()
+                .orElse(20.0);
+        
+        // Add queue processing time
+        int baseWaitTime = Math.max(5, (int) avgRemainingTime);
+        int queueWaitTime = queuedOrders * 5; // 5 minutes per queued order
+        
+        int totalWaitTime = baseWaitTime + queueWaitTime;
+        LocalDateTime nextAvailable = LocalDateTime.now().plusMinutes(totalWaitTime);
+        
+        return new EstimatedWaitTime(totalWaitTime, queueWaitTime, nextAvailable);
+    }
+    
+    private double calculateStationEfficiency(List<CookingTimer> timers) {
+        if (timers.isEmpty()) return 100.0;
+        
+        return timers.stream()
+                .filter(timer -> timer.getStatus().isCompleted())
+                .mapToDouble(timer -> {
+                    if (timer.getEstimatedDurationSeconds() != null && timer.getActualDurationSeconds() != null) {
+                        return Math.min(100.0, (double) timer.getEstimatedDurationSeconds() / timer.getActualDurationSeconds() * 100);
+                    }
+                    return 100.0;
+                })
+                .average()
+                .orElse(100.0);
+    }
+    
+    private List<String> determineRequiredStations(Order order) {
+        // Simple logic - in production this would be based on menu item analysis
+        List<String> stations = new ArrayList<>();
+        
+        int itemCount = order.getOrderItems().size();
+        if (itemCount <= 2) {
+            stations.add(WorkstationType.PREP.getStationId());
+        } else if (itemCount <= 4) {
+            stations.add(WorkstationType.GRILL.getStationId());
+        } else {
+            stations.add(WorkstationType.WOK.getStationId());
+        }
+        
+        // Add beverage station if needed
+        boolean hasBeverages = order.getOrderItems().stream()
+                .anyMatch(item -> item.getMenuItem().getCategory() == MenuCategory.BEVERAGE);
+        if (hasBeverages) {
+            stations.add(WorkstationType.BEVERAGE.getStationId());
+        }
+        
+        return stations;
+    }
+    
+    private String findOptimalStation(Order order, Map<String, StationCapacity> stationCapacities) {
+        List<String> requiredStations = determineRequiredStations(order);
+        
+        return requiredStations.stream()
+                .filter(stationCapacities::containsKey)
+                .min(Comparator.comparing(stationId -> stationCapacities.get(stationId).getCapacityPercentage()))
+                .orElse(WorkstationType.PREP.getStationId());
+    }
+    
+    private CookingTimerSummary createTimerSummary(CookingTimer timer) {
+        return new CookingTimerSummary(
+            timer.getTimerId(),
+            timer.getOrder().getOrderId(),
+            timer.getElapsedSeconds(),
+            timer.getRemainingSeconds(),
+            timer.getStage(),
+            timer.getProgressPercentage()
+        );
+    }
+    
+    private void cacheCapacityData(KitchenCapacity capacity) {
+        try {
+            redisTemplate.opsForValue().set(REDIS_KEY_CAPACITY, capacity);
+        } catch (Exception e) {
+            System.err.println("Error caching capacity data: " + e.getMessage());
+        }
+    }
+    
+    private void cacheStationCapacity(String stationId, StationCapacity capacity) {
+        try {
+            redisTemplate.opsForValue().set(REDIS_KEY_STATION_CAPACITY + stationId, capacity);
+        } catch (Exception e) {
+            System.err.println("Error caching station capacity: " + e.getMessage());
+        }
+    }
+    
+    private KitchenCapacity createEmptyCapacity() {
+        return new KitchenCapacity(0, 0, 0, CapacityStatus.NORMAL, 
+                new HashMap<>(), new EstimatedWaitTime(15, 0, LocalDateTime.now().plusMinutes(15)), 
+                LocalDateTime.now());
+    }
+    
+    private StationCapacity createEmptyStationCapacity(String stationId) {
+        try {
+            WorkstationType stationType = WorkstationType.valueOf(stationId);
+            return new StationCapacity(stationId, stationType.getName(), 0, 0, 
+                    stationType.getMaxCapacity(), List.of(), 100.0, List.of());
+        } catch (Exception e) {
+            return new StationCapacity(stationId, "Unknown Station", 0, 0, 1, List.of(), 100.0, List.of());
+        }
+    }
+
+    // Inner classes for response data
+    public static class KitchenCapacity {
+        private int capacityPercentage;
+        private int activeOrders;
+        private int queuedOrders;
+        private CapacityStatus status;
+        private Map<String, StationCapacity> stationCapacities;
+        private EstimatedWaitTime waitTime;
+        private LocalDateTime calculatedAt;
+        
+        public KitchenCapacity(int capacityPercentage, int activeOrders, int queuedOrders, 
+                             CapacityStatus status, Map<String, StationCapacity> stationCapacities, 
+                             EstimatedWaitTime waitTime, LocalDateTime calculatedAt) {
+            this.capacityPercentage = capacityPercentage;
+            this.activeOrders = activeOrders;
+            this.queuedOrders = queuedOrders;
+            this.status = status;
+            this.stationCapacities = stationCapacities;
+            this.waitTime = waitTime;
+            this.calculatedAt = calculatedAt;
+        }
+        
+        // Getters
+        public int getCapacityPercentage() { return capacityPercentage; }
+        public int getActiveOrders() { return activeOrders; }
+        public int getQueuedOrders() { return queuedOrders; }
+        public CapacityStatus getStatus() { return status; }
+        public Map<String, StationCapacity> getStationCapacities() { return stationCapacities; }
+        public EstimatedWaitTime getWaitTime() { return waitTime; }
+        public LocalDateTime getCalculatedAt() { return calculatedAt; }
+    }
+    
+    public static class StationCapacity {
+        private String stationId;
+        private String stationName;
+        private int capacityPercentage;
+        private int activeOrders;
+        private int maxCapacity;
+        private List<String> assignedStaffIds;
+        private double averageEfficiency;
+        private List<CookingTimerSummary> activeTimers;
+        
+        public StationCapacity(String stationId, String stationName, int capacityPercentage, 
+                             int activeOrders, int maxCapacity, List<String> assignedStaffIds, 
+                             double averageEfficiency, List<CookingTimerSummary> activeTimers) {
+            this.stationId = stationId;
+            this.stationName = stationName;
+            this.capacityPercentage = capacityPercentage;
+            this.activeOrders = activeOrders;
+            this.maxCapacity = maxCapacity;
+            this.assignedStaffIds = assignedStaffIds;
+            this.averageEfficiency = averageEfficiency;
+            this.activeTimers = activeTimers;
+        }
+        
+        public void simulateAddOrder() {
+            this.activeOrders++;
+            this.capacityPercentage = Math.min(100, (int) ((double) activeOrders / maxCapacity * 100));
+        }
+        
+        // Getters
+        public String getStationId() { return stationId; }
+        public String getStationName() { return stationName; }
+        public int getCapacityPercentage() { return capacityPercentage; }
+        public int getActiveOrders() { return activeOrders; }
+        public int getMaxCapacity() { return maxCapacity; }
+        public List<String> getAssignedStaffIds() { return assignedStaffIds; }
+        public double getAverageEfficiency() { return averageEfficiency; }
+        public List<CookingTimerSummary> getActiveTimers() { return activeTimers; }
+    }
+    
+    public static class EstimatedWaitTime {
+        private int newOrderMinutes;
+        private int averageQueueTime;
+        private LocalDateTime nextAvailableSlot;
+        
+        public EstimatedWaitTime(int newOrderMinutes, int averageQueueTime, LocalDateTime nextAvailableSlot) {
+            this.newOrderMinutes = newOrderMinutes;
+            this.averageQueueTime = averageQueueTime;
+            this.nextAvailableSlot = nextAvailableSlot;
+        }
+        
+        // Getters
+        public int getNewOrderMinutes() { return newOrderMinutes; }
+        public int getAverageQueueTime() { return averageQueueTime; }
+        public LocalDateTime getNextAvailableSlot() { return nextAvailableSlot; }
+    }
+    
+    public static class WorkloadAlert {
+        private WorkloadAlertLevel level;
+        private String title;
+        private String message;
+        private String recommendation;
+        private LocalDateTime createdAt;
+        
+        public WorkloadAlert(WorkloadAlertLevel level, String title, String message, 
+                           String recommendation, LocalDateTime createdAt) {
+            this.level = level;
+            this.title = title;
+            this.message = message;
+            this.recommendation = recommendation;
+            this.createdAt = createdAt;
+        }
+        
+        // Getters
+        public WorkloadAlertLevel getLevel() { return level; }
+        public String getTitle() { return title; }
+        public String getMessage() { return message; }
+        public String getRecommendation() { return recommendation; }
+        public LocalDateTime getCreatedAt() { return createdAt; }
+    }
+    
+    public static class WorkloadDistribution {
+        private int averageCapacityPercentage;
+        private int totalActiveOrders;
+        private int totalMaxCapacity;
+        private List<StationWorkload> stationWorkloads;
+        private LocalDateTime calculatedAt;
+        
+        public WorkloadDistribution(int averageCapacityPercentage, int totalActiveOrders, 
+                                  int totalMaxCapacity, List<StationWorkload> stationWorkloads, 
+                                  LocalDateTime calculatedAt) {
+            this.averageCapacityPercentage = averageCapacityPercentage;
+            this.totalActiveOrders = totalActiveOrders;
+            this.totalMaxCapacity = totalMaxCapacity;
+            this.stationWorkloads = stationWorkloads;
+            this.calculatedAt = calculatedAt;
+        }
+        
+        // Getters
+        public int getAverageCapacityPercentage() { return averageCapacityPercentage; }
+        public int getTotalActiveOrders() { return totalActiveOrders; }
+        public int getTotalMaxCapacity() { return totalMaxCapacity; }
+        public List<StationWorkload> getStationWorkloads() { return stationWorkloads; }
+        public LocalDateTime getCalculatedAt() { return calculatedAt; }
+    }
+    
+    public static class StationWorkload {
+        private String stationId;
+        private String stationName;
+        private int activeOrders;
+        private int maxCapacity;
+        private int capacityPercentage;
+        private double averageEfficiency;
+        
+        public StationWorkload(String stationId, String stationName, int activeOrders, 
+                             int maxCapacity, int capacityPercentage, double averageEfficiency) {
+            this.stationId = stationId;
+            this.stationName = stationName;
+            this.activeOrders = activeOrders;
+            this.maxCapacity = maxCapacity;
+            this.capacityPercentage = capacityPercentage;
+            this.averageEfficiency = averageEfficiency;
+        }
+        
+        // Getters
+        public String getStationId() { return stationId; }
+        public String getStationName() { return stationName; }
+        public int getActiveOrders() { return activeOrders; }
+        public int getMaxCapacity() { return maxCapacity; }
+        public int getCapacityPercentage() { return capacityPercentage; }
+        public double getAverageEfficiency() { return averageEfficiency; }
+    }
+    
+    public static class CookingTimerSummary {
+        private String timerId;
+        private String orderId;
+        private int elapsedSeconds;
+        private int remainingSeconds;
+        private CookingStage stage;
+        private double progressPercentage;
+        
+        public CookingTimerSummary(String timerId, String orderId, int elapsedSeconds, 
+                                 int remainingSeconds, CookingStage stage, double progressPercentage) {
+            this.timerId = timerId;
+            this.orderId = orderId;
+            this.elapsedSeconds = elapsedSeconds;
+            this.remainingSeconds = remainingSeconds;
+            this.stage = stage;
+            this.progressPercentage = progressPercentage;
+        }
+        
+        // Getters
+        public String getTimerId() { return timerId; }
+        public String getOrderId() { return orderId; }
+        public int getElapsedSeconds() { return elapsedSeconds; }
+        public int getRemainingSeconds() { return remainingSeconds; }
+        public CookingStage getStage() { return stage; }
+        public double getProgressPercentage() { return progressPercentage; }
+    }
+
+    public enum CapacityStatus {
+        NORMAL("正常", "green"),
+        BUSY("繁忙", "yellow"),
+        WARNING("警告", "orange"),
+        CRITICAL("臨界", "red");
+        
+        private final String displayName;
+        private final String colorCode;
+        
+        CapacityStatus(String displayName, String colorCode) {
+            this.displayName = displayName;
+            this.colorCode = colorCode;
+        }
+        
+        public String getDisplayName() { return displayName; }
+        public String getColorCode() { return colorCode; }
+    }
+
+    public enum WorkloadAlertLevel {
+        INFO("資訊"),
+        WARNING("警告"),
+        CRITICAL("緊急");
+        
+        private final String displayName;
+        
+        WorkloadAlertLevel(String displayName) {
+            this.displayName = displayName;
+        }
+        
+        public String getDisplayName() { return displayName; }
+    }
+}

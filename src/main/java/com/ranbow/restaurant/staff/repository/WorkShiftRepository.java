@@ -101,10 +101,11 @@ public interface WorkShiftRepository extends JpaRepository<WorkShift, String> {
     
     /**
      * Find late arrivals (started more than 15 minutes after scheduled)
+     * Using native query for better PostgreSQL compatibility
      */
-    @Query("SELECT w FROM WorkShift w WHERE w.actualStartTime > " +
-           "w.scheduledStartTime + INTERVAL '15' MINUTE " +
-           "AND w.shiftDate >= :startDate AND w.shiftDate <= :endDate")
+    @Query(value = "SELECT * FROM work_shifts w WHERE " +
+           "w.actual_start_time > w.scheduled_start_time + INTERVAL '15 minutes' " +
+           "AND w.shift_date >= ?1 AND w.shift_date <= ?2", nativeQuery = true)
     List<WorkShift> findLateArrivals(@Param("startDate") LocalDateTime startDate,
                                      @Param("endDate") LocalDateTime endDate);
     

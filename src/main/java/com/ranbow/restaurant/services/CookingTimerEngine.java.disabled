@@ -1,0 +1,622 @@
+package com.ranbow.restaurant.services;
+
+import com.ranbow.restaurant.dao.CookingTimerDAO;
+import com.ranbow.restaurant.models.*;
+import com.ranbow.restaurant.staff.model.entity.StaffMember;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+/**
+ * Cooking Timer Engine
+ * Manages the complete lifecycle of cooking timers with real-time monitoring
+ */
+@Component
+@Transactional
+public class CookingTimerEngine {
+
+    @Autowired
+    private CookingTimerDAO cookingTimerDAO;
+    
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+    
+    @Autowired
+    private NotificationService notificationService;
+    
+    @Autowired
+    private KitchenWebSocketService webSocketService;
+    
+    // In-memory cache for active timers (for high-performance access)
+    private final Map<String, CookingTimer> activeTimersCache = new ConcurrentHashMap<>();
+    
+    // Constants
+    private static final String REDIS_KEY_ACTIVE_TIMERS = "kitchen:timers:active";
+    private static final String REDIS_KEY_TIMER_PREFIX = "kitchen:timer:";
+    private static final int OVERDUE_ALERT_THRESHOLD_SECONDS = 300; // 5 minutes
+    private static final int CRITICAL_OVERDUE_THRESHOLD_SECONDS = 900; // 15 minutes
+
+    /**
+     * Create and initialize a new cooking timer
+     * @param order Order to cook
+     * @param staffId Chef staff ID
+     * @param estimatedDurationSeconds Estimated cooking time
+     * @return Created timer
+     */
+    public CookingTimer createTimer(Order order, String staffId, int estimatedDurationSeconds) {
+        try {
+            // Create new timer
+            CookingTimer timer = new CookingTimer(order, (StaffMember) null, estimatedDurationSeconds);
+            timer.setWorkstationId(determineOptimalWorkstation(order));
+            
+            // Save to database
+            cookingTimerDAO.save(timer);
+            
+            // Cache active timer
+            activeTimersCache.put(timer.getTimerId(), timer);
+            
+            // Cache in Redis
+            cacheTimer(timer);
+            
+            return timer;
+        } catch (Exception e) {
+            System.err.println("Error creating cooking timer: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to create cooking timer", e);
+        }
+    }
+
+    /**
+     * Start a cooking timer
+     * @param timerId Timer ID
+     * @return Started timer
+     */
+    public CookingTimer startTimer(String timerId) {
+        try {
+            CookingTimer timer = getTimer(timerId);
+            if (timer == null) {
+                throw new IllegalArgumentException("Timer not found: " + timerId);
+            }
+            
+            timer.startTimer();
+            
+            // Update database
+            cookingTimerDAO.update(timer);
+            
+            // Update cache
+            activeTimersCache.put(timerId, timer);
+            cacheTimer(timer);
+            
+            // Broadcast real-time update
+            webSocketService.broadcastTimerStart(timer);
+            
+            return timer;
+        } catch (Exception e) {
+            System.err.println("Error starting timer: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to start timer", e);
+        }
+    }
+
+    /**
+     * Pause a cooking timer
+     * @param timerId Timer ID
+     * @param reason Reason for pausing
+     * @return Paused timer
+     */
+    public CookingTimer pauseTimer(String timerId, String reason) {
+        try {
+            CookingTimer timer = getTimer(timerId);
+            if (timer == null) {
+                throw new IllegalArgumentException("Timer not found: " + timerId);
+            }
+            
+            timer.pauseTimer(reason);
+            
+            // Update database
+            cookingTimerDAO.update(timer);
+            
+            // Update cache
+            activeTimersCache.put(timerId, timer);
+            cacheTimer(timer);
+            
+            // Broadcast real-time update
+            webSocketService.broadcastTimerUpdate(timerId, timer.getElapsedSeconds());
+            
+            return timer;
+        } catch (Exception e) {
+            System.err.println("Error pausing timer: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to pause timer", e);
+        }
+    }
+
+    /**
+     * Resume a paused cooking timer
+     * @param timerId Timer ID
+     * @return Resumed timer
+     */
+    public CookingTimer resumeTimer(String timerId) {
+        try {
+            CookingTimer timer = getTimer(timerId);
+            if (timer == null) {
+                throw new IllegalArgumentException("Timer not found: " + timerId);
+            }
+            
+            timer.resumeTimer();
+            
+            // Update database
+            cookingTimerDAO.update(timer);
+            
+            // Update cache
+            activeTimersCache.put(timerId, timer);
+            cacheTimer(timer);
+            
+            // Broadcast real-time update
+            webSocketService.broadcastTimerUpdate(timerId, timer.getElapsedSeconds());
+            
+            return timer;
+        } catch (Exception e) {
+            System.err.println("Error resuming timer: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to resume timer", e);
+        }
+    }
+
+    /**
+     * Complete a cooking timer
+     * @param timerId Timer ID
+     * @param actualDurationSeconds Actual cooking time
+     * @return Completed timer
+     */
+    public CookingTimer completeTimer(String timerId, int actualDurationSeconds) {
+        try {
+            CookingTimer timer = getTimer(timerId);
+            if (timer == null) {
+                throw new IllegalArgumentException("Timer not found: " + timerId);
+            }
+            
+            timer.completeTimer();
+            if (actualDurationSeconds > 0) {
+                timer.setActualDurationSeconds(actualDurationSeconds);
+            }
+            
+            // Update database
+            cookingTimerDAO.update(timer);
+            
+            // Remove from active cache
+            activeTimersCache.remove(timerId);
+            
+            // Update Redis
+            removeCachedTimer(timerId);
+            
+            // Broadcast completion
+            webSocketService.broadcastTimerComplete(timer);
+            
+            return timer;
+        } catch (Exception e) {
+            System.err.println("Error completing timer: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to complete timer", e);
+        }
+    }
+
+    /**
+     * Cancel a cooking timer
+     * @param timerId Timer ID
+     * @param reason Cancellation reason
+     * @return Cancelled timer
+     */
+    public CookingTimer cancelTimer(String timerId, String reason) {
+        try {
+            CookingTimer timer = getTimer(timerId);
+            if (timer == null) {
+                throw new IllegalArgumentException("Timer not found: " + timerId);
+            }
+            
+            timer.cancelTimer(reason);
+            
+            // Update database
+            cookingTimerDAO.update(timer);
+            
+            // Remove from active cache
+            activeTimersCache.remove(timerId);
+            
+            // Update Redis
+            removeCachedTimer(timerId);
+            
+            return timer;
+        } catch (Exception e) {
+            System.err.println("Error cancelling timer: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to cancel timer", e);
+        }
+    }
+
+    /**
+     * Update timer stage
+     * @param timerId Timer ID
+     * @param newStage New cooking stage
+     * @return Updated timer
+     */
+    public CookingTimer updateTimerStage(String timerId, CookingStage newStage) {
+        try {
+            CookingTimer timer = getTimer(timerId);
+            if (timer == null) {
+                throw new IllegalArgumentException("Timer not found: " + timerId);
+            }
+            
+            timer.setStage(newStage);
+            
+            // Update database
+            cookingTimerDAO.update(timer);
+            
+            // Update cache
+            activeTimersCache.put(timerId, timer);
+            cacheTimer(timer);
+            
+            return timer;
+        } catch (Exception e) {
+            System.err.println("Error updating timer stage: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to update timer stage", e);
+        }
+    }
+
+    /**
+     * Get all active cooking timers
+     * @return List of active timers
+     */
+    public List<CookingTimer> getActiveTimers() {
+        try {
+            // First try cache
+            if (!activeTimersCache.isEmpty()) {
+                return new ArrayList<>(activeTimersCache.values());
+            }
+            
+            // Fallback to database
+            List<CookingTimer> activeTimers = cookingTimerDAO.findActiveTimers();
+            
+            // Update cache
+            for (CookingTimer timer : activeTimers) {
+                activeTimersCache.put(timer.getTimerId(), timer);
+            }
+            
+            return activeTimers;
+        } catch (Exception e) {
+            System.err.println("Error getting active timers: " + e.getMessage());
+            e.printStackTrace();
+            return List.of();
+        }
+    }
+
+    /**
+     * Get overdue cooking timers
+     * @return List of overdue timers
+     */
+    public List<CookingTimer> getOverdueTimers() {
+        try {
+            return cookingTimerDAO.findOverdueTimers()
+                    .stream()
+                    .filter(CookingTimer::isOverdue)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            System.err.println("Error getting overdue timers: " + e.getMessage());
+            e.printStackTrace();
+            return List.of();
+        }
+    }
+
+    /**
+     * Get cooking timers by staff member
+     * @param staffId Staff ID
+     * @return List of timers assigned to staff
+     */
+    public List<CookingTimer> getTimersByStaff(String staffId) {
+        try {
+            return cookingTimerDAO.findByStaffId(staffId);
+        } catch (Exception e) {
+            System.err.println("Error getting timers by staff: " + e.getMessage());
+            e.printStackTrace();
+            return List.of();
+        }
+    }
+
+    /**
+     * Get cooking timers by workstation
+     * @param workstationId Workstation ID
+     * @return List of timers at workstation
+     */
+    public List<CookingTimer> getTimersByWorkstation(String workstationId) {
+        try {
+            return cookingTimerDAO.findByWorkstation(workstationId);
+        } catch (Exception e) {
+            System.err.println("Error getting timers by workstation: " + e.getMessage());
+            e.printStackTrace();
+            return List.of();
+        }
+    }
+
+    /**
+     * Calculate timer efficiency metrics
+     * @param timer Cooking timer
+     * @return Efficiency metrics
+     */
+    public TimerEfficiency calculateEfficiency(CookingTimer timer) {
+        if (!timer.getStatus().isCompleted()) {
+            return new TimerEfficiency(timer.getTimerId(), 0.0, 0.0, false);
+        }
+        
+        Integer estimated = timer.getEstimatedDurationSeconds();
+        Integer actual = timer.getActualDurationSeconds();
+        
+        if (estimated == null || actual == null || estimated == 0) {
+            return new TimerEfficiency(timer.getTimerId(), 0.0, 0.0, false);
+        }
+        
+        double efficiency = (double) estimated / actual * 100;
+        double variance = Math.abs(actual - estimated) / (double) estimated * 100;
+        boolean onTime = actual <= estimated + 300; // 5-minute tolerance
+        
+        return new TimerEfficiency(timer.getTimerId(), efficiency, variance, onTime);
+    }
+
+    /**
+     * Get average cooking time for dish type
+     * @param dishType Dish type or category
+     * @return Average cooking time analytics
+     */
+    public AverageCookingTime getAverageCookingTime(String dishType) {
+        try {
+            List<CookingTimer> completedTimers = cookingTimerDAO.findCompletedByDishType(dishType);
+            
+            if (completedTimers.isEmpty()) {
+                return new AverageCookingTime(dishType, 0, 0.0, 0.0, 0.0);
+            }
+            
+            double averageSeconds = completedTimers.stream()
+                    .filter(t -> t.getActualDurationSeconds() != null)
+                    .mapToInt(CookingTimer::getActualDurationSeconds)
+                    .average()
+                    .orElse(0.0);
+            
+            double minSeconds = completedTimers.stream()
+                    .filter(t -> t.getActualDurationSeconds() != null)
+                    .mapToInt(CookingTimer::getActualDurationSeconds)
+                    .min()
+                    .orElse(0);
+            
+            double maxSeconds = completedTimers.stream()
+                    .filter(t -> t.getActualDurationSeconds() != null)
+                    .mapToInt(CookingTimer::getActualDurationSeconds)
+                    .max()
+                    .orElse(0);
+            
+            return new AverageCookingTime(dishType, completedTimers.size(), 
+                    averageSeconds / 60.0, minSeconds / 60.0, maxSeconds / 60.0);
+                    
+        } catch (Exception e) {
+            System.err.println("Error calculating average cooking time: " + e.getMessage());
+            e.printStackTrace();
+            return new AverageCookingTime(dishType, 0, 0.0, 0.0, 0.0);
+        }
+    }
+
+    /**
+     * Process timer alerts - scheduled task
+     */
+    @Scheduled(fixedDelay = 10000) // Every 10 seconds
+    @Async
+    public void processTimerAlerts() {
+        try {
+            List<CookingTimer> activeTimers = getActiveTimers();
+            LocalDateTime now = LocalDateTime.now();
+            
+            for (CookingTimer timer : activeTimers) {
+                // Check for overdue timers
+                if (timer.isOverdue()) {
+                    int overdueSeconds = timer.getOverdueSeconds();
+                    
+                    // Send alert based on overdue severity
+                    if (overdueSeconds >= CRITICAL_OVERDUE_THRESHOLD_SECONDS) {
+                        // Critical overdue - every 5 minutes
+                        if (overdueSeconds % 300 == 0) {
+                            sendCriticalOverdueAlert(timer);
+                        }
+                    } else if (overdueSeconds >= OVERDUE_ALERT_THRESHOLD_SECONDS) {
+                        // Regular overdue - every 2 minutes
+                        if (overdueSeconds % 120 == 0) {
+                            sendOverdueAlert(timer);
+                        }
+                    }
+                }
+                
+                // Check for stage completion alerts
+                checkStageCompletionAlerts(timer);
+                
+                // Update real-time progress
+                webSocketService.broadcastTimerUpdate(timer.getTimerId(), timer.getElapsedSeconds());
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Error processing timer alerts: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Initialize active timers cache on startup
+     */
+    public void initializeActiveTimersCache() {
+        try {
+            List<CookingTimer> activeTimers = cookingTimerDAO.findActiveTimers();
+            activeTimersCache.clear();
+            
+            for (CookingTimer timer : activeTimers) {
+                activeTimersCache.put(timer.getTimerId(), timer);
+                cacheTimer(timer);
+            }
+            
+            System.out.println("Initialized " + activeTimers.size() + " active cooking timers");
+        } catch (Exception e) {
+            System.err.println("Error initializing active timers cache: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Private helper methods
+    
+    private CookingTimer getTimer(String timerId) {
+        // Try cache first
+        CookingTimer timer = activeTimersCache.get(timerId);
+        if (timer != null) {
+            return timer;
+        }
+        
+        // Try Redis cache
+        timer = (CookingTimer) redisTemplate.opsForValue().get(REDIS_KEY_TIMER_PREFIX + timerId);
+        if (timer != null) {
+            activeTimersCache.put(timerId, timer);
+            return timer;
+        }
+        
+        // Fallback to database
+        Optional<CookingTimer> timerOpt = cookingTimerDAO.findById(timerId);
+        if (timerOpt.isPresent()) {
+            timer = timerOpt.get();
+            activeTimersCache.put(timerId, timer);
+            cacheTimer(timer);
+            return timer;
+        }
+        
+        return null;
+    }
+    
+    private void cacheTimer(CookingTimer timer) {
+        try {
+            // Cache timer data
+            redisTemplate.opsForValue().set(REDIS_KEY_TIMER_PREFIX + timer.getTimerId(), timer);
+            
+            // Add to active timers set if running
+            if (timer.getStatus().isActive()) {
+                redisTemplate.opsForSet().add(REDIS_KEY_ACTIVE_TIMERS, timer.getTimerId());
+            } else {
+                redisTemplate.opsForSet().remove(REDIS_KEY_ACTIVE_TIMERS, timer.getTimerId());
+            }
+        } catch (Exception e) {
+            System.err.println("Error caching timer: " + e.getMessage());
+        }
+    }
+    
+    private void removeCachedTimer(String timerId) {
+        try {
+            redisTemplate.delete(REDIS_KEY_TIMER_PREFIX + timerId);
+            redisTemplate.opsForSet().remove(REDIS_KEY_ACTIVE_TIMERS, timerId);
+        } catch (Exception e) {
+            System.err.println("Error removing cached timer: " + e.getMessage());
+        }
+    }
+    
+    private String determineOptimalWorkstation(Order order) {
+        // Simple logic - in production this would be more sophisticated
+        int itemCount = order.getOrderItems().size();
+        
+        if (itemCount <= 2) {
+            return WorkstationType.PREP.getStationId();
+        } else if (itemCount <= 4) {
+            return WorkstationType.GRILL.getStationId();
+        } else {
+            return WorkstationType.WOK.getStationId();
+        }
+    }
+    
+    private void sendOverdueAlert(CookingTimer timer) {
+        try {
+            timer.incrementAlerts();
+            cookingTimerDAO.update(timer);
+            
+            notificationService.createOvertimeOrderNotification(
+                timer.getOrder().getOrderId(),
+                timer.getOverdueSeconds() / 60,
+                timer.getChef() != null ? timer.getChef().getStaffId() : "unknown"
+            );
+            
+        } catch (Exception e) {
+            System.err.println("Error sending overdue alert: " + e.getMessage());
+        }
+    }
+    
+    private void sendCriticalOverdueAlert(CookingTimer timer) {
+        try {
+            timer.incrementAlerts();
+            cookingTimerDAO.update(timer);
+            
+            notificationService.createEmergencyNotification(
+                timer.getOrder().getOrderId(),
+                "訂單嚴重超時: " + (timer.getOverdueSeconds() / 60) + " 分鐘"
+            );
+            
+        } catch (Exception e) {
+            System.err.println("Error sending critical overdue alert: " + e.getMessage());
+        }
+    }
+    
+    private void checkStageCompletionAlerts(CookingTimer timer) {
+        // Stage-based alerts would be implemented here
+        // For example: alert when prep stage should be complete
+    }
+
+    // Inner classes for response data
+    public static class TimerEfficiency {
+        private String timerId;
+        private double efficiencyPercentage;
+        private double variancePercentage;
+        private boolean onTime;
+        
+        public TimerEfficiency(String timerId, double efficiencyPercentage, 
+                             double variancePercentage, boolean onTime) {
+            this.timerId = timerId;
+            this.efficiencyPercentage = efficiencyPercentage;
+            this.variancePercentage = variancePercentage;
+            this.onTime = onTime;
+        }
+        
+        // Getters
+        public String getTimerId() { return timerId; }
+        public double getEfficiencyPercentage() { return efficiencyPercentage; }
+        public double getVariancePercentage() { return variancePercentage; }
+        public boolean isOnTime() { return onTime; }
+    }
+    
+    public static class AverageCookingTime {
+        private String dishType;
+        private int sampleSize;
+        private double averageMinutes;
+        private double minMinutes;
+        private double maxMinutes;
+        
+        public AverageCookingTime(String dishType, int sampleSize, double averageMinutes, 
+                                double minMinutes, double maxMinutes) {
+            this.dishType = dishType;
+            this.sampleSize = sampleSize;
+            this.averageMinutes = averageMinutes;
+            this.minMinutes = minMinutes;
+            this.maxMinutes = maxMinutes;
+        }
+        
+        // Getters
+        public String getDishType() { return dishType; }
+        public int getSampleSize() { return sampleSize; }
+        public double getAverageMinutes() { return averageMinutes; }
+        public double getMinMinutes() { return minMinutes; }
+        public double getMaxMinutes() { return maxMinutes; }
+    }
+}

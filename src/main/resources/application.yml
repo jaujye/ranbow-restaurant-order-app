@@ -6,6 +6,8 @@ server:
 spring:
   application:
     name: ranbow-restaurant-order-app
+  main:
+    allow-bean-definition-overriding: true
   
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://192.168.0.114:5432/ranbow_restaurant}
