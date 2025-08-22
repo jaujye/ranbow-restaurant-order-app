@@ -117,9 +117,10 @@ const Checkout: React.FC = () => {
     try {
       // 創建訂單
       const orderData = {
+        customerId: user?.id,
         tableNumber: checkoutData.tableNumber,
         items: cartItems.map(item => ({
-          menuItemId: item.menuItem.id,
+          menuItemId: item.menuItem.itemId || item.menuItem.id?.toString() || '',
           quantity: item.quantity,
           specialRequests: item.specialRequests
         })),

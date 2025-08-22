@@ -101,10 +101,10 @@ public class NotificationService {
      * @param customerInfo Customer information
      * @param tableNumber Table number
      */
-    public void createNewOrderNotification(String orderId, String customerInfo, int tableNumber) {
+    public void createNewOrderNotification(String orderId, String customerInfo, String tableNumber) {
         try {
             List<Staff> kitchenStaff = staffDAO.findByDepartment("廚房");
-            String message = String.format("桌號 %d 的新訂單 - %s", tableNumber, customerInfo);
+            String message = String.format("桌號 %s 的新訂單 - %s", tableNumber, customerInfo);
             
             for (Staff staff : kitchenStaff) {
                 if (staff.isOnDuty()) {

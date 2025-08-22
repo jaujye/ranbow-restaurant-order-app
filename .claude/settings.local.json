@@ -89,7 +89,8 @@
       "mcp__playwright__browser_handle_dialog",
       "Bash(tskill:*)",
       "Bash(npm run build:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": [],

@@ -61,7 +61,7 @@ CREATE TABLE orders (
     tax DECIMAL(10,2) DEFAULT 0 CHECK (tax >= 0),
     total_amount DECIMAL(10,2) DEFAULT 0 CHECK (total_amount >= 0),
     special_instructions TEXT,
-    table_number INTEGER CHECK (table_number > 0),
+    table_number VARCHAR(10) NOT NULL,
     order_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     completed_time TIMESTAMP WITH TIME ZONE,
     FOREIGN KEY (customer_id) REFERENCES users(user_id) ON DELETE CASCADE

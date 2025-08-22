@@ -35,7 +35,7 @@ public class OrderController {
             } else {
                 // Legacy format - create simple order
                 String customerId = (String) request.get("customerId");
-                Integer tableNumber = (Integer) request.get("tableNumber");
+                String tableNumber = (String) request.get("tableNumber");
                 Order order = orderService.createOrder(customerId, tableNumber);
                 return ResponseEntity.status(HttpStatus.CREATED).body(order);
             }
@@ -257,13 +257,13 @@ public class OrderController {
     // DTO Classes
     public static class CreateOrderRequest {
         private String customerId;
-        private int tableNumber;
+        private String tableNumber;
         
         public String getCustomerId() { return customerId; }
         public void setCustomerId(String customerId) { this.customerId = customerId; }
         
-        public int getTableNumber() { return tableNumber; }
-        public void setTableNumber(int tableNumber) { this.tableNumber = tableNumber; }
+        public String getTableNumber() { return tableNumber; }
+        public void setTableNumber(String tableNumber) { this.tableNumber = tableNumber; }
     }
     
     public static class AddOrderItemRequest {
@@ -307,7 +307,7 @@ public class OrderController {
         CreateCompleteOrderRequest completeRequest = new CreateCompleteOrderRequest();
         
         completeRequest.setCustomerId((String) request.get("customerId"));
-        completeRequest.setTableNumber(((Number) request.get("tableNumber")).intValue());
+        completeRequest.setTableNumber((String) request.get("tableNumber"));
         completeRequest.setSpecialInstructions((String) request.get("specialInstructions"));
         completeRequest.setPaymentMethod((String) request.get("paymentMethod"));
         completeRequest.setStatus((String) request.get("status"));
@@ -348,7 +348,7 @@ public class OrderController {
     
     public static class CreateCompleteOrderRequest {
         private String customerId;
-        private int tableNumber;
+        private String tableNumber;
         private List<OrderItemRequest> items;
         private String specialInstructions;
         private String paymentMethod;
@@ -361,8 +361,8 @@ public class OrderController {
         public String getCustomerId() { return customerId; }
         public void setCustomerId(String customerId) { this.customerId = customerId; }
         
-        public int getTableNumber() { return tableNumber; }
-        public void setTableNumber(int tableNumber) { this.tableNumber = tableNumber; }
+        public String getTableNumber() { return tableNumber; }
+        public void setTableNumber(String tableNumber) { this.tableNumber = tableNumber; }
         
         public List<OrderItemRequest> getItems() { return items; }
         public void setItems(List<OrderItemRequest> items) { this.items = items; }

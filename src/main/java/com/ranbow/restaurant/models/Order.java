@@ -17,7 +17,7 @@ public class Order {
     private String specialInstructions;
     private LocalDateTime orderTime;
     private LocalDateTime completedTime;
-    private int tableNumber;
+    private String tableNumber;
     
     public Order() {
         this.orderId = UUID.randomUUID().toString();
@@ -29,7 +29,7 @@ public class Order {
         this.subtotal = BigDecimal.ZERO;
     }
     
-    public Order(String customerId, int tableNumber) {
+    public Order(String customerId, String tableNumber) {
         this();
         this.customerId = customerId;
         this.tableNumber = tableNumber;
@@ -150,11 +150,11 @@ public class Order {
         this.completedTime = completedTime;
     }
     
-    public int getTableNumber() {
+    public String getTableNumber() {
         return tableNumber;
     }
     
-    public void setTableNumber(int tableNumber) {
+    public void setTableNumber(String tableNumber) {
         this.tableNumber = tableNumber;
     }
     

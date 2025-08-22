@@ -20,7 +20,7 @@ public class OrderService {
     @Autowired
     private MenuService menuService;
     
-    public Order createOrder(String customerId, int tableNumber) {
+    public Order createOrder(String customerId, String tableNumber) {
         Order newOrder = new Order(customerId, tableNumber);
         return orderDAO.save(newOrder);
     }

@@ -400,7 +400,7 @@ public class KitchenService {
         public void setOrder(Order order) { this.order = order; }
         
         public String getOrderId() { return order.getOrderId(); }
-        public int getTableNumber() { return order.getTableNumber(); }
+        public String getTableNumber() { return order.getTableNumber(); }
         public String getSpecialInstructions() { return order.getSpecialInstructions(); }
         public List<OrderItem> getOrderItems() { return order.getOrderItems(); }
         public KitchenStatus getKitchenStatus() { return kitchenOrder.getKitchenStatus(); }

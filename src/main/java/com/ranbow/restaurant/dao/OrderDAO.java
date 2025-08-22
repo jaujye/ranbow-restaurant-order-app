@@ -125,7 +125,7 @@ public class OrderDAO {
             order.setTax(rs.getBigDecimal("tax"));
             order.setTotalAmount(rs.getBigDecimal("total_amount"));
             order.setSpecialInstructions(rs.getString("special_instructions"));
-            order.setTableNumber(rs.getInt("table_number"));
+            order.setTableNumber(rs.getString("table_number"));
             
             java.sql.Timestamp orderTimestamp = rs.getTimestamp("order_time");
             if (orderTimestamp != null) {

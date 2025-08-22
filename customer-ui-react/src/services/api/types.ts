@@ -139,9 +139,10 @@ export type PaymentMethod =
   | 'APPLE_PAY'
 
 export interface CreateOrderRequest {
+  customerId?: string
   tableNumber: string
   items: Array<{
-    menuItemId: number
+    menuItemId: string
     quantity: number
     specialRequests?: string
   }>

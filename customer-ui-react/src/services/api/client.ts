@@ -8,7 +8,7 @@ const getAuthStore = () => {
 
 // API 環境配置
 const API_CONFIG = {
-  local: 'http://localhost:8080/api',
+  local: 'http://localhost:8081/api',
   localTest: 'http://localhost:8087/api',
   development: 'http://192.168.0.113:8087/api',
   production: 'http://192.168.0.113:8087/api'

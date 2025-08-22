@@ -184,7 +184,7 @@ public class RestaurantApp {
         System.out.print("請輸入桌號: ");
         int tableNumber = getIntInput();
         
-        Order order = orderService.createOrder(currentUser.getUserId(), tableNumber);
+        Order order = orderService.createOrder(currentUser.getUserId(), String.valueOf(tableNumber));
         System.out.println("訂單已建立，訂單號: " + order.getOrderId());
         
         while (true) {
