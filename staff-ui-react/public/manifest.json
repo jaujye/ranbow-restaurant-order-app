@@ -1,0 +1,40 @@
+{
+  "name": "Ranbow Restaurant Staff UI",
+  "short_name": "Staff UI",
+  "description": "彩虹餐廳員工操作系統 - 訂單管理、廚房工作台、即時通訊",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FF6B35",
+  "theme_color": "#FF6B35",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "business"],
+  "lang": "zh-TW",
+  "screenshots": [
+    {
+      "src": "/screenshots/staff-dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshots/mobile-staff-orders.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
+}

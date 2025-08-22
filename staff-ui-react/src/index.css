@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Staff UI Global Styles */
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans;
+    margin: 0;
+    min-height: 100vh;
+  }
+  
+  * {
+    @apply box-border;
+  }
+}
+
+@layer components {
+  /* Rainbow theme button styles */
+  .btn-primary {
+    @apply bg-primary text-white px-4 py-2 rounded-lg font-medium 
+           hover:bg-primary-600 active:bg-primary-700 
+           transition-colors duration-150 
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-white px-4 py-2 rounded-lg font-medium 
+           hover:bg-secondary-600 active:bg-secondary-700 
+           transition-colors duration-150 
+           focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2;
+  }
+  
+  .btn-urgent {
+    @apply bg-urgent text-white px-4 py-2 rounded-lg font-medium 
+           hover:bg-red-700 active:bg-red-800 
+           transition-colors duration-150 
+           focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+           animate-pulse-slow;
+  }
+  
+  /* Status badges */
+  .status-urgent {
+    @apply bg-urgent text-white px-3 py-1 rounded-full text-sm font-semibold;
+  }
+  
+  .status-processing {
+    @apply bg-processing text-white px-3 py-1 rounded-full text-sm font-semibold;
+  }
+  
+  .status-completed {
+    @apply bg-completed text-white px-3 py-1 rounded-full text-sm font-semibold;
+  }
+  
+  .status-pending {
+    @apply bg-pending text-white px-3 py-1 rounded-full text-sm font-semibold;
+  }
+  
+  .status-cancelled {
+    @apply bg-cancelled text-gray-600 px-3 py-1 rounded-full text-sm font-semibold;
+  }
+  
+  /* Special text styles as per specification */
+  .order-number {
+    @apply text-xl font-bold font-mono;
+  }
+  
+  .timer-display {
+    @apply text-3xl font-bold font-mono;
+  }
+  
+  .amount-display {
+    @apply text-lg font-semibold font-mono;
+  }
+  
+  .status-label {
+    @apply text-sm font-semibold uppercase;
+  }
+  
+  /* Touch target sizes */
+  .touch-target {
+    @apply min-h-[48px] min-w-[48px];
+  }
+  
+  .touch-target-large {
+    @apply min-h-[56px] min-w-[56px];
+  }
+}
+
+@layer utilities {
+  /* Custom animations for staff notifications */
+  .animate-new-order {
+    animation: bounce 1s ease-in-out infinite;
+  }
+  
+  .animate-urgent-alert {
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
