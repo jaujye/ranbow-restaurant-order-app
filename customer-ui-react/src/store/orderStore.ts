@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { OrderService, PaymentService, Order, Payment, CreateOrderRequest, PaymentMethod } from '@/services/api'
+import { useAuthStore } from './authStore'
 
 interface OrderState {
   // Data
@@ -21,7 +22,7 @@ interface OrderState {
   }
   
   // Actions
-  fetchUserOrders: () => Promise<void>
+  fetchUserOrders: (userId?: string) => Promise<void>
   fetchOrderById: (id: number) => Promise<Order | null>
   createOrder: (orderData: CreateOrderRequest) => Promise<Order | null>
   updateOrderStatus: (id: number, status: Order['status']) => Promise<void>
@@ -69,13 +70,25 @@ export const useOrderStore = create<OrderState>()((set, get) => ({
   checkoutData: initialCheckoutData,
 
   // Actions
-  fetchUserOrders: async () => {
+  fetchUserOrders: async (userId?: string) => {
     set({ isLoading: true, error: null })
     
     try {
+      // Get current user ID from auth store if not provided
+      const currentUserId = userId || useAuthStore.getState().user?.id?.toString()
+      
+      if (!currentUserId) {
+        set({
+          error: 'User not authenticated',
+          isLoading: false
+        })
+        return
+      }
+      
       const response = await OrderService.getUserOrders({
         limit: 50,
-        page: 1
+        page: 1,
+        userId: currentUserId
       })
       
       if (response.success && response.data) {
@@ -218,10 +231,14 @@ export const useOrderStore = create<OrderState>()((set, get) => ({
         return null
       }
       
+      // Get user information for customerId
+      const user = useAuthStore.getState().user
+      const customerId = user?.userId || user?.id || 'guest-user'
+      
       const response = await PaymentService.createPayment({
-        orderId,
-        method,
-        amount: order.totalAmount
+        orderId: order.id?.toString() || orderId.toString(),  // Convert to string for backend
+        customerId: customerId,                               // Add required customerId
+        paymentMethod: method                                 // Use correct field name
       })
       
       if (response.success && response.data) {
