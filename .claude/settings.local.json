@@ -91,7 +91,9 @@
       "Bash(npm run build:*)",
       "Bash(git merge:*)",
       "Bash(git log:*)",
-      "Bash(npx playwright test:*)"
+      "Bash(npx playwright test:*)",
+      "Bash(git pull:*)",
+      "Bash(psql:*)"
     ],
     "deny": [],
     "ask": [],

@@ -1,0 +1,204 @@
+package com.ranbow.restaurant.staff.repository;
+
+import com.ranbow.restaurant.staff.model.entity.OrderAssignment;
+import com.ranbow.restaurant.staff.model.entity.AssignmentStatus;
+import com.ranbow.restaurant.staff.model.entity.AssignmentType;
+import com.ranbow.restaurant.staff.model.entity.OrderPriority;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Order Assignment Repository
+ * Handles database operations for OrderAssignment entities
+ */
+@Repository
+public interface OrderAssignmentRepository extends JpaRepository<OrderAssignment, String> {
+    
+    /**
+     * Find all assignments for a specific order
+     */
+    List<OrderAssignment> findByOrderIdOrderByAssignedAtAsc(String orderId);
+    
+    /**
+     * Find all active assignments for a staff member
+     */
+    List<OrderAssignment> findByStaffIdAndAssignmentStatusInOrderByPriorityDescAssignedAtAsc(
+            String staffId, List<AssignmentStatus> activeStatuses);
+    
+    /**
+     * Find current assignment for a staff member by type
+     */
+    Optional<OrderAssignment> findByStaffIdAndAssignmentTypeAndAssignmentStatusIn(
+            String staffId, AssignmentType assignmentType, List<AssignmentStatus> activeStatuses);
+    
+    /**
+     * Find assignments by priority
+     */
+    List<OrderAssignment> findByPriorityAndAssignmentStatusInOrderByAssignedAtAsc(
+            OrderPriority priority, List<AssignmentStatus> statuses);
+    
+    /**
+     * Find overdue assignments
+     */
+    @Query("SELECT o FROM OrderAssignment o WHERE o.estimatedCompletionTime < :currentTime " +
+           "AND o.assignmentStatus IN :activeStatuses")
+    List<OrderAssignment> findOverdueAssignments(@Param("currentTime") LocalDateTime currentTime,
+                                                  @Param("activeStatuses") List<AssignmentStatus> activeStatuses);
+    
+    /**
+     * Find assignments by type and status
+     */
+    List<OrderAssignment> findByAssignmentTypeAndAssignmentStatusOrderByPriorityDescAssignedAtAsc(
+            AssignmentType assignmentType, AssignmentStatus status);
+    
+    /**
+     * Find assignments that need quality check
+     */
+    @Query("SELECT o FROM OrderAssignment o WHERE o.assignmentStatus = 'COMPLETED' " +
+           "AND o.qualityScore IS NULL AND o.assignmentType = :assignmentType")
+    List<OrderAssignment> findAssignmentsNeedingQualityCheck(@Param("assignmentType") AssignmentType assignmentType);
+    
+    /**
+     * Get assignment statistics by staff member
+     */
+    @Query("SELECT o.staffId, COUNT(o), AVG(o.actualDurationMinutes), " +
+           "AVG(o.qualityScore), COUNT(CASE WHEN o.assignmentStatus = 'COMPLETED' THEN 1 END) " +
+           "FROM OrderAssignment o WHERE o.assignedAt >= :startDate AND o.assignedAt <= :endDate " +
+           "GROUP BY o.staffId")
+    List<Object[]> getAssignmentStatisticsByStaff(@Param("startDate") LocalDateTime startDate,
+                                                   @Param("endDate") LocalDateTime endDate);
+    
+    /**
+     * Get assignment statistics by type
+     */
+    @Query("SELECT o.assignmentType, COUNT(o), AVG(o.actualDurationMinutes), " +
+           "COUNT(CASE WHEN o.assignmentStatus = 'COMPLETED' THEN 1 END) " +
+           "FROM OrderAssignment o WHERE o.assignedAt >= :startDate AND o.assignedAt <= :endDate " +
+           "GROUP BY o.assignmentType")
+    List<Object[]> getAssignmentStatisticsByType(@Param("startDate") LocalDateTime startDate,
+                                                  @Param("endDate") LocalDateTime endDate);
+    
+    /**
+     * Find assignments by date range
+     */
+    @Query("SELECT o FROM OrderAssignment o WHERE o.assignedAt >= :startDate AND o.assignedAt <= :endDate " +
+           "ORDER BY o.assignedAt DESC")
+    List<OrderAssignment> findByAssignedAtBetween(@Param("startDate") LocalDateTime startDate,
+                                                   @Param("endDate") LocalDateTime endDate);
+    
+    /**
+     * Find active assignments for kitchen staff
+     */
+    @Query("SELECT o FROM OrderAssignment o WHERE o.assignmentType IN ('COOKING', 'PREPARATION') " +
+           "AND o.assignmentStatus IN :activeStatuses ORDER BY o.priority DESC, o.assignedAt ASC")
+    List<OrderAssignment> findActiveKitchenAssignments(@Param("activeStatuses") List<AssignmentStatus> activeStatuses);
+    
+    /**
+     * Find active assignments for service staff
+     */
+    @Query("SELECT o FROM OrderAssignment o WHERE o.assignmentType IN ('SERVING', 'PACKAGING') " +
+           "AND o.assignmentStatus IN :activeStatuses ORDER BY o.priority DESC, o.assignedAt ASC")
+    List<OrderAssignment> findActiveServiceAssignments(@Param("activeStatuses") List<AssignmentStatus> activeStatuses);
+    
+    /**
+     * Count assignments by status for dashboard
+     */
+    @Query("SELECT o.assignmentStatus, COUNT(o) FROM OrderAssignment o " +
+           "WHERE DATE(o.assignedAt) = DATE(:date) GROUP BY o.assignmentStatus")
+    List<Object[]> countAssignmentsByStatusForDate(@Param("date") LocalDateTime date);
+    
+    /**
+     * Find assignments that are taking too long
+     */
+    @Query("SELECT o FROM OrderAssignment o WHERE o.startedAt IS NOT NULL " +
+           "AND o.startedAt < :thresholdTime AND o.assignmentStatus = 'IN_PROGRESS'")
+    List<OrderAssignment> findSlowAssignments(@Param("thresholdTime") LocalDateTime thresholdTime);
+    
+    /**
+     * Find assignments with quality issues
+     */
+    @Query("SELECT o FROM OrderAssignment o WHERE o.qualityScore IS NOT NULL " +
+           "AND o.qualityScore < :minScore ORDER BY o.qualityScore ASC")
+    List<OrderAssignment> findQualityIssueAssignments(@Param("minScore") double minScore);
+    
+    /**
+     * Get workload for a staff member (count of active assignments)
+     */
+    @Query("SELECT COUNT(o) FROM OrderAssignment o WHERE o.staffId = :staffId " +
+           "AND o.assignmentStatus IN :activeStatuses")
+    long getWorkloadForStaff(@Param("staffId") String staffId,
+                             @Param("activeStatuses") List<AssignmentStatus> activeStatuses);
+    
+    /**
+     * Find most recent assignment for an order and type
+     */
+    @Query("SELECT o FROM OrderAssignment o WHERE o.orderId = :orderId " +
+           "AND o.assignmentType = :assignmentType ORDER BY o.assignedAt DESC LIMIT 1")
+    Optional<OrderAssignment> findLatestAssignmentForOrderAndType(@Param("orderId") String orderId,
+                                                                   @Param("assignmentType") AssignmentType assignmentType);
+    
+    /**
+     * Find staff members available for assignment (low workload)
+     */
+    @Query("SELECT o.staffId, COUNT(o) as workload FROM OrderAssignment o " +
+           "WHERE o.assignmentStatus IN :activeStatuses GROUP BY o.staffId " +
+           "HAVING COUNT(o) <= :maxWorkload ORDER BY COUNT(o) ASC")
+    List<Object[]> findAvailableStaff(@Param("activeStatuses") List<AssignmentStatus> activeStatuses,
+                                       @Param("maxWorkload") long maxWorkload);
+    
+    /**
+     * Update assignment status
+     */
+    @Query("UPDATE OrderAssignment o SET o.assignmentStatus = :status, o.updatedAt = CURRENT_TIMESTAMP " +
+           "WHERE o.assignmentId = :assignmentId")
+    int updateAssignmentStatus(@Param("assignmentId") String assignmentId, 
+                               @Param("status") AssignmentStatus status);
+    
+    /**
+     * Start assignment
+     */
+    @Query("UPDATE OrderAssignment o SET o.startedAt = :startTime, o.assignmentStatus = 'IN_PROGRESS', " +
+           "o.updatedAt = :startTime WHERE o.assignmentId = :assignmentId")
+    int startAssignment(@Param("assignmentId") String assignmentId, 
+                        @Param("startTime") LocalDateTime startTime);
+    
+    /**
+     * Complete assignment
+     */
+    @Query("UPDATE OrderAssignment o SET o.completedAt = :completedTime, o.assignmentStatus = 'COMPLETED', " +
+           "o.updatedAt = :completedTime WHERE o.assignmentId = :assignmentId")
+    int completeAssignment(@Param("assignmentId") String assignmentId, 
+                           @Param("completedTime") LocalDateTime completedTime);
+    
+    /**
+     * Update quality score
+     */
+    @Query("UPDATE OrderAssignment o SET o.qualityScore = :qualityScore, o.updatedAt = CURRENT_TIMESTAMP " +
+           "WHERE o.assignmentId = :assignmentId")
+    int updateQualityScore(@Param("assignmentId") String assignmentId, 
+                           @Param("qualityScore") double qualityScore);
+    
+    /**
+     * Reassign to different staff member
+     */
+    @Query("UPDATE OrderAssignment o SET o.staffId = :newStaffId, o.assignedByStaffId = :reassignedBy, " +
+           "o.assignedAt = CURRENT_TIMESTAMP, o.assignmentStatus = 'ASSIGNED', " +
+           "o.startedAt = null, o.updatedAt = CURRENT_TIMESTAMP WHERE o.assignmentId = :assignmentId")
+    int reassignToStaff(@Param("assignmentId") String assignmentId, 
+                        @Param("newStaffId") String newStaffId, 
+                        @Param("reassignedBy") String reassignedBy);
+    
+    /**
+     * Update priority
+     */
+    @Query("UPDATE OrderAssignment o SET o.priority = :priority, o.updatedAt = CURRENT_TIMESTAMP " +
+           "WHERE o.assignmentId = :assignmentId")
+    int updatePriority(@Param("assignmentId") String assignmentId, 
+                       @Param("priority") OrderPriority priority);
+}
