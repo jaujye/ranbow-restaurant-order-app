@@ -4,7 +4,7 @@ import com.ranbow.restaurant.staff.model.dto.*;
 import com.ranbow.restaurant.staff.model.entity.StaffMember;
 import com.ranbow.restaurant.staff.model.entity.WorkShift;
 import com.ranbow.restaurant.staff.model.vo.StaffSession;
-import com.ranbow.restaurant.staff.repository.StaffAuthRepository;
+import com.ranbow.restaurant.staff.repository.StaffAuthRepositorySimple;
 import com.ranbow.restaurant.staff.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,7 +26,7 @@ import java.util.UUID;
 public class StaffAuthService {
     
     @Autowired
-    private StaffAuthRepository staffRepository;
+    private StaffAuthRepositorySimple staffRepository;
     
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -46,15 +46,18 @@ public class StaffAuthService {
                 return StaffAuthResponse.error("Invalid login credentials");
             }
             
-            StaffMember staff = staffOpt.get();
+            StaffMember staffEntity = staffOpt.get();
+            // Cast to access extra authentication fields
+            com.ranbow.restaurant.staff.repository.StaffAuthRepositorySimple.StaffMemberSimple staff = 
+                (com.ranbow.restaurant.staff.repository.StaffAuthRepositorySimple.StaffMemberSimple) staffEntity;
             
             // Verify password
-            if (!passwordEncoder.matches(request.getPassword(), staff.getPasswordHash())) {
+            if (!staff.checkPassword(request.getPassword())) {
                 return StaffAuthResponse.error("Invalid login credentials");
             }
             
             // Check if staff is active
-            if (!staff.isActive()) {
+            if (!staff.getIsActive()) {
                 return StaffAuthResponse.error("Account is inactive");
             }
             
@@ -63,8 +66,8 @@ public class StaffAuthService {
                 staff.getStaffId(),
                 staff.getEmployeeNumber(),
                 staff.getName(),
-                staff.getRole(),
-                staff.getPermissions(),
+                staff.getRole() != null ? staff.getRole().name() : "SERVICE",
+                staff.getPermissionsList(),
                 request.getDeviceInfo().getDeviceId()
             );
             
@@ -103,10 +106,10 @@ public class StaffAuthService {
             staffInfo.setStaffId(staff.getStaffId());
             staffInfo.setEmployeeNumber(staff.getEmployeeNumber());
             staffInfo.setName(staff.getName());
-            staffInfo.setRole(staff.getRole());
+            staffInfo.setRole(staff.getRole() != null ? staff.getRole().name() : "SERVICE");
             staffInfo.setDepartment(staff.getDepartment());
             staffInfo.setAvatar(staff.getAvatarUrl());
-            staffInfo.setPermissions(staff.getPermissions());
+            staffInfo.setPermissions(staff.getPermissionsList());
             staffInfo.setQuickSwitchEnabled(staff.isQuickSwitchEnabled());
             
             StaffAuthResponse.AuthInfo authInfo = new StaffAuthResponse.AuthInfo();
@@ -148,7 +151,10 @@ public class StaffAuthService {
                 return StaffAuthResponse.error("Target staff not found");
             }
             
-            StaffMember targetStaff = targetStaffOpt.get();
+            StaffMember targetStaffEntity = targetStaffOpt.get();
+            // Cast to access extra authentication fields
+            com.ranbow.restaurant.staff.repository.StaffAuthRepositorySimple.StaffMemberSimple targetStaff = 
+                (com.ranbow.restaurant.staff.repository.StaffAuthRepositorySimple.StaffMemberSimple) targetStaffEntity;
             
             // Verify PIN
             if (!staffRepository.verifyStaffPin(request.getTargetStaffId(), request.getPin())) {
@@ -172,8 +178,8 @@ public class StaffAuthService {
                 targetStaff.getStaffId(),
                 targetStaff.getEmployeeNumber(),
                 targetStaff.getName(),
-                targetStaff.getRole(),
-                targetStaff.getPermissions(),
+                targetStaff.getRole() != null ? targetStaff.getRole().name() : "SERVICE",
+                targetStaff.getPermissionsList(),
                 deviceId
             );
             
@@ -212,10 +218,10 @@ public class StaffAuthService {
             newStaff.setStaffId(targetStaff.getStaffId());
             newStaff.setEmployeeNumber(targetStaff.getEmployeeNumber());
             newStaff.setName(targetStaff.getName());
-            newStaff.setRole(targetStaff.getRole());
+            newStaff.setRole(targetStaff.getRole() != null ? targetStaff.getRole().name() : "SERVICE");
             newStaff.setDepartment(targetStaff.getDepartment());
             newStaff.setAvatar(targetStaff.getAvatarUrl());
-            newStaff.setPermissions(targetStaff.getPermissions());
+            newStaff.setPermissions(targetStaff.getPermissionsList());
             newStaff.setQuickSwitchEnabled(targetStaff.isQuickSwitchEnabled());
             
             StaffAuthResponse.AuthInfo authInfo = new StaffAuthResponse.AuthInfo();
@@ -277,15 +283,18 @@ public class StaffAuthService {
                 return StaffAuthResponse.error("Staff not found");
             }
             
-            StaffMember staff = staffOpt.get();
+            StaffMember staffEntity = staffOpt.get();
+            // Cast to access extra authentication fields
+            com.ranbow.restaurant.staff.repository.StaffAuthRepositorySimple.StaffMemberSimple staff = 
+                (com.ranbow.restaurant.staff.repository.StaffAuthRepositorySimple.StaffMemberSimple) staffEntity;
             
             // Generate new access token
             String newAccessToken = jwtTokenProvider.generateAccessToken(
                 staff.getStaffId(),
                 staff.getEmployeeNumber(),
                 staff.getName(),
-                staff.getRole(),
-                staff.getPermissions(),
+                staff.getRole() != null ? staff.getRole().name() : "SERVICE",
+                staff.getPermissionsList(),
                 session.getDeviceId()
             );
             
@@ -297,10 +306,10 @@ public class StaffAuthService {
             staffInfo.setStaffId(staff.getStaffId());
             staffInfo.setEmployeeNumber(staff.getEmployeeNumber());
             staffInfo.setName(staff.getName());
-            staffInfo.setRole(staff.getRole());
+            staffInfo.setRole(staff.getRole() != null ? staff.getRole().name() : "SERVICE");
             staffInfo.setDepartment(staff.getDepartment());
             staffInfo.setAvatar(staff.getAvatarUrl());
-            staffInfo.setPermissions(staff.getPermissions());
+            staffInfo.setPermissions(staff.getPermissionsList());
             staffInfo.setQuickSwitchEnabled(staff.isQuickSwitchEnabled());
             
             StaffAuthResponse.AuthInfo authInfo = new StaffAuthResponse.AuthInfo();
@@ -339,16 +348,19 @@ public class StaffAuthService {
                 return StaffAuthResponse.error("Staff not found");
             }
             
-            StaffMember staff = staffOpt.get();
+            StaffMember staffEntity = staffOpt.get();
+            // Cast to access extra authentication fields
+            com.ranbow.restaurant.staff.repository.StaffAuthRepositorySimple.StaffMemberSimple staff = 
+                (com.ranbow.restaurant.staff.repository.StaffAuthRepositorySimple.StaffMemberSimple) staffEntity;
             
             StaffAuthResponse.StaffInfo staffInfo = new StaffAuthResponse.StaffInfo();
             staffInfo.setStaffId(staff.getStaffId());
             staffInfo.setEmployeeNumber(staff.getEmployeeNumber());
             staffInfo.setName(staff.getName());
-            staffInfo.setRole(staff.getRole());
+            staffInfo.setRole(staff.getRole() != null ? staff.getRole().name() : "SERVICE");
             staffInfo.setDepartment(staff.getDepartment());
             staffInfo.setAvatar(staff.getAvatarUrl());
-            staffInfo.setPermissions(staff.getPermissions());
+            staffInfo.setPermissions(staff.getPermissionsList());
             staffInfo.setQuickSwitchEnabled(staff.isQuickSwitchEnabled());
             
             // Get current work shift

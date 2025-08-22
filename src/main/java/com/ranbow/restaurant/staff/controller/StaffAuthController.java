@@ -231,85 +231,208 @@ public class StaffAuthController {
     }
     
     /**
+     * Refresh Token Endpoint
+     * 
      * POST /api/staff/auth/refresh
-     * Refresh JWT access token using refresh token
+     * 
+     * Refreshes access token using valid refresh token
      */
     @PostMapping("/refresh")
-    public ResponseEntity<StaffAuthResponse> refreshToken(
-            @Valid @RequestBody StaffTokenRefreshRequest request) {
+    public ResponseEntity<ApiResponse<StaffAuthResponse.StaffAuthData>> refreshToken(
+            @Valid @RequestBody StaffTokenRefreshRequest request,
+            BindingResult bindingResult) {
         
-        // Refresh the token
-        StaffAuthResponse response = staffAuthService.refreshToken(request);
+        String requestId = UUID.randomUUID().toString().substring(0, 8);
         
-        // Return appropriate HTTP status based on success
-        if (response.isSuccess()) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        }
-    }
-    
-    /**
-     * GET /api/staff/auth/profile/{staffId}
-     * Get staff profile information by staff ID
-     */
-    @GetMapping("/profile/{staffId}")
-    public ResponseEntity<StaffAuthResponse> getStaffProfile(
-            @PathVariable String staffId) {
-        
-        // Get staff profile
-        StaffAuthResponse response = staffAuthService.getStaffProfile(staffId);
-        
-        // Return appropriate HTTP status based on success
-        if (response.isSuccess()) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
-    }
-    
-    /**
-     * POST /api/staff/auth/logout
-     * Logout staff member and deactivate session
-     */
-    @PostMapping("/logout")
-    public ResponseEntity<LogoutResponse> logout(
-            @RequestHeader("Authorization") String authorization) {
+        logger.info("Token refresh attempt - RequestId: {}, DeviceId: {}", 
+                   requestId, request.getDeviceId());
         
         try {
-            // Extract token from Authorization header
-            String token = null;
-            if (authorization != null && authorization.startsWith("Bearer ")) {
-                token = authorization.substring(7);
-            }
-            
-            if (token == null) {
+            // Validate request
+            if (bindingResult.hasErrors()) {
+                String errorMessage = bindingResult.getFieldErrors().stream()
+                    .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                    .reduce((a, b) -> a + "; " + b)
+                    .orElse("Invalid request format");
+                
                 return ResponseEntity.badRequest()
-                    .body(new LogoutResponse(false, "No authorization token provided"));
+                    .body(ApiResponse.<StaffAuthResponse.StaffAuthData>validationError(errorMessage)
+                          .withRequestId(requestId));
             }
             
-            // Perform logout
-            boolean success = staffAuthService.logout(token);
+            // Perform token refresh
+            StaffAuthResponse refreshResponse = staffAuthService.refreshToken(request);
             
-            if (success) {
-                return ResponseEntity.ok(new LogoutResponse(true, "Logout successful"));
+            if (refreshResponse.isSuccess()) {
+                logger.info("Token refresh successful - RequestId: {}, StaffId: {}", 
+                           requestId, refreshResponse.getData().getStaff().getStaffId());
+                
+                return ResponseEntity.ok()
+                    .body(ApiResponse.success("Token refresh successful", refreshResponse.getData())
+                          .withRequestId(requestId));
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new LogoutResponse(false, "Invalid token or logout failed"));
+                String errorMessage = refreshResponse.getMessage();
+                HttpStatus status;
+                String errorCode;
+                
+                if (errorMessage.contains("Invalid refresh token") || errorMessage.contains("expired")) {
+                    status = HttpStatus.valueOf(440); // Session expired
+                    errorCode = "SESSION_EXPIRED";
+                } else if (errorMessage.contains("Device ID mismatch")) {
+                    status = HttpStatus.FORBIDDEN;
+                    errorCode = "DEVICE_MISMATCH";
+                } else {
+                    status = HttpStatus.UNAUTHORIZED;
+                    errorCode = "REFRESH_FAILED";
+                }
+                
+                logger.warn("Token refresh failed - RequestId: {}, Error: {}", requestId, errorMessage);
+                
+                return ResponseEntity.status(status)
+                    .body(ApiResponse.<StaffAuthResponse.StaffAuthData>error(errorMessage, errorCode)
+                          .withRequestId(requestId));
             }
             
         } catch (Exception e) {
+            logger.error("Token refresh system error - RequestId: {}, Error: {}", requestId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new LogoutResponse(false, "Logout failed: " + e.getMessage()));
+                .body(ApiResponse.<StaffAuthResponse.StaffAuthData>internalError("Token refresh temporarily unavailable")
+                      .withRequestId(requestId));
         }
     }
     
     /**
+     * Get Current Staff Profile Endpoint
+     * 
+     * GET /api/staff/auth/me
+     * 
+     * Returns current authenticated staff information
+     */
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<StaffAuthResponse.StaffAuthData>> getCurrentStaff(
+            @RequestHeader("Authorization") String authorizationHeader) {
+        
+        String requestId = UUID.randomUUID().toString().substring(0, 8);
+        
+        logger.info("Get current staff profile - RequestId: {}", requestId);
+        
+        try {
+            // Extract token from Authorization header
+            if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.<StaffAuthResponse.StaffAuthData>badRequest("Invalid authorization header format")
+                          .withRequestId(requestId));
+            }
+            
+            String accessToken = authorizationHeader.substring(7);
+            
+            // Validate token and extract staff ID
+            if (!jwtTokenProvider.validateToken(accessToken)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.<StaffAuthResponse.StaffAuthData>unauthorized("Invalid or expired token")
+                          .withRequestId(requestId));
+            }
+            
+            String staffId = jwtTokenProvider.getStaffIdFromToken(accessToken);
+            
+            // Get staff profile
+            StaffAuthResponse profileResponse = staffAuthService.getStaffProfile(staffId);
+            
+            if (profileResponse.isSuccess()) {
+                logger.info("Get profile successful - RequestId: {}, StaffId: {}", requestId, staffId);
+                
+                return ResponseEntity.ok()
+                    .body(ApiResponse.success("Profile retrieved successfully", profileResponse.getData())
+                          .withRequestId(requestId));
+            } else {
+                logger.warn("Profile not found - RequestId: {}, StaffId: {}", requestId, staffId);
+                
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.<StaffAuthResponse.StaffAuthData>notFound("Staff profile not found")
+                          .withRequestId(requestId));
+            }
+            
+        } catch (Exception e) {
+            logger.error("Get profile system error - RequestId: {}, Error: {}", requestId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.<StaffAuthResponse.StaffAuthData>internalError("Profile service temporarily unavailable")
+                      .withRequestId(requestId));
+        }
+    }
+    
+    /**
+     * Logout Endpoint
+     * 
+     * POST /api/staff/auth/logout
+     * 
+     * Invalidates current session and tokens
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @RequestHeader("Authorization") String authorizationHeader) {
+        
+        String requestId = UUID.randomUUID().toString().substring(0, 8);
+        
+        logger.info("Logout attempt - RequestId: {}", requestId);
+        
+        try {
+            // Extract token from Authorization header
+            if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.<Void>badRequest("Invalid authorization header format")
+                          .withRequestId(requestId));
+            }
+            
+            String accessToken = authorizationHeader.substring(7);
+            
+            // Perform logout
+            boolean logoutSuccess = staffAuthService.logout(accessToken);
+            
+            if (logoutSuccess) {
+                logger.info("Logout successful - RequestId: {}", requestId);
+                return ResponseEntity.ok()
+                    .body(ApiResponse.success("Logout successful").withRequestId(requestId));
+            } else {
+                logger.warn("Logout failed - RequestId: {}, Invalid token", requestId);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.<Void>unauthorized("Invalid or expired token")
+                          .withRequestId(requestId));
+            }
+            
+        } catch (Exception e) {
+            logger.error("Logout system error - RequestId: {}, Error: {}", requestId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.<Void>internalError("Logout temporarily unavailable")
+                      .withRequestId(requestId));
+        }
+    }
+    
+    /**
+     * Health Check Endpoint
+     * 
+     * GET /api/staff/auth/health
+     * 
+     * Simple health check for the authentication service
+     */
+    @GetMapping("/health")
+    public ResponseEntity<ApiResponse<String>> healthCheck() {
+        return ResponseEntity.ok()
+            .body(ApiResponse.success("Staff authentication service is healthy", "OK"));
+    }
+    
+    /**
+     * Get Available Staff for Quick Switch
+     * 
      * GET /api/staff/auth/quick-switch/available
-     * Get list of staff available for quick switch
+     * 
+     * Returns list of staff members available for quick switch
      */
     @GetMapping("/quick-switch/available")
-    public ResponseEntity<QuickSwitchAvailableResponse> getQuickSwitchAvailableStaff() {
+    public ResponseEntity<ApiResponse<java.util.List<QuickSwitchStaffInfo>>> getQuickSwitchAvailableStaff() {
+        
+        String requestId = UUID.randomUUID().toString().substring(0, 8);
+        
+        logger.info("Get quick switch available staff - RequestId: {}", requestId);
         
         try {
             var availableStaff = staffAuthService.getQuickSwitchStaff();
@@ -328,106 +451,94 @@ public class StaffAuthController {
                 })
                 .toList();
             
-            return ResponseEntity.ok(new QuickSwitchAvailableResponse(true, "Success", staffList));
+            logger.info("Retrieved {} available staff for quick switch - RequestId: {}", staffList.size(), requestId);
+            
+            return ResponseEntity.ok()
+                .body(ApiResponse.success("Available staff retrieved successfully", staffList)
+                      .withRequestId(requestId));
             
         } catch (Exception e) {
+            logger.error("Get available staff system error - RequestId: {}, Error: {}", requestId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new QuickSwitchAvailableResponse(false, "Failed to get available staff: " + e.getMessage(), null));
+                .body(ApiResponse.<java.util.List<QuickSwitchStaffInfo>>internalError("Service temporarily unavailable")
+                      .withRequestId(requestId));
         }
     }
     
     /**
+     * Session Cleanup Endpoint
+     * 
      * POST /api/staff/auth/session/cleanup
+     * 
      * Admin endpoint to cleanup expired sessions
      */
     @PostMapping("/session/cleanup")
-    public ResponseEntity<SessionCleanupResponse> cleanupExpiredSessions() {
+    public ResponseEntity<ApiResponse<SessionCleanupResponse>> cleanupExpiredSessions() {
+        
+        String requestId = UUID.randomUUID().toString().substring(0, 8);
+        
+        logger.info("Session cleanup request - RequestId: {}", requestId);
         
         try {
             int cleanedSessions = staffAuthService.cleanupExpiredSessions();
             
-            return ResponseEntity.ok(new SessionCleanupResponse(
+            SessionCleanupResponse response = new SessionCleanupResponse(
                 true, 
                 "Session cleanup completed", 
                 cleanedSessions
-            ));
+            );
+            
+            logger.info("Session cleanup completed - RequestId: {}, CleanedSessions: {}", requestId, cleanedSessions);
+            
+            return ResponseEntity.ok()
+                .body(ApiResponse.success("Session cleanup completed", response)
+                      .withRequestId(requestId));
             
         } catch (Exception e) {
+            logger.error("Session cleanup error - RequestId: {}, Error: {}", requestId, e.getMessage(), e);
+            
+            SessionCleanupResponse response = new SessionCleanupResponse(
+                false, 
+                "Session cleanup failed: " + e.getMessage(), 
+                0
+            );
+            
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new SessionCleanupResponse(
-                    false, 
-                    "Session cleanup failed: " + e.getMessage(), 
-                    0
-                ));
+                .body(ApiResponse.<SessionCleanupResponse>internalError("Session cleanup failed")
+                      .withRequestId(requestId));
         }
     }
     
     /**
-     * Extract client IP address from request
+     * Extract client IP address from HTTP request
+     * Handles various proxy headers for accurate IP detection
      */
     private String getClientIpAddress(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
-            return xForwardedFor.split(",")[0];
-        }
-        
         String xRealIp = request.getHeader("X-Real-IP");
         if (xRealIp != null && !xRealIp.isEmpty() && !"unknown".equalsIgnoreCase(xRealIp)) {
             return xRealIp;
         }
         
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        
+        String xForwardedProto = request.getHeader("X-Forwarded-Proto");
+        if (xForwardedProto != null && !xForwardedProto.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedProto)) {
+            return xForwardedProto;
+        }
+        
         return request.getRemoteAddr();
     }
     
-    // Response DTOs for additional endpoints
-    
-    /**
-     * Logout Response DTO
-     */
-    public static class LogoutResponse {
-        private boolean success;
-        private String message;
-        
-        public LogoutResponse(boolean success, String message) {
-            this.success = success;
-            this.message = message;
-        }
-        
-        // Getters and setters
-        public boolean isSuccess() { return success; }
-        public void setSuccess(boolean success) { this.success = success; }
-        
-        public String getMessage() { return message; }
-        public void setMessage(String message) { this.message = message; }
-    }
-    
-    /**
-     * Quick Switch Available Staff Response DTO
-     */
-    public static class QuickSwitchAvailableResponse {
-        private boolean success;
-        private String message;
-        private java.util.List<QuickSwitchStaffInfo> data;
-        
-        public QuickSwitchAvailableResponse(boolean success, String message, java.util.List<QuickSwitchStaffInfo> data) {
-            this.success = success;
-            this.message = message;
-            this.data = data;
-        }
-        
-        // Getters and setters
-        public boolean isSuccess() { return success; }
-        public void setSuccess(boolean success) { this.success = success; }
-        
-        public String getMessage() { return message; }
-        public void setMessage(String message) { this.message = message; }
-        
-        public java.util.List<QuickSwitchStaffInfo> getData() { return data; }
-        public void setData(java.util.List<QuickSwitchStaffInfo> data) { this.data = data; }
-    }
+    // =====================================
+    // Response DTOs
+    // =====================================
     
     /**
      * Quick Switch Staff Info DTO
+     * Simplified staff information for quick switch selection
      */
     public static class QuickSwitchStaffInfo {
         private String staffId;
@@ -436,6 +547,18 @@ public class StaffAuthController {
         private String role;
         private String department;
         private String avatar;
+        
+        // Constructors
+        public QuickSwitchStaffInfo() {}
+        
+        public QuickSwitchStaffInfo(String staffId, String employeeNumber, String name, String role, String department, String avatar) {
+            this.staffId = staffId;
+            this.employeeNumber = employeeNumber;
+            this.name = name;
+            this.role = role;
+            this.department = department;
+            this.avatar = avatar;
+        }
         
         // Getters and setters
         public String getStaffId() { return staffId; }
@@ -459,11 +582,15 @@ public class StaffAuthController {
     
     /**
      * Session Cleanup Response DTO
+     * Response for the session cleanup administrative operation
      */
     public static class SessionCleanupResponse {
         private boolean success;
         private String message;
         private int cleanedSessions;
+        
+        // Constructors
+        public SessionCleanupResponse() {}
         
         public SessionCleanupResponse(boolean success, String message, int cleanedSessions) {
             this.success = success;
@@ -480,5 +607,14 @@ public class StaffAuthController {
         
         public int getCleanedSessions() { return cleanedSessions; }
         public void setCleanedSessions(int cleanedSessions) { this.cleanedSessions = cleanedSessions; }
+        
+        @Override
+        public String toString() {
+            return "SessionCleanupResponse{" +
+                    "success=" + success +
+                    ", message='" + message + '\'' +
+                    ", cleanedSessions=" + cleanedSessions +
+                    '}';
+        }
     }
 }

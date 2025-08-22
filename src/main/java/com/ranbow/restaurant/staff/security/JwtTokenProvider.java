@@ -82,9 +82,8 @@ public class JwtTokenProvider {
      */
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
+            Jwts.parser()
                 .setSigningKey(secretKey)
-                .build()
                 .parseClaimsJws(token);
             return true;
         } catch (SecurityException ex) {
@@ -105,9 +104,8 @@ public class JwtTokenProvider {
      * Get staff ID from JWT token
      */
     public String getStaffIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
+        Claims claims = Jwts.parser()
                 .setSigningKey(secretKey)
-                .build()
                 .parseClaimsJws(token)
                 .getBody();
 
