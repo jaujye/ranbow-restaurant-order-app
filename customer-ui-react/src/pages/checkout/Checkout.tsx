@@ -115,16 +115,9 @@ const Checkout: React.FC = () => {
     }
 
     try {
-      // 檢查必填字段
-      if (!user?.id) {
-        showError('用戶身份驗證失敗，請重新登入')
-        navigate('/login?redirect=/checkout')
-        return
-      }
-
       // 創建訂單
       const orderData = {
-        customerId: user.id,
+        customerId: user?.id,
         tableNumber: checkoutData.tableNumber,
         items: cartItems.map(item => ({
           menuItemId: item.menuItem.itemId || item.menuItem.id?.toString() || '',

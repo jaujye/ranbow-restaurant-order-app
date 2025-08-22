@@ -18,7 +18,7 @@ import { useOrderStore } from './orderStore'
 export const useCheckoutStore = () => ({
   // Auth
   user: useAuthStore(state => state.user),
-  isAuthenticated: useAuthStore(state => state.isAuthenticated),
+  isAuthenticated: useAuthStore(state => state.token !== null && state.user !== null),
   
   // Cart
   cartItems: useCartStore(state => state.items),
@@ -59,7 +59,7 @@ export const useMenuBrowserStore = () => ({
   getCartItemByMenuId: useCartStore(state => state.getItemByMenuId),
   
   // Auth (for checking login status)
-  isAuthenticated: useAuthStore(state => state.isAuthenticated),
+  isAuthenticated: useAuthStore(state => state.token !== null && state.user !== null),
 })
 
 // 訂單管理相關的 store 數據
@@ -78,7 +78,7 @@ export const useOrderManagementStore = () => ({
   
   // Auth
   user: useAuthStore(state => state.user),
-  isAuthenticated: useAuthStore(state => state.isAuthenticated),
+  isAuthenticated: useAuthStore(state => state.token !== null && state.user !== null),
 })
 
 // 全局狀態重置 - 用於登出時清理所有狀態
@@ -108,7 +108,7 @@ export const useAppInitialization = () => {
   const fetchCategories = useMenuStore(state => state.fetchCategories)
   const fetchPopularItems = useMenuStore(state => state.fetchPopularItems)
   const fetchUserOrders = useOrderStore(state => state.fetchUserOrders)
-  const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+  const isAuthenticated = useAuthStore(state => state.token !== null && state.user !== null)
   
   return async () => {
     try {
