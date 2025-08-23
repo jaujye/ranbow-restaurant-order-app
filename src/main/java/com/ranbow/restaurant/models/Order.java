@@ -1,22 +1,49 @@
 package com.ranbow.restaurant.models;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Entity
+@Table(name = "orders")
 public class Order {
+    @Id
+    @Column(name = "order_id")
     private String orderId;
+    
+    @Column(name = "customer_id")
     private String customerId;
+    
+    @Transient
     private List<OrderItem> orderItems;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private OrderStatus status;
+    
+    @Column(name = "total_amount")
     private BigDecimal totalAmount;
+    
+    @Column(name = "tax")
     private BigDecimal tax;
+    
+    @Column(name = "subtotal")
     private BigDecimal subtotal;
+    
+    @Column(name = "special_instructions")
     private String specialInstructions;
+    
+    @Column(name = "order_time")
     private LocalDateTime orderTime;
+    
+    @Column(name = "completed_time")
     private LocalDateTime completedTime;
+    
+    @Column(name = "table_number")
     private String tableNumber;
     
     public Order() {

@@ -33,7 +33,7 @@ import java.util.concurrent.CompletableFuture;
  * - Statistics and monitoring
  * - Batch operations support
  */
-@Service
+@Service("staffWebSocketBusinessService")
 public class StaffWebSocketService {
     
     private static final Logger logger = LoggerFactory.getLogger(StaffWebSocketService.class);

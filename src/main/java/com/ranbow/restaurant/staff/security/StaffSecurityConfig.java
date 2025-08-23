@@ -55,6 +55,7 @@ public class StaffSecurityConfig {
     private JwtTokenProvider jwtTokenProvider;
     
     @Autowired
+    @org.springframework.beans.factory.annotation.Qualifier("staffRedisObjectMapper")
     private ObjectMapper objectMapper;
     
     /**

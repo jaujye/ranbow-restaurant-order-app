@@ -17,6 +17,7 @@ public class SessionService {
     private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
+    @org.springframework.beans.factory.annotation.Qualifier("redisObjectMapper")
     private ObjectMapper objectMapper;
 
     // 會話過期時間（分鐘）
