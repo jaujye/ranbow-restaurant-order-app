@@ -31,7 +31,7 @@ import java.util.concurrent.Executors;
  * - Connection management
  * - Message queuing for offline staff
  */
-@Service
+//@Service // Temporarily disabled due to WebSocket configuration dependency
 public class StaffWebSocketService {
     
     private static final Logger logger = LoggerFactory.getLogger(StaffWebSocketService.class);

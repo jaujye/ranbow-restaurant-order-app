@@ -26,17 +26,17 @@ public class UserDAO {
         """;
     
     private static final String SELECT_USER_BY_ID = """
-        SELECT user_id, username, email, phone_number, role, created_at, last_login_at, is_active 
+        SELECT user_id, username, email, password_hash, phone_number, role, created_at, last_login_at, is_active 
         FROM users WHERE user_id = ?
         """;
     
     private static final String SELECT_USER_BY_EMAIL = """
-        SELECT user_id, username, email, phone_number, role, created_at, last_login_at, is_active 
+        SELECT user_id, username, email, password_hash, phone_number, role, created_at, last_login_at, is_active 
         FROM users WHERE email = ?
         """;
     
     private static final String SELECT_ALL_USERS = """
-        SELECT user_id, username, email, phone_number, role, created_at, last_login_at, is_active 
+        SELECT user_id, username, email, password_hash, phone_number, role, created_at, last_login_at, is_active 
         FROM users ORDER BY created_at DESC
         """;
     

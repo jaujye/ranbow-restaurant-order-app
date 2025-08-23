@@ -35,8 +35,8 @@ public class StaffNotificationService {
     @Autowired
     private StaffMemberRepository staffMemberRepository;
     
-    @Autowired
-    private StaffWebSocketService webSocketService;
+    //@Autowired
+    //private StaffWebSocketService webSocketService; // Temporarily disabled
     
     // Thread pool for asynchronous notifications
     private final ExecutorService notificationExecutor = Executors.newFixedThreadPool(5);
@@ -113,7 +113,7 @@ public class StaffNotificationService {
                     }
                     
                     // Also broadcast to all connected clients
-                    webSocketService.broadcastToAllStaff(createWSMessage("NEW_ORDER", notification));
+                    //webSocketService.broadcastToAllStaff(createWSMessage("NEW_ORDER", notification)); // Temporarily disabled
                     
                 } catch (Exception e) {
                     logger.error("Error sending new order notification: ", e);
@@ -162,7 +162,7 @@ public class StaffNotificationService {
                     sendToManagers(notification);
                     
                     // Broadcast status update
-                    webSocketService.sendOrderUpdate(order);
+                    //webSocketService.sendOrderUpdate(order); // Temporarily disabled
                     
                 } catch (Exception e) {
                     logger.error("Error sending order status update notification: ", e);
@@ -210,7 +210,7 @@ public class StaffNotificationService {
                     }
                     
                     // Broadcast urgent notification
-                    webSocketService.broadcastToAllStaff(createWSMessage("URGENT_ORDER", notification));
+                    //webSocketService.broadcastToAllStaff(createWSMessage("URGENT_ORDER", notification)); // Temporarily disabled
                     
                     logger.info("Urgent order notification sent to {} staff members", onDutyStaff.size());
                     
@@ -286,7 +286,7 @@ public class StaffNotificationService {
             
             CompletableFuture.runAsync(() -> {
                 try {
-                    webSocketService.broadcastToAllStaff(createWSMessage("QUEUE_UPDATE", notification));
+                    //webSocketService.broadcastToAllStaff(createWSMessage("QUEUE_UPDATE", notification)); // Temporarily disabled
                 } catch (Exception e) {
                     logger.error("Error broadcasting queue update: ", e);
                 }
@@ -339,8 +339,8 @@ public class StaffNotificationService {
                     }
                     
                     // Broadcast to relevant staff
-                    webSocketService.broadcastToRole("KITCHEN", createWSMessage("KITCHEN_ALERT", notification));
-                    webSocketService.broadcastToRole("MANAGER", createWSMessage("KITCHEN_ALERT", notification));
+                    //webSocketService.broadcastToRole("KITCHEN", createWSMessage("KITCHEN_ALERT", notification)); // Temporarily disabled
+                    //webSocketService.broadcastToRole("MANAGER", createWSMessage("KITCHEN_ALERT", notification)); // Temporarily disabled
                     
                 } catch (Exception e) {
                     logger.error("Error sending kitchen alert notification: ", e);
@@ -357,7 +357,7 @@ public class StaffNotificationService {
     private void sendNotificationToStaff(String staffId, StaffNotification notification) {
         try {
             // Send via WebSocket
-            webSocketService.sendToStaff(staffId, createWSMessage("NOTIFICATION", notification));
+            //webSocketService.sendToStaff(staffId, createWSMessage("NOTIFICATION", notification)); // Temporarily disabled
             
             // Could also send via other channels (email, SMS, push notification, etc.)
             // sendEmailNotification(staffId, notification);

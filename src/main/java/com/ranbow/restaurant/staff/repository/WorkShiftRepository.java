@@ -126,14 +126,18 @@ public interface WorkShiftRepository extends JpaRepository<WorkShift, String> {
     
     /**
      * Get total hours worked by staff member in date range
+     * Using native query for better PostgreSQL compatibility
+     * TODO: Fix this query - currently commented out due to HQL parsing issue
      */
-    @Query("SELECT SUM(EXTRACT(EPOCH FROM (w.actualEndTime - w.actualStartTime)) / 3600) " +
-           "FROM WorkShift w WHERE w.staffId = :staffId " +
-           "AND w.shiftStatus = 'COMPLETED' " +
-           "AND w.actualStartTime >= :startDate AND w.actualEndTime <= :endDate")
+    /*
+    @Query(value = "SELECT SUM(EXTRACT(EPOCH FROM (actual_end_time - actual_start_time)) / 3600.0) " +
+           "FROM work_shifts WHERE staff_id = :staffId " +
+           "AND shift_status = 'COMPLETED' " +
+           "AND actual_start_time >= :startDate AND actual_end_time <= :endDate", nativeQuery = true)
     Double getTotalHoursWorked(@Param("staffId") String staffId,
                                @Param("startDate") LocalDateTime startDate,
                                @Param("endDate") LocalDateTime endDate);
+    */
     
     /**
      * Find upcoming shifts for notifications

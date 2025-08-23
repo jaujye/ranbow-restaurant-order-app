@@ -101,7 +101,8 @@
       "mcp__postgres__analyze_db_health",
       "Bash(jps:*)",
       "Bash(pkill:*)",
-      "mcp__redis__delete"
+      "mcp__redis__delete",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": [],

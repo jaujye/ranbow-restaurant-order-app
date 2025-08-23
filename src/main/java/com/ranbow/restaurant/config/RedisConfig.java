@@ -28,6 +28,7 @@ public class RedisConfig {
     }
 
     @Bean
+    @org.springframework.context.annotation.Primary
     public ObjectMapper redisObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());

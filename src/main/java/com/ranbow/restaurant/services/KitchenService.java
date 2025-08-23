@@ -46,7 +46,7 @@ public class KitchenService {
     @Autowired
     private KitchenCapacityEngine capacityEngine;
     
-    @Autowired
+    @Autowired(required = false)
     private KitchenWebSocketService webSocketService;
 
     // ===== COOKING TIMER MANAGEMENT =====
@@ -88,8 +88,10 @@ public class KitchenService {
             staffService.updateStaffActivity(staffId);
             
             // Broadcast to WebSocket clients
-            webSocketService.broadcastTimerStart(timer);
-            webSocketService.broadcastNewOrderToKitchen(order);
+            if (webSocketService != null) {
+                webSocketService.broadcastTimerStart(timer);
+                webSocketService.broadcastNewOrderToKitchen(order);
+            }
             
             return CookingSessionResponse.success(timer);
             
@@ -244,7 +246,7 @@ public class KitchenService {
             
             // Check for alerts
             WorkloadAlert alert = capacityEngine.checkCapacityThresholds();
-            if (alert != null) {
+            if (alert != null && webSocketService != null) {
                 webSocketService.broadcastCapacityAlert(alert);
             }
             
@@ -628,7 +630,9 @@ public class KitchenService {
             staffService.updateStaffActivity(staffId);
             
             // Broadcast timer update
-            webSocketService.broadcastTimerUpdate(timer.getTimerId(), timer.getElapsedSeconds());
+            if (webSocketService != null) {
+                webSocketService.broadcastTimerUpdate(timer.getTimerId(), timer.getElapsedSeconds());
+            }
             
             return true;
             
