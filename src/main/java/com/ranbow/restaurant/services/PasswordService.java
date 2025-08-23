@@ -48,18 +48,11 @@ public class PasswordService {
             return false;
         }
         
-        // For demo purposes, we'll accept some simple passwords
-        // In production, this should verify against proper hashed passwords
+        // Generate SHA-256 hash of the input password
         String hashedInput = simpleHash(password);
         
-        // Check against known test passwords
-        if (storedHash.equals("ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f")) {
-            // This is the hash for "password123" - for testing
-            return password.equals("password123") || password.equals("Test123");
-        }
-        
-        // Also try direct comparison for development
-        return hashedInput.equals(storedHash) || password.equals("Test123") || password.equals("password123");
+        // Compare with stored hash
+        return hashedInput.equals(storedHash);
     }
     
     /**

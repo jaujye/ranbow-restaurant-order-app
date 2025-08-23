@@ -41,7 +41,7 @@ public class UserDAO {
         """;
     
     private static final String SELECT_USERS_BY_ROLE = """
-        SELECT user_id, username, email, phone_number, role, created_at, last_login_at, is_active 
+        SELECT user_id, username, email, password_hash, phone_number, role, created_at, last_login_at, is_active 
         FROM users WHERE role = ?::user_role ORDER BY created_at DESC
         """;
     
@@ -73,6 +73,7 @@ public class UserDAO {
             user.setUserId(rs.getString("user_id"));
             user.setUsername(rs.getString("username"));
             user.setEmail(rs.getString("email"));
+            user.setPasswordHash(rs.getString("password_hash"));
             user.setPhoneNumber(rs.getString("phone_number"));
             user.setRole(UserRole.valueOf(rs.getString("role")));
             
