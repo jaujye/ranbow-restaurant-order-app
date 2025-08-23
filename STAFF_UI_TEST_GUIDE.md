@@ -43,8 +43,8 @@ mvn clean install
 #### 前端環境配置 (staff-ui-react/.env)
 ```bash
 # 📡 API配置 - 開發環境
-VITE_API_BASE_URL=http://localhost:8084/api
-VITE_WS_BASE_URL=ws://localhost:8084
+VITE_API_BASE_URL=http://localhost:8081/api
+VITE_WS_BASE_URL=ws://localhost:8081
 
 # 🎯 應用配置
 VITE_APP_TITLE=Ranbow Restaurant - Staff UI
@@ -104,14 +104,14 @@ spring:
       host: 192.168.0.113
 
 server:
-  port: 8084  # 開發環境端口
+  port: 8081  # 開發環境端口
 ```
 
 #### 環境變數說明
 | 變數名 | 說明 | 開發值 | 生產值 |
 |--------|------|--------|--------|
-| `VITE_API_BASE_URL` | REST API基礎URL | `localhost:8084/api` | `192.168.0.113:8087/api` |
-| `VITE_WS_BASE_URL` | WebSocket基礎URL | `ws://localhost:8084` | `ws://192.168.0.113:8087` |
+| `VITE_API_BASE_URL` | REST API基礎URL | `localhost:8081/api` | `192.168.0.113:8087/api` |
+| `VITE_WS_BASE_URL` | WebSocket基礎URL | `ws://localhost:8081` | `ws://192.168.0.113:8087` |
 | `VITE_ENVIRONMENT` | 環境標識 | `local` | `production` |
 | `VITE_DEBUG_MODE` | 除錯模式 | `true` | `false` |
 | `VITE_SESSION_TIMEOUT` | 會話超時時間(ms) | `28800000` | `28800000` |
@@ -122,11 +122,11 @@ server:
 
 ### 步驟 1: 啟動後端服務
 ```bash
-# 在專案根目錄執行 (使用開發環境端口 8084)
-mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8084"
+# 在專案根目錄執行 (使用開發環境端口 8081)
+mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8081"
 
 # 驗證後端啟動成功
-curl http://localhost:8084/api/health
+curl http://localhost:8081/api/health
 # 預期回應: {"status":"UP","database":"Connected","service":"Ranbow Restaurant Order Application"}
 ```
 
@@ -137,10 +137,10 @@ echo $VITE_API_BASE_URL
 echo $VITE_WS_BASE_URL
 
 # 檢查前端能否連接後端
-curl http://localhost:8084/api/health
+curl http://localhost:8081/api/health
 
 # 檢查端口占用情況
-netstat -ano | findstr :8084
+netstat -ano | findstr :8081
 ```
 
 ### 步驟 2: 啟動前端應用
@@ -164,10 +164,10 @@ npm run dev
 npm run build --dry-run
 
 # 檢查 API 配置是否正確
-node -e "console.log('API URL:', process.env.VITE_API_BASE_URL || 'http://localhost:8084/api')"
+node -e "console.log('API URL:', process.env.VITE_API_BASE_URL || 'http://localhost:8081/api')"
 
 # 測試前端對後端的連接
-curl -X POST http://localhost:8084/api/staff/auth/login \
+curl -X POST http://localhost:8081/api/staff/auth/login \
   -H "Content-Type: application/json" \
   -d '{"loginId":"ADMIN001","password":"Password123","deviceInfo":{"deviceId":"test","deviceType":"web","appVersion":"1.0.0"}}'
 ```
@@ -181,7 +181,7 @@ curl -X POST http://localhost:8084/api/staff/auth/login \
 #### 系統狀態檢查清單
 ```bash
 # 後端服務檢查
-curl http://localhost:8084/api/health
+curl http://localhost:8081/api/health
 # ✅ 應返回: {"status":"UP","database":"Connected"}
 
 # 前端服務檢查
@@ -225,7 +225,7 @@ ls staff-ui-react/.env
 cat staff-ui-react/.env | grep VITE_API_BASE_URL
 
 # 步驟 3: 確認 API 端點正確
-curl http://localhost:8084/api/staff/auth/login -X OPTIONS -v
+curl http://localhost:8081/api/staff/auth/login -X OPTIONS -v
 ```
 
 #### 測試資料
@@ -382,13 +382,13 @@ console.log('WS Base URL:', import.meta.env.VITE_WS_BASE_URL)
 console.log('Environment:', import.meta.env.VITE_ENVIRONMENT)
 
 // 測試 API 連接 (使用正確端口)
-fetch('http://localhost:8084/api/health')
+fetch('http://localhost:8081/api/health')
   .then(res => res.json())
   .then(console.log)
   .catch(console.error)
 
 // 測試登入 API
-fetch('http://localhost:8084/api/staff/auth/login', {
+fetch('http://localhost:8081/api/staff/auth/login', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -419,7 +419,7 @@ npm run build --mode development
 ### 問題 5: 端口衝突
 ```bash
 # 檢查端口占用
-netstat -ano | findstr :8084
+netstat -ano | findstr :8081
 netstat -ano | findstr :3002
 
 # 殺死占用端口的程序 (Windows)
@@ -581,7 +581,7 @@ console.table({
 
 ### v2.0 (2025-08-23)
 - ✅ 新增完整的環境變數配置指南
-- ✅ 更新 API 端點為 8084 端口
+- ✅ 更新 API 端點為 8081 端口
 - ✅ 新增 .env 和 .env.production 配置說明
 - ✅ 新增環境配置除錯方法
 - ✅ 更新所有測試指令和端點
