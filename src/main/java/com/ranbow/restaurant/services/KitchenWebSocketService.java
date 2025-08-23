@@ -19,7 +19,7 @@ import java.util.Map;
 @Service
 public class KitchenWebSocketService {
 
-    @Autowired
+    @Autowired(required = false)
     private SimpMessagingTemplate messagingTemplate;
     
     @Autowired
@@ -38,6 +38,11 @@ public class KitchenWebSocketService {
      * @param timer Started cooking timer
      */
     public void broadcastTimerStart(CookingTimer timer) {
+        if (messagingTemplate == null) {
+            System.out.println("WebSocket messaging not available - timer start not broadcast");
+            return;
+        }
+        
         try {
             Map<String, Object> message = new HashMap<>();
             message.put("type", "TIMER_START");

@@ -42,7 +42,7 @@ interface EnhancedAuthStore extends StaffAuthState {
   login: (credentials: LoginCredentials & { isPinLogin?: boolean; pin?: string }) => Promise<boolean>
   logout: () => Promise<void>
   quickSwitch: (credentials: QuickSwitchCredentials) => Promise<boolean>
-  refreshToken: () => Promise<boolean>
+  refreshAuthToken: () => Promise<boolean>
   updateActivity: () => void
   
   // 👤 Staff Management
@@ -168,8 +168,8 @@ export const useAuthStore = create<EnhancedAuthStore>()(
           }
 
           const endpoint = credentials.isPinLogin ? 
-            'http://localhost:8081/api/staff/auth/pin-login' : 
-            'http://localhost:8081/api/staff/auth/login'
+            'http://localhost:8081/api/staff/pin-login' : 
+            'http://localhost:8081/api/staff/login'
 
           // Call authentication API
           const response = await fetch(endpoint, {
@@ -253,7 +253,7 @@ export const useAuthStore = create<EnhancedAuthStore>()(
           
           if (authToken) {
             // Call logout API
-            await fetch('http://localhost:8081/api/staff/auth/logout', {
+            await fetch('http://localhost:8081/api/staff/logout', {
               method: 'POST',
               headers: { 
                 'Authorization': `Bearer ${authToken}`,
@@ -273,7 +273,7 @@ export const useAuthStore = create<EnhancedAuthStore>()(
         try {
           const { authToken } = get()
           
-          const response = await fetch('http://localhost:8081/api/staff/auth/quick-switch', {
+          const response = await fetch('http://localhost:8081/api/staff/quick-switch', {
             method: 'POST',
             headers: { 
               'Authorization': `Bearer ${authToken}`,
@@ -310,7 +310,7 @@ export const useAuthStore = create<EnhancedAuthStore>()(
       },
 
       // 🔄 Enhanced Refresh Token Action
-      refreshToken: async (): Promise<boolean> => {
+      refreshAuthToken: async (): Promise<boolean> => {
         try {
           const { refreshToken: currentRefreshToken, security } = get()
           
@@ -320,7 +320,7 @@ export const useAuthStore = create<EnhancedAuthStore>()(
 
           const deviceId = localStorage.getItem('staffDeviceId')
           
-          const response = await fetch('http://localhost:8081/api/staff/auth/refresh', {
+          const response = await fetch('http://localhost:8081/api/staff/refresh', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -574,7 +574,7 @@ export const useAuthStore = create<EnhancedAuthStore>()(
         try {
           const { authToken } = get()
           
-          const response = await fetch('http://localhost:8081/api/staff/auth/terminate-session', {
+          const response = await fetch('http://localhost:8081/api/staff/terminate-session', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -599,7 +599,7 @@ export const useAuthStore = create<EnhancedAuthStore>()(
           const { authToken } = get()
           const currentDeviceId = localStorage.getItem('staffDeviceId')
           
-          const response = await fetch('http://localhost:8081/api/staff/auth/terminate-all-sessions', {
+          const response = await fetch('http://localhost:8081/api/staff/terminate-all-sessions', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -766,7 +766,7 @@ export const useAuthActions = () => {
     login: store.login,
     logout: store.logout,
     quickSwitch: store.quickSwitch,
-    refreshToken: store.refreshToken,
+    refreshAuthToken: store.refreshAuthToken,
     updateActivity: store.updateActivity,
     trustDevice: store.trustDevice,
     terminateSession: store.terminateSession,

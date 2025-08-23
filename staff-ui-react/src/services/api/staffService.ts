@@ -22,7 +22,7 @@ export const staffAuthService = {
    */
   login: async (credentials: LoginCredentials): Promise<StaffLoginResponse['data']> => {
     const response = await withRetry(() =>
-      createAPIRequest.post<StaffLoginResponse['data']>('/staff/auth/login', credentials)
+      createAPIRequest.post<StaffLoginResponse['data']>('/staff/login', credentials)
     )
     return response.data.data!
   },
@@ -31,7 +31,7 @@ export const staffAuthService = {
    * Staff Logout
    */
   logout: async (): Promise<void> => {
-    await createAPIRequest.post('/staff/auth/logout')
+    await createAPIRequest.post('/staff/logout')
   },
 
   /**
@@ -46,7 +46,7 @@ export const staffAuthService = {
       newStaff: StaffMember
       newToken: string
       switchTime: string
-    }>('/staff/auth/quick-switch', credentials)
+    }>('/staff/quick-switch', credentials)
     return response.data.data!
   },
 
@@ -62,7 +62,7 @@ export const staffAuthService = {
       accessToken: string
       refreshToken: string
       expiresIn: number
-    }>('/staff/auth/refresh', { refreshToken })
+    }>('/staff/refresh', { refreshToken })
     return response.data.data!
   },
 
@@ -71,7 +71,7 @@ export const staffAuthService = {
    */
   validateToken: async (): Promise<{ valid: boolean; staff?: StaffMember }> => {
     try {
-      const response = await createAPIRequest.get<{ valid: boolean; staff?: StaffMember }>('/staff/auth/validate')
+      const response = await createAPIRequest.get<{ valid: boolean; staff?: StaffMember }>('/staff/validate')
       return response.data.data!
     } catch (error) {
       return { valid: false }

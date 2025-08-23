@@ -27,6 +27,9 @@ public class StaffService {
     
     @Autowired
     private NotificationService notificationService;
+    
+    @Autowired
+    private PasswordService passwordService;
 
     /**
      * Authenticate staff member using employee ID/email and password
@@ -44,12 +47,13 @@ public class StaffService {
                 
                 if (user.isPresent() && user.get().isActive() && 
                     (user.get().getRole() == UserRole.STAFF || user.get().getRole() == UserRole.ADMIN)) {
-                    // In production, verify password hash here
-                    // For demo purposes, we'll authenticate successfully
-                    userDAO.updateLastLogin(user.get().getUserId(), LocalDateTime.now());
-                    staff.updateActivity();
-                    staffDAO.update(staff);
-                    return Optional.of(staff);
+                    // Verify password against stored hash
+                    if (passwordService.verifyPassword(password, user.get().getPasswordHash())) {
+                        userDAO.updateLastLogin(user.get().getUserId(), LocalDateTime.now());
+                        staff.updateActivity();
+                        staffDAO.update(staff);
+                        return Optional.of(staff);
+                    }
                 }
             }
             
@@ -62,12 +66,14 @@ public class StaffService {
                     
                     Optional<Staff> staffByUserId = staffDAO.findByUserId(user.getUserId());
                     if (staffByUserId.isPresent()) {
-                        // In production, verify password hash here
-                        userDAO.updateLastLogin(user.getUserId(), LocalDateTime.now());
-                        Staff staff = staffByUserId.get();
-                        staff.updateActivity();
-                        staffDAO.update(staff);
-                        return Optional.of(staff);
+                        // Verify password against stored hash
+                        if (passwordService.verifyPassword(password, user.getPasswordHash())) {
+                            userDAO.updateLastLogin(user.getUserId(), LocalDateTime.now());
+                            Staff staff = staffByUserId.get();
+                            staff.updateActivity();
+                            staffDAO.update(staff);
+                            return Optional.of(staff);
+                        }
                     }
                 }
             }
