@@ -15,7 +15,6 @@ import {
   X,
   Shield,
   Bell,
-  Moon,
   Globe,
   CreditCard,
   MapPin,
@@ -25,8 +24,8 @@ import {
 
 const Profile: React.FC = () => {
   const navigate = useNavigate()
-  const { user, isLoading } = useAuth()
-  const { updateProfile, logout, clearError } = useAuthActions()
+  const { user } = useAuth()
+  const { updateProfile, clearError } = useAuthActions()
   const globalReset = useGlobalReset()
   const { 
     alertState, 
@@ -93,7 +92,7 @@ const Profile: React.FC = () => {
       const response = await ProfileService.updateCurrentUserProfile(updateData)
       if (response.success) {
         // Update local store with new data
-        const success = await updateProfile(editForm)
+        await updateProfile(editForm)
         setIsEditing(false)
         setEditForm({})
         showSuccess('個人資料已更新')

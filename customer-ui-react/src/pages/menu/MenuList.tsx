@@ -25,7 +25,6 @@ const MenuList: React.FC = () => {
   const {
     items,
     selectedCategory,
-    searchQuery,
     isLoading,
     error,
     fetchMenuItems,

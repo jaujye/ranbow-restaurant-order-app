@@ -17,6 +17,30 @@ export const apiUrlManager = {
   // 獲取當前 API URL
   getCurrentUrl: (): string => getApiUrl(),
   
+  // 獲取可用環境列表 (為開發工具提供)
+  getAvailableEnvironments: () => ({
+    development: 'http://localhost:8081/api',
+    production: 'http://192.168.0.113:8087/api'
+  }),
+  
+  // 切換到指定環境 (實際上不能動態切換，因為依賴環境變量)
+  switchToEnvironment: (env: 'development' | 'production') => {
+    console.warn('Environment switching requires rebuilding with proper VITE_API_BASE_URL')
+    console.log(`Target environment: ${env}`)
+  },
+  
+  // 設置自定義 URL (實際上不能動態設置，因為依賴環境變量)
+  setCustomUrl: (url: string) => {
+    console.warn('Custom URL requires rebuilding with VITE_API_BASE_URL=' + url)
+    console.log(`Target custom URL: ${url}`)
+  },
+  
+  // 重設為預設值 (實際上不能動態重設，因為依賴環境變量)
+  resetToDefault: () => {
+    console.warn('Reset requires removing VITE_API_BASE_URL and rebuilding')
+    console.log('Resetting to default: http://localhost:8081/api')
+  },
+  
   // 測試 API 連接
   testConnection: async (): Promise<{ success: boolean; url: string; message: string }> => {
     const currentUrl = getApiUrl()
@@ -51,11 +75,6 @@ export const apiUrlManager = {
   }
 }
 
-// 更新 httpClient 的 baseURL
-const updateHttpClientBaseUrl = () => {
-  httpClient.defaults.baseURL = getApiUrl()
-}
-
 // HTTP 客戶端實例
 const httpClient: AxiosInstance = axios.create({
   baseURL: getApiUrl(),
@@ -72,20 +91,14 @@ httpClient.interceptors.request.use(
     try {
       const authStore = getAuthStore()
       const token = authStore?.token || localStorage.getItem('authToken')
-      if (token) {
-        config.headers = {
-          ...config.headers,
-          'Authorization': `Bearer ${token}`
-        }
+      if (token && config.headers) {
+        config.headers['Authorization'] = `Bearer ${token}`
       }
     } catch (error) {
       // 如果 store 還未初始化，回退到 localStorage
       const token = localStorage.getItem('authToken')
-      if (token) {
-        config.headers = {
-          ...config.headers,
-          'Authorization': `Bearer ${token}`
-        }
+      if (token && config.headers) {
+        config.headers['Authorization'] = `Bearer ${token}`
       }
     }
     

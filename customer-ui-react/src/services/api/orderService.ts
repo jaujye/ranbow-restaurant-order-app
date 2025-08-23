@@ -23,7 +23,7 @@ export class OrderService {
   /**
    * 獲取訂單詳情
    */
-  static async getOrder(id: number): Promise<ApiResponse<Order>> {
+  static async getOrder(id: string): Promise<ApiResponse<Order>> {
     return HttpClient.get<Order>(`/orders/${id}`)
   }
 
@@ -38,7 +38,7 @@ export class OrderService {
   /**
    * 獲取指定客戶的訂單（管理員功能）
    */
-  static async getCustomerOrders(customerId: number, params?: OrderQueryParams): Promise<ApiResponse<PaginatedResponse<Order>>> {
+  static async getCustomerOrders(customerId: string, params?: OrderQueryParams): Promise<ApiResponse<PaginatedResponse<Order>>> {
     const queryString = params ? new URLSearchParams(params as any).toString() : ''
     return HttpClient.get<PaginatedResponse<Order>>(`/orders/customer/${customerId}${queryString ? '?' + queryString : ''}`)
   }
@@ -54,42 +54,42 @@ export class OrderService {
   /**
    * 更新訂單狀態
    */
-  static async updateOrderStatus(id: number, statusData: UpdateOrderStatusRequest): Promise<ApiResponse<Order>> {
+  static async updateOrderStatus(id: string, statusData: UpdateOrderStatusRequest): Promise<ApiResponse<Order>> {
     return HttpClient.put<Order>(`/orders/${id}/status`, statusData)
   }
 
   /**
    * 取消訂單
    */
-  static async cancelOrder(id: number, reason?: string): Promise<ApiResponse<Order>> {
+  static async cancelOrder(id: string, reason?: string): Promise<ApiResponse<Order>> {
     return HttpClient.post<Order>(`/orders/${id}/cancel`, { reason })
   }
 
   /**
    * 確認訂單（客戶確認）
    */
-  static async confirmOrder(id: number): Promise<ApiResponse<Order>> {
+  static async confirmOrder(id: string): Promise<ApiResponse<Order>> {
     return HttpClient.post<Order>(`/orders/${id}/confirm`)
   }
 
   /**
    * 完成訂單（餐廳方完成）
    */
-  static async completeOrder(id: number): Promise<ApiResponse<Order>> {
+  static async completeOrder(id: string): Promise<ApiResponse<Order>> {
     return HttpClient.post<Order>(`/orders/${id}/complete`)
   }
 
   /**
    * 獲取訂單項目列表
    */
-  static async getOrderItems(orderId: number): Promise<ApiResponse<OrderItem[]>> {
+  static async getOrderItems(orderId: string): Promise<ApiResponse<OrderItem[]>> {
     return HttpClient.get<OrderItem[]>(`/orders/${orderId}/items`)
   }
 
   /**
    * 修改訂單項目（僅限未確認的訂單）
    */
-  static async updateOrderItem(orderId: number, itemId: number, updateData: {
+  static async updateOrderItem(orderId: string, itemId: string, updateData: {
     quantity?: number
     specialRequests?: string
   }): Promise<ApiResponse<OrderItem>> {
@@ -99,8 +99,8 @@ export class OrderService {
   /**
    * 添加訂單項目到現有訂單
    */
-  static async addOrderItem(orderId: number, itemData: {
-    menuItemId: number
+  static async addOrderItem(orderId: string, itemData: {
+    menuItemId: string
     quantity: number
     specialRequests?: string
   }): Promise<ApiResponse<OrderItem>> {
@@ -110,7 +110,7 @@ export class OrderService {
   /**
    * 從訂單中移除項目
    */
-  static async removeOrderItem(orderId: number, itemId: number): Promise<ApiResponse<void>> {
+  static async removeOrderItem(orderId: string, itemId: string): Promise<ApiResponse<void>> {
     return HttpClient.delete<void>(`/orders/${orderId}/items/${itemId}`)
   }
 
@@ -179,7 +179,7 @@ export class OrderService {
   /**
    * 獲取訂單收據
    */
-  static async getOrderReceipt(id: number): Promise<ApiResponse<{
+  static async getOrderReceipt(id: string): Promise<ApiResponse<{
     order: Order
     receiptNumber: string
     issueDate: string
@@ -196,21 +196,21 @@ export class OrderService {
   /**
    * 發送訂單確認郵件
    */
-  static async sendOrderConfirmation(id: number): Promise<ApiResponse<void>> {
+  static async sendOrderConfirmation(id: string): Promise<ApiResponse<void>> {
     return HttpClient.post<void>(`/orders/${id}/send-confirmation`)
   }
 
   /**
    * 獲取預估等待時間
    */
-  static async getEstimatedTime(id: number): Promise<ApiResponse<{ estimatedMinutes: number }>> {
+  static async getEstimatedTime(id: string): Promise<ApiResponse<{ estimatedMinutes: number }>> {
     return HttpClient.get(`/orders/${id}/estimated-time`)
   }
 
   /**
    * 更新訂單預估時間
    */
-  static async updateEstimatedTime(id: number, minutes: number): Promise<ApiResponse<Order>> {
+  static async updateEstimatedTime(id: string, minutes: number): Promise<ApiResponse<Order>> {
     return HttpClient.put<Order>(`/orders/${id}/estimated-time`, { estimatedMinutes: minutes })
   }
 

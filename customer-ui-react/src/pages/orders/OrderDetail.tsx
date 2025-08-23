@@ -37,14 +37,14 @@ const OrderDetail: React.FC = () => {
 
   useEffect(() => {
     if (orderId) {
-      fetchOrderById(parseInt(orderId))
+      fetchOrderById(orderId)
     }
   }, [orderId, fetchOrderById])
 
   const handleRefresh = async () => {
     if (orderId) {
       setRefreshing(true)
-      await fetchOrderById(parseInt(orderId))
+      await fetchOrderById(orderId)
       setRefreshing(false)
     }
   }

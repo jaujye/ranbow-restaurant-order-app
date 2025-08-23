@@ -29,7 +29,7 @@ export interface Cart {
  * 加入購物車請求
  */
 export interface AddToCartRequest {
-  menuItemId: number
+  menuItemId: string  // 修正：使用string類型與MenuItem.itemId一致
   quantity: number
   specialRequests?: string
 }
@@ -50,14 +50,14 @@ export class CartService {
   /**
    * 獲取菜單項目詳情（用於購物車顯示）
    */
-  static async getMenuItem(id: number): Promise<ApiResponse<MenuItem>> {
+  static async getMenuItem(id: string): Promise<ApiResponse<MenuItem>> {
     return HttpClient.get<MenuItem>(`/menu/items/${id}`)
   }
 
   /**
    * 獲取多個菜單項目詳情
    */
-  static async getMenuItems(ids: number[]): Promise<ApiResponse<MenuItem[]>> {
+  static async getMenuItems(ids: string[]): Promise<ApiResponse<MenuItem[]>> {
     const idsParam = ids.join(',')
     return HttpClient.get<MenuItem[]>(`/menu/items?ids=${idsParam}`)
   }
@@ -65,9 +65,9 @@ export class CartService {
   /**
    * 驗證購物車項目是否仍然有效（價格、可用性等）
    */
-  static async validateCartItems(items: Array<{menuItemId: number, quantity: number}>): Promise<ApiResponse<{
-    validItems: Array<{menuItemId: number, currentPrice: number, available: boolean}>
-    invalidItems: Array<{menuItemId: number, reason: string}>
+  static async validateCartItems(items: Array<{menuItemId: string, quantity: number}>): Promise<ApiResponse<{
+    validItems: Array<{menuItemId: string, currentPrice: number, available: boolean}>
+    invalidItems: Array<{menuItemId: string, reason: string}>
   }>> {
     return HttpClient.post('/menu/validate-items', { items })
   }
@@ -75,12 +75,12 @@ export class CartService {
   /**
    * 計算購物車總價（包含稅費和服務費）
    */
-  static async calculateTotal(items: Array<{menuItemId: number, quantity: number}>): Promise<ApiResponse<{
+  static async calculateTotal(items: Array<{menuItemId: string, quantity: number}>): Promise<ApiResponse<{
     subtotal: number
     tax: number
     serviceCharge: number
     total: number
-    breakdown: Array<{menuItemId: number, itemTotal: number}>
+    breakdown: Array<{menuItemId: string, itemTotal: number}>
   }>> {
     return HttpClient.post('/orders/calculate-total', { items })
   }
@@ -88,7 +88,7 @@ export class CartService {
   /**
    * 應用優惠券到購物車
    */
-  static async applyCoupon(couponCode: string, items: Array<{menuItemId: number, quantity: number}>): Promise<ApiResponse<{
+  static async applyCoupon(couponCode: string, items: Array<{menuItemId: string, quantity: number}>): Promise<ApiResponse<{
     valid: boolean
     discount: number
     newTotal: number
@@ -105,19 +105,21 @@ export class CartService {
    */
   static async checkout(cartData: {
     items: Array<{
-      menuItemId: number
+      menuItemId: string  // 修正：使用string類型
       quantity: number
       specialRequests?: string
     }>
     customerInfo?: {
+      id?: string  // 添加缺失的id屬性
       name?: string
       phone?: string
       address?: string
     }
+    tableNumber?: string  // 添加缺失的tableNumber屬性
     paymentMethod?: string
     appliedCoupons?: string[]
     notes?: string
-  }): Promise<ApiResponse<{orderId: number, total: number}>> {
+  }): Promise<ApiResponse<{orderId: string, total: number}>> {  // 修正：返回string類型的orderId
     const orderRequest: CreateOrderRequest = {
       customerId: cartData.customerInfo?.id || 'guest-user',
       tableNumber: cartData.tableNumber || '1',
@@ -130,13 +132,13 @@ export class CartService {
       specialInstructions: cartData.notes || ''
     }
 
-    return HttpClient.post<{orderId: number, total: number}>('/orders', orderRequest)
+    return HttpClient.post<{orderId: string, total: number}>('/orders', orderRequest)  // 修正：返回string類型的orderId
   }
 
   /**
    * 獲取推薦商品（基於購物車內容）
    */
-  static async getRecommendations(cartItems: Array<{menuItemId: number}>): Promise<ApiResponse<MenuItem[]>> {
+  static async getRecommendations(cartItems: Array<{menuItemId: string}>): Promise<ApiResponse<MenuItem[]>> {
     const itemIds = cartItems.map(item => item.menuItemId)
     return HttpClient.post<MenuItem[]>('/menu/recommendations', { currentItems: itemIds })
   }
@@ -145,7 +147,7 @@ export class CartService {
    * 保存購物車到用戶賬戶（登入用戶）
    */
   static async saveCart(items: Array<{
-    menuItemId: number
+    menuItemId: string  // 修正：使用string類型
     quantity: number
     specialRequests?: string
   }>): Promise<ApiResponse<{success: boolean}>> {
@@ -156,7 +158,7 @@ export class CartService {
    * 從用戶賬戶加載已保存的購物車
    */
   static async loadSavedCart(): Promise<ApiResponse<Array<{
-    menuItemId: number
+    menuItemId: string  // 修正：使用string類型
     quantity: number
     specialRequests?: string
     savedAt: string

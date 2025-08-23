@@ -42,7 +42,7 @@ const OrderList: React.FC = () => {
     setRefreshing(false)
   }
 
-  const handleViewOrder = (orderId: number) => {
+  const handleViewOrder = (orderId: string) => {
     navigate(`/orders/${orderId}`)
   }
 

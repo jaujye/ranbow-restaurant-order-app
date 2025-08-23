@@ -99,9 +99,6 @@ const PaymentPage: React.FC<PaymentPageProps> = ({
     }
   ]
 
-  const handlePaymentMethodSelect = (method: PaymentMethod) => {
-    setSelectedMethod(method)
-  }
 
   const handleProcessPayment = async () => {
     if (!selectedMethod || !finalOrderId) return

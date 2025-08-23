@@ -38,7 +38,6 @@ const Checkout: React.FC = () => {
   } = useCheckoutStore()
 
   const [currentStep, setCurrentStep] = useState(1) // 1: 訂單確認, 2: 付款方式, 3: 完成
-  const [orderComplete, setOrderComplete] = useState(false)
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null)
 
   // 檢查用戶是否已登入和購物車是否有商品
@@ -165,7 +164,7 @@ const Checkout: React.FC = () => {
   }
 
   // 如果訂單完成，顯示成功頁面
-  if (orderComplete && currentStep === 3) {
+  if (createdOrderId && currentStep === 3) {
     return (
       <div className="container mx-auto px-4 py-6 max-w-2xl">
         <Card className="p-8 text-center">

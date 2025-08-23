@@ -32,8 +32,8 @@ const LinePayAuth: React.FC<LinePayAuthProps> = ({
   const [timeLeft, setTimeLeft] = useState(300) // 5分鐘倒計時
   const [isSimulating, setIsSimulating] = useState(false)
 
-  // 模擬QR Code數據
-  const qrCodeData = `linepay://pay?merchant=RANBOW_RESTAURANT&order=${orderId}&amount=${amount}&timestamp=${Date.now()}`
+  // 模擬QR Code數據 - 目前未使用，預留給實際QR生成
+  // const qrCodeData = `linepay://pay?merchant=RANBOW_RESTAURANT&order=${orderId}&amount=${amount}&timestamp=${Date.now()}`
 
   // 倒計時效果
   useEffect(() => {
@@ -50,6 +50,7 @@ const LinePayAuth: React.FC<LinePayAuthProps> = ({
 
       return () => clearInterval(timer)
     }
+    return undefined
   }, [currentStep, timeLeft])
 
   // 模擬LINE Pay響應
@@ -76,6 +77,7 @@ const LinePayAuth: React.FC<LinePayAuthProps> = ({
 
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [currentStep, isSimulating, onSuccess])
 
   const formatTime = (seconds: number) => {

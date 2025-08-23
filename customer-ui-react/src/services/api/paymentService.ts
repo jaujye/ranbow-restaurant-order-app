@@ -21,35 +21,35 @@ export class PaymentService {
   /**
    * 獲取支付詳情
    */
-  static async getPayment(id: number): Promise<ApiResponse<Payment>> {
+  static async getPayment(id: string): Promise<ApiResponse<Payment>> {
     return HttpClient.get<Payment>(`/payments/${id}`)
   }
 
   /**
    * 處理支付
    */
-  static async processPayment(id: number, processData: ProcessPaymentRequest): Promise<ApiResponse<Payment>> {
+  static async processPayment(id: string, processData: ProcessPaymentRequest): Promise<ApiResponse<Payment>> {
     return HttpClient.post<Payment>(`/payments/${id}/process`, processData)
   }
 
   /**
    * 獲取訂單的支付記錄
    */
-  static async getOrderPayments(orderId: number): Promise<ApiResponse<Payment[]>> {
+  static async getOrderPayments(orderId: string): Promise<ApiResponse<Payment[]>> {
     return HttpClient.get<Payment[]>(`/payments/order/${orderId}`)
   }
 
   /**
    * 取消支付
    */
-  static async cancelPayment(id: number, reason?: string): Promise<ApiResponse<Payment>> {
+  static async cancelPayment(id: string, reason?: string): Promise<ApiResponse<Payment>> {
     return HttpClient.post<Payment>(`/payments/${id}/cancel`, { reason })
   }
 
   /**
    * 申請退款
    */
-  static async refundPayment(id: number, refundData: {
+  static async refundPayment(id: string, refundData: {
     amount?: number
     reason: string
   }): Promise<ApiResponse<Payment>> {
@@ -59,7 +59,7 @@ export class PaymentService {
   /**
    * 驗證支付狀態
    */
-  static async verifyPayment(id: number): Promise<ApiResponse<{
+  static async verifyPayment(id: string): Promise<ApiResponse<{
     status: PaymentStatus
     verified: boolean
     transactionId?: string
@@ -84,7 +84,7 @@ export class PaymentService {
   /**
    * 現金支付處理
    */
-  static async processCashPayment(paymentId: number, data: {
+  static async processCashPayment(paymentId: string, data: {
     receivedAmount: number
     changeAmount: number
   }): Promise<ApiResponse<Payment>> {
@@ -94,7 +94,7 @@ export class PaymentService {
   /**
    * 信用卡支付處理
    */
-  static async processCreditCardPayment(paymentId: number, data: {
+  static async processCreditCardPayment(paymentId: string, data: {
     cardToken: string
     cardLast4: string
     cardBrand: string
@@ -105,7 +105,7 @@ export class PaymentService {
   /**
    * LINE Pay 支付處理
    */
-  static async processLinePayPayment(paymentId: number): Promise<ApiResponse<{
+  static async processLinePayPayment(paymentId: string): Promise<ApiResponse<{
     paymentUrl: string
     transactionId: string
     qrCode?: string
@@ -116,7 +116,7 @@ export class PaymentService {
   /**
    * Apple Pay 支付處理
    */
-  static async processApplePayPayment(paymentId: number, data: {
+  static async processApplePayPayment(paymentId: string, data: {
     paymentData: any
     signature: string
   }): Promise<ApiResponse<Payment>> {
@@ -188,7 +188,7 @@ export class PaymentService {
   /**
    * 生成支付收據
    */
-  static async generatePaymentReceipt(id: number): Promise<ApiResponse<{
+  static async generatePaymentReceipt(id: string): Promise<ApiResponse<{
     receiptUrl: string
     receiptNumber: string
     issueDate: string
@@ -199,14 +199,14 @@ export class PaymentService {
   /**
    * 發送支付確認郵件
    */
-  static async sendPaymentConfirmation(id: number, email?: string): Promise<ApiResponse<void>> {
+  static async sendPaymentConfirmation(id: string, email?: string): Promise<ApiResponse<void>> {
     return HttpClient.post<void>(`/payments/${id}/send-confirmation`, { email })
   }
 
   /**
    * 檢查支付是否可以退款
    */
-  static async canRefund(id: number): Promise<ApiResponse<{
+  static async canRefund(id: string): Promise<ApiResponse<{
     canRefund: boolean
     reason?: string
     maxRefundAmount: number
@@ -217,8 +217,8 @@ export class PaymentService {
   /**
    * 獲取退款歷史
    */
-  static async getRefundHistory(paymentId: number): Promise<ApiResponse<Array<{
-    id: number
+  static async getRefundHistory(paymentId: string): Promise<ApiResponse<Array<{
+    id: string
     amount: number
     reason: string
     status: 'PENDING' | 'COMPLETED' | 'FAILED'

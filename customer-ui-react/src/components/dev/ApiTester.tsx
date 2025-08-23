@@ -120,7 +120,7 @@ const ApiTester: React.FC = () => {
               }`}
             >
               <div className="text-sm font-medium">{env}</div>
-              <div className="text-xs opacity-75 truncate">{url}</div>
+              <div className="text-xs opacity-75 truncate">{String(url)}</div>
             </button>
           ))}
         </div>

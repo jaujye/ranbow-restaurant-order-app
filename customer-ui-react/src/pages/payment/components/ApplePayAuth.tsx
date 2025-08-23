@@ -29,7 +29,6 @@ const ApplePayAuth: React.FC<ApplePayAuthProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = useState<AuthStep>('device_check')
   const [authMethod, setAuthMethod] = useState<'touch_id' | 'face_id'>('touch_id')
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   // 檢測設備類型 (模擬)
   useEffect(() => {
@@ -53,7 +52,6 @@ const ApplePayAuth: React.FC<ApplePayAuthProps> = ({
       const isSuccess = Math.random() > 0.1
       
       if (isSuccess) {
-        setIsAuthenticated(true)
         setCurrentStep('success')
         setTimeout(() => {
           onSuccess()
@@ -68,7 +66,6 @@ const ApplePayAuth: React.FC<ApplePayAuthProps> = ({
 
   const handleRetry = () => {
     setCurrentStep('biometric_prompt')
-    setIsAuthenticated(false)
   }
 
   const renderBiometricIcon = () => {

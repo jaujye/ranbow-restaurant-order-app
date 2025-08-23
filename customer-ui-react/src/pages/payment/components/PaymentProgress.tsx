@@ -11,8 +11,7 @@ import {
   CheckCircle,
   Zap,
   Server,
-  Lock,
-  ArrowRight
+  Lock
 } from 'lucide-react'
 
 interface PaymentProgressProps {

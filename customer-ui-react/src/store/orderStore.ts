@@ -23,14 +23,14 @@ interface OrderState {
   
   // Actions
   fetchUserOrders: (userId?: string) => Promise<void>
-  fetchOrderById: (id: number) => Promise<Order | null>
+  fetchOrderById: (id: string) => Promise<Order | null>
   createOrder: (orderData: CreateOrderRequest) => Promise<Order | null>
-  updateOrderStatus: (id: number, status: Order['status']) => Promise<void>
-  cancelOrder: (id: number, reason?: string) => Promise<void>
+  updateOrderStatus: (id: string, status: Order['status']) => Promise<void>
+  cancelOrder: (id: string, reason?: string) => Promise<void>
   
   // Payment Actions
-  createPayment: (orderId: number, method: PaymentMethod) => Promise<Payment | null>
-  processPayment: (paymentId: number, data: any) => Promise<boolean>
+  createPayment: (orderId: string, method: PaymentMethod) => Promise<Payment | null>
+  processPayment: (paymentId: string, data: any) => Promise<boolean>
   
   // Checkout Actions
   setTableNumber: (tableNumber: string) => void
@@ -43,7 +43,7 @@ interface OrderState {
   clearCurrentOrder: () => void
   
   // Getters
-  getOrderById: (id: number) => Order | undefined
+  getOrderById: (id: string) => Order | undefined
   getOrdersByStatus: (status: Order['status']) => Order[]
   hasActiveOrders: boolean
 }
@@ -110,7 +110,7 @@ export const useOrderStore = create<OrderState>()((set, get) => ({
     }
   },
 
-  fetchOrderById: async (id: number) => {
+  fetchOrderById: async (id: string) => {
     set({ isLoading: true, error: null })
     
     try {
@@ -170,7 +170,7 @@ export const useOrderStore = create<OrderState>()((set, get) => ({
     }
   },
 
-  updateOrderStatus: async (id: number, status: Order['status']) => {
+  updateOrderStatus: async (id: string, status: Order['status']) => {
     try {
       const response = await OrderService.updateOrderStatus(id, { status })
       
@@ -189,7 +189,7 @@ export const useOrderStore = create<OrderState>()((set, get) => ({
     }
   },
 
-  cancelOrder: async (id: number, reason?: string) => {
+  cancelOrder: async (id: string, reason?: string) => {
     set({ isLoading: true, error: null })
     
     try {
@@ -218,7 +218,7 @@ export const useOrderStore = create<OrderState>()((set, get) => ({
   },
 
   // Payment Actions
-  createPayment: async (orderId: number, method: PaymentMethod) => {
+  createPayment: async (orderId: string, method: PaymentMethod) => {
     set({ isProcessingPayment: true, error: null })
     
     try {
@@ -236,9 +236,9 @@ export const useOrderStore = create<OrderState>()((set, get) => ({
       const customerId = user?.id || 'guest-user'
       
       const response = await PaymentService.createPayment({
-        orderId: order.id?.toString() || orderId.toString(),  // Convert to string for backend
-        customerId: customerId,                               // Add required customerId
-        paymentMethod: method                                 // Use correct field name
+        orderId: order.id || orderId,  // Already string type
+        customerId: customerId,        // Add required customerId
+        paymentMethod: method          // Use correct field name
       })
       
       if (response.success && response.data) {
@@ -263,7 +263,7 @@ export const useOrderStore = create<OrderState>()((set, get) => ({
     }
   },
 
-  processPayment: async (paymentId: number, data: any) => {
+  processPayment: async (paymentId: string, data: any) => {
     set({ isProcessingPayment: true, error: null })
     
     try {
@@ -338,7 +338,7 @@ export const useOrderStore = create<OrderState>()((set, get) => ({
   }),
 
   // Getters
-  getOrderById: (id: number) => {
+  getOrderById: (id: string) => {
     return get().orders.find(order => order.id === id)
   },
 
