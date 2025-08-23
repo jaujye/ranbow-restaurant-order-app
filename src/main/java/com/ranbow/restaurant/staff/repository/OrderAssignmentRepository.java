@@ -201,4 +201,26 @@ public interface OrderAssignmentRepository extends JpaRepository<OrderAssignment
            "WHERE o.assignmentId = :assignmentId")
     int updatePriority(@Param("assignmentId") String assignmentId, 
                        @Param("priority") OrderPriority priority);
+    
+    /**
+     * Find assignment by order ID (single assignment per order)
+     */
+    Optional<OrderAssignment> findByOrderId(String orderId);
+    
+    /**
+     * Count active assignments for a staff member
+     */
+    @Query("SELECT COUNT(o) FROM OrderAssignment o WHERE o.staffId = :staffId " +
+           "AND o.assignmentStatus IN ('ASSIGNED', 'IN_PROGRESS', 'PAUSED')")
+    int countActiveAssignmentsByStaffId(@Param("staffId") String staffId);
+    
+    /**
+     * Find assignments by staff ID and date range
+     */
+    @Query("SELECT o FROM OrderAssignment o WHERE o.staffId = :staffId " +
+           "AND o.assignedAt >= :startDate AND o.assignedAt <= :endDate " +
+           "ORDER BY o.assignedAt DESC")
+    List<OrderAssignment> findByStaffIdAndDateRange(@Param("staffId") String staffId, 
+                                                     @Param("startDate") LocalDateTime startDate, 
+                                                     @Param("endDate") LocalDateTime endDate);
 }

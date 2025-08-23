@@ -495,4 +495,89 @@ public class OrderDAO {
         Double avgTime = jdbcTemplate.queryForObject(query, Double.class);
         return avgTime != null ? avgTime : 0.0;
     }
+    
+    /**
+     * Find active orders (not completed or cancelled)
+     * @return List of active orders
+     */
+    public List<Order> findActiveOrders() {
+        String query = """
+            SELECT order_id, customer_id, status, subtotal, tax, total_amount, 
+                   special_instructions, table_number, order_time, completed_time 
+            FROM orders 
+            WHERE status NOT IN ('COMPLETED', 'CANCELLED')
+            ORDER BY order_time ASC
+            """;
+        
+        List<Order> orders = jdbcTemplate.query(query, orderRowMapper);
+        
+        // Load order items for each order
+        for (Order order : orders) {
+            List<OrderItem> orderItems = jdbcTemplate.query(SELECT_ORDER_ITEMS_BY_ORDER, 
+                    orderItemRowMapper, order.getOrderId());
+            order.setOrderItems(orderItems);
+        }
+        return orders;
+    }
+    
+    /**
+     * Find orders by status
+     * @param status Order status
+     * @return List of orders with the specified status
+     */
+    public List<Order> findByStatus(OrderStatus status) {
+        String query = """
+            SELECT order_id, customer_id, status, subtotal, tax, total_amount, 
+                   special_instructions, table_number, order_time, completed_time 
+            FROM orders 
+            WHERE status = ?::order_status
+            ORDER BY order_time ASC
+            """;
+        
+        List<Order> orders = jdbcTemplate.query(query, orderRowMapper, status.name());
+        
+        // Load order items for each order
+        for (Order order : orders) {
+            List<OrderItem> orderItems = jdbcTemplate.query(SELECT_ORDER_ITEMS_BY_ORDER, 
+                    orderItemRowMapper, order.getOrderId());
+            order.setOrderItems(orderItems);
+        }
+        return orders;
+    }
+    
+    /**
+     * Count orders created today
+     * @return Count of today's orders
+     */
+    public int countTodays() {
+        String query = "SELECT COUNT(*) FROM orders WHERE DATE(order_time) = CURRENT_DATE";
+        Integer count = jdbcTemplate.queryForObject(query, Integer.class);
+        return count != null ? count : 0;
+    }
+    
+    /**
+     * Find overdue orders based on threshold
+     * @param thresholdMinutes Minutes to consider an order overdue
+     * @return List of overdue orders
+     */
+    public List<Order> findOverdueOrders(int thresholdMinutes) {
+        String query = """
+            SELECT order_id, customer_id, status, subtotal, tax, total_amount, 
+                   special_instructions, table_number, order_time, completed_time 
+            FROM orders 
+            WHERE status IN ('PENDING', 'CONFIRMED', 'PREPARING') 
+            AND order_time < (CURRENT_TIMESTAMP - INTERVAL '%d minutes')
+            ORDER BY order_time ASC
+            """.formatted(thresholdMinutes);
+        
+        List<Order> orders = jdbcTemplate.query(query, orderRowMapper);
+        
+        // Load order items for each order
+        for (Order order : orders) {
+            List<OrderItem> orderItems = jdbcTemplate.query(SELECT_ORDER_ITEMS_BY_ORDER, 
+                    orderItemRowMapper, order.getOrderId());
+            order.setOrderItems(orderItems);
+        }
+        return orders;
+    }
 }

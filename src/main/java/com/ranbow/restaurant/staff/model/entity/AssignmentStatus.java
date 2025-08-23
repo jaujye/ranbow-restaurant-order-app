@@ -2,18 +2,43 @@ package com.ranbow.restaurant.staff.model.entity;
 
 /**
  * Assignment Status Enumeration
- * Tracks the current status of an order assignment
+ * Defines the current status of order assignments
  */
 public enum AssignmentStatus {
-    ASSIGNED("Assigned", "Task has been assigned to staff member"),
-    ACCEPTED("Accepted", "Staff member has accepted the assignment"),
-    IN_PROGRESS("In Progress", "Staff member is actively working on the task"),
-    PAUSED("Paused", "Work has been temporarily paused"),
-    COMPLETED("Completed", "Task has been completed successfully"),
-    CANCELLED("Cancelled", "Assignment was cancelled"),
-    REJECTED("Rejected", "Staff member rejected the assignment"),
-    OVERDUE("Overdue", "Assignment is past its estimated completion time"),
-    QUALITY_ISSUE("Quality Issue", "Quality check failed, needs rework");
+    /**
+     * Assignment has been created but work hasn't started
+     */
+    ASSIGNED("Assigned", "Assignment created, work not yet started"),
+    
+    /**
+     * Work on the assignment has started
+     */
+    IN_PROGRESS("In Progress", "Staff member is actively working on the assignment"),
+    
+    /**
+     * Assignment work is temporarily paused
+     */
+    PAUSED("Paused", "Work has been temporarily suspended"),
+    
+    /**
+     * Assignment has been completed successfully
+     */
+    COMPLETED("Completed", "Assignment work has been finished"),
+    
+    /**
+     * Assignment has been cancelled
+     */
+    CANCELLED("Cancelled", "Assignment has been cancelled before completion"),
+    
+    /**
+     * Assignment has been reassigned to another staff member
+     */
+    REASSIGNED("Reassigned", "Assignment has been moved to another staff member"),
+    
+    /**
+     * Assignment is overdue and requires attention
+     */
+    OVERDUE("Overdue", "Assignment has exceeded expected completion time");
     
     private final String displayName;
     private final String description;
@@ -32,72 +57,28 @@ public enum AssignmentStatus {
     }
     
     /**
-     * Check if the assignment is currently active
+     * Check if this is an active status (work can continue)
      */
     public boolean isActive() {
-        return this == ACCEPTED || this == IN_PROGRESS || this == PAUSED;
+        return this == ASSIGNED || this == IN_PROGRESS || this == PAUSED;
     }
     
     /**
-     * Check if the assignment is finished
+     * Check if this is a terminal status (no further work expected)
      */
-    public boolean isFinished() {
-        return this == COMPLETED || this == CANCELLED || this == REJECTED;
+    public boolean isTerminal() {
+        return this == COMPLETED || this == CANCELLED || this == REASSIGNED;
     }
     
     /**
-     * Check if the assignment requires attention
+     * Check if this status requires attention
      */
     public boolean requiresAttention() {
-        return this == OVERDUE || this == QUALITY_ISSUE || this == REJECTED;
+        return this == OVERDUE || this == PAUSED;
     }
     
-    /**
-     * Check if the assignment can be started
-     */
-    public boolean canBeStarted() {
-        return this == ASSIGNED || this == ACCEPTED || this == PAUSED;
-    }
-    
-    /**
-     * Get the next allowed status transitions
-     */
-    public AssignmentStatus[] getAllowedTransitions() {
-        return switch (this) {
-            case ASSIGNED -> new AssignmentStatus[]{ACCEPTED, REJECTED, CANCELLED, IN_PROGRESS};
-            case ACCEPTED -> new AssignmentStatus[]{IN_PROGRESS, CANCELLED, REJECTED};
-            case IN_PROGRESS -> new AssignmentStatus[]{COMPLETED, PAUSED, CANCELLED, QUALITY_ISSUE, OVERDUE};
-            case PAUSED -> new AssignmentStatus[]{IN_PROGRESS, CANCELLED, OVERDUE};
-            case OVERDUE -> new AssignmentStatus[]{IN_PROGRESS, COMPLETED, CANCELLED};
-            case QUALITY_ISSUE -> new AssignmentStatus[]{IN_PROGRESS, CANCELLED};
-            case COMPLETED, CANCELLED, REJECTED -> new AssignmentStatus[]{}; // Terminal states
-        };
-    }
-    
-    /**
-     * Check if transition to another status is allowed
-     */
-    public boolean canTransitionTo(AssignmentStatus newStatus) {
-        AssignmentStatus[] allowed = getAllowedTransitions();
-        for (AssignmentStatus status : allowed) {
-            if (status == newStatus) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    /**
-     * Get CSS class for UI styling
-     */
-    public String getCssClass() {
-        return switch (this) {
-            case ASSIGNED, ACCEPTED -> "status-pending";
-            case IN_PROGRESS -> "status-active";
-            case PAUSED -> "status-warning";
-            case COMPLETED -> "status-success";
-            case CANCELLED, REJECTED -> "status-cancelled";
-            case OVERDUE, QUALITY_ISSUE -> "status-error";
-        };
+    @Override
+    public String toString() {
+        return displayName;
     }
 }

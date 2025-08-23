@@ -263,6 +263,86 @@ public class StaffOrderDetails {
         this.attentionReason = attentionReason;
     }
     
+    // Additional fields needed for service integration
+    private String customerId;
+    private AssignedStaff assignedStaffInfo;
+    private String assignmentType;
+    private String assignmentStatus;
+    private LocalDateTime assignedAt;
+    private LocalDateTime startedAt;
+    private LocalDateTime completedAt;
+    private LocalDateTime estimatedCompletionTime;
+    private int overdueMinutes;
+    
+    // Getters and Setters for new fields
+    public String getCustomerId() {
+        return customerId;
+    }
+    
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
+    }
+    
+    public AssignedStaff getAssignedStaffInfo() {
+        return assignedStaffInfo;
+    }
+    
+    public void setAssignedStaffInfo(AssignedStaff assignedStaff) {
+        this.assignedStaffInfo = assignedStaff;
+    }
+    
+    public String getAssignmentType() {
+        return assignmentType;
+    }
+    
+    public void setAssignmentType(String assignmentType) {
+        this.assignmentType = assignmentType;
+    }
+    
+    public String getAssignmentStatus() {
+        return assignmentStatus;
+    }
+    
+    public void setAssignmentStatus(String assignmentStatus) {
+        this.assignmentStatus = assignmentStatus;
+    }
+    
+    public LocalDateTime getAssignedAt() {
+        return assignedAt;
+    }
+    
+    public void setAssignedAt(LocalDateTime assignedAt) {
+        this.assignedAt = assignedAt;
+    }
+    
+    public LocalDateTime getStartedAt() {
+        return startedAt;
+    }
+    
+    public void setStartedAt(LocalDateTime startedAt) {
+        this.startedAt = startedAt;
+    }
+    
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+    
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+    
+    public LocalDateTime getEstimatedCompletionTime() {
+        return estimatedCompletionTime;
+    }
+    
+    public void setEstimatedCompletionTime(LocalDateTime estimatedCompletionTime) {
+        this.estimatedCompletionTime = estimatedCompletionTime;
+    }
+    
+    public void setOverdueMinutes(int overdueMinutes) {
+        this.overdueMinutes = overdueMinutes;
+    }
+    
     @Override
     public String toString() {
         return "StaffOrderDetails{" +
@@ -275,5 +355,42 @@ public class StaffOrderDetails {
                 ", isOverdue=" + isOverdue +
                 ", overdueMinutes=" + overdueMinutes +
                 '}';
+    }
+    
+    /**
+     * Inner class for assigned staff information
+     */
+    public static class AssignedStaff {
+        private String staffId;
+        private String name;
+        private String department;
+        private String role;
+        private String employeeNumber;
+        
+        public AssignedStaff() {}
+        
+        public AssignedStaff(String staffId, String name, String department) {
+            this.staffId = staffId;
+            this.name = name;
+            this.department = department;
+        }
+        
+        // Getters and Setters
+        public String getStaffId() { return staffId; }
+        public void setStaffId(String staffId) { this.staffId = staffId; }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public String getDepartment() { return department; }
+        public void setDepartment(String department) { this.department = department; }
+        public String getRole() { return role; }
+        public void setRole(String role) { this.role = role; }
+        public String getEmployeeNumber() { return employeeNumber; }
+        public void setEmployeeNumber(String employeeNumber) { this.employeeNumber = employeeNumber; }
+        
+        @Override
+        public String toString() {
+            return String.format("AssignedStaff{staffId='%s', name='%s', department='%s'}", 
+                               staffId, name, department);
+        }
     }
 }

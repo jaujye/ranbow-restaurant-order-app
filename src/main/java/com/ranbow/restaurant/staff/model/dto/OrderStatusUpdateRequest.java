@@ -15,6 +15,8 @@ public class OrderStatusUpdateRequest {
     @NotBlank(message = "New status is required")
     private String newStatus;
     
+    private String currentStatus;
+    
     @NotNull(message = "Staff ID is required")
     private String staffId;
     
@@ -55,6 +57,14 @@ public class OrderStatusUpdateRequest {
     
     public void setNewStatus(String newStatus) {
         this.newStatus = newStatus;
+    }
+    
+    public String getCurrentStatus() {
+        return currentStatus;
+    }
+    
+    public void setCurrentStatus(String currentStatus) {
+        this.currentStatus = currentStatus;
     }
     
     public String getStaffId() {

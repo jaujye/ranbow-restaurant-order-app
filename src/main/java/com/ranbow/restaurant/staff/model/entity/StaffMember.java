@@ -165,6 +165,26 @@ public class StaffMember {
         this.updatedAt = LocalDateTime.now();
     }
     
+    // Additional methods for compatibility
+    public boolean isOnDuty() {
+        return this.isActive != null && this.isActive;
+    }
+    
+    public String getName() {
+        return this.fullName;
+    }
+    
+    public String getDepartment() {
+        // Map role to department for compatibility
+        if (role == null) return "UNKNOWN";
+        return switch (role) {
+            case KITCHEN_STAFF, HEAD_CHEF -> "KITCHEN";
+            case WAITER, HEAD_WAITER -> "SERVICE";
+            case MANAGER, ADMIN -> "MANAGEMENT";
+            default -> "GENERAL";
+        };
+    }
+    
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();

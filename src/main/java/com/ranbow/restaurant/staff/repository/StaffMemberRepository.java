@@ -152,4 +152,27 @@ public interface StaffMemberRepository extends JpaRepository<StaffMember, String
     @Query("UPDATE StaffMember s SET s.isActive = false, s.currentDeviceId = null, " +
            "s.updatedAt = CURRENT_TIMESTAMP WHERE s.staffId = :staffId")
     int deactivateStaff(@Param("staffId") String staffId);
+    
+    /**
+     * Find on-duty staff (alias for findByIsActiveTrue for compatibility)
+     */
+    default List<StaffMember> findOnDutyStaff() {
+        return findByIsActiveTrue();
+    }
+    
+    /**
+     * Find staff by department (mapped from role)
+     */
+    @Query("SELECT s FROM StaffMember s WHERE s.isActive = true AND " +
+           "((:department = 'KITCHEN' AND s.role IN ('KITCHEN_STAFF', 'HEAD_CHEF')) OR " +
+           "(:department = 'SERVICE' AND s.role IN ('WAITER', 'HEAD_WAITER')) OR " +
+           "(:department = 'MANAGEMENT' AND s.role IN ('MANAGER', 'ADMIN')) OR " +
+           "(:department = 'GENERAL' AND s.role NOT IN ('KITCHEN_STAFF', 'HEAD_CHEF', 'WAITER', 'HEAD_WAITER', 'MANAGER', 'ADMIN')))")
+    List<StaffMember> findByDepartment(@Param("department") String department);
+    
+    /**
+     * Find staff by role name (string version for compatibility)
+     */
+    @Query("SELECT s FROM StaffMember s WHERE s.isActive = true AND CAST(s.role AS string) = :roleName")
+    List<StaffMember> findByRole(@Param("roleName") String roleName);
 }
