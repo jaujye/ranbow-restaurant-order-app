@@ -39,18 +39,82 @@ mvn clean install
 ```
 
 ### 4. 配置環境變數
-```bash
-# 前端環境變數 (staff-ui-react/.env)
-VITE_API_URL=http://localhost:8081/api
-VITE_WS_URL=ws://localhost:8081/ws
 
-# 後端環境變數 (src/main/resources/application.yml)
+#### 前端環境配置 (staff-ui-react/.env)
+```bash
+# 📡 API配置 - 開發環境
+VITE_API_BASE_URL=http://localhost:8084/api
+VITE_WS_BASE_URL=ws://localhost:8084
+
+# 🎯 應用配置
+VITE_APP_TITLE=Ranbow Restaurant - Staff UI
+VITE_APP_VERSION=1.0.0
+VITE_ENVIRONMENT=local
+
+# 🔧 功能開關
+VITE_ENABLE_ANALYTICS=false
+VITE_ENABLE_PWA=true
+VITE_ENABLE_NOTIFICATIONS=true
+VITE_ENABLE_QUICK_SWITCH=true
+
+# 🛠️ 開發設定
+VITE_MOCK_API=false
+VITE_DEBUG_MODE=true
+
+# 🔒 安全設定
+VITE_SESSION_TIMEOUT=28800000
+VITE_ACTIVITY_CHECK_INTERVAL=300000
+VITE_MAX_FAILED_ATTEMPTS=5
+```
+
+#### 生產環境配置 (staff-ui-react/.env.production)
+```bash
+# 📡 API配置 - 生產環境
+VITE_API_BASE_URL=http://192.168.0.113:8087/api
+VITE_WS_BASE_URL=ws://192.168.0.113:8087
+
+# 🎯 應用配置
+VITE_APP_TITLE=Ranbow Restaurant - Staff UI
+VITE_APP_VERSION=1.0.0
+VITE_ENVIRONMENT=production
+
+# 🔧 功能開關
+VITE_ENABLE_ANALYTICS=true
+VITE_ENABLE_PWA=true
+VITE_ENABLE_NOTIFICATIONS=true
+VITE_ENABLE_QUICK_SWITCH=true
+
+# 🛠️ 生產設定
+VITE_MOCK_API=false
+VITE_DEBUG_MODE=false
+
+# 🔒 安全設定
+VITE_SESSION_TIMEOUT=28800000
+VITE_ACTIVITY_CHECK_INTERVAL=300000
+VITE_MAX_FAILED_ATTEMPTS=5
+```
+
+#### 後端環境變數 (src/main/resources/application.yml)
+```yaml
 spring:
   datasource:
     url: jdbc:postgresql://192.168.0.114:5432/ranbow_restaurant
-  redis:
-    host: 192.168.0.113
+  data:
+    redis:
+      host: 192.168.0.113
+
+server:
+  port: 8084  # 開發環境端口
 ```
+
+#### 環境變數說明
+| 變數名 | 說明 | 開發值 | 生產值 |
+|--------|------|--------|--------|
+| `VITE_API_BASE_URL` | REST API基礎URL | `localhost:8084/api` | `192.168.0.113:8087/api` |
+| `VITE_WS_BASE_URL` | WebSocket基礎URL | `ws://localhost:8084` | `ws://192.168.0.113:8087` |
+| `VITE_ENVIRONMENT` | 環境標識 | `local` | `production` |
+| `VITE_DEBUG_MODE` | 除錯模式 | `true` | `false` |
+| `VITE_SESSION_TIMEOUT` | 會話超時時間(ms) | `28800000` | `28800000` |
 
 ---
 
@@ -58,27 +122,86 @@ spring:
 
 ### 步驟 1: 啟動後端服務
 ```bash
-# 在專案根目錄執行
-mvn spring-boot:run
+# 在專案根目錄執行 (使用開發環境端口 8084)
+mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8084"
 
 # 驗證後端啟動成功
-curl http://localhost:8081/api/health
-# 預期回應: {"status":"UP","database":"Connected"}
+curl http://localhost:8084/api/health
+# 預期回應: {"status":"UP","database":"Connected","service":"Ranbow Restaurant Order Application"}
+```
+
+#### 環境檢查指令
+```bash
+# 檢查環境變數是否正確載入
+echo $VITE_API_BASE_URL
+echo $VITE_WS_BASE_URL
+
+# 檢查前端能否連接後端
+curl http://localhost:8084/api/health
+
+# 檢查端口占用情況
+netstat -ano | findstr :8084
 ```
 
 ### 步驟 2: 啟動前端應用
 ```bash
 # 新開終端視窗
 cd staff-ui-react
+
+# 檢查環境配置文件
+ls -la .env*
+cat .env
+
+# 啟動前端開發服務器
 npm run dev
 
-# 前端將運行在 http://localhost:3003
+# 前端將運行在 http://localhost:3002 (員工UI端口)
+```
+
+#### 前端環境驗證
+```bash
+# 確認環境變數載入
+npm run build --dry-run
+
+# 檢查 API 配置是否正確
+node -e "console.log('API URL:', process.env.VITE_API_BASE_URL || 'http://localhost:8084/api')"
+
+# 測試前端對後端的連接
+curl -X POST http://localhost:8084/api/staff/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"loginId":"ADMIN001","password":"Password123","deviceInfo":{"deviceId":"test","deviceType":"web","appVersion":"1.0.0"}}'
 ```
 
 ### 步驟 3: 確認系統狀態
-- 🌐 瀏覽器訪問: http://localhost:3003
+- 🌐 瀏覽器訪問: http://localhost:3002 (員工UI)
 - ✅ 確認登入頁面正常顯示
 - ✅ 確認控制台無錯誤
+- ✅ 確認環境配置正確載入
+
+#### 系統狀態檢查清單
+```bash
+# 後端服務檢查
+curl http://localhost:8084/api/health
+# ✅ 應返回: {"status":"UP","database":"Connected"}
+
+# 前端服務檢查
+curl http://localhost:3002
+# ✅ 應返回: HTML頁面內容
+
+# 環境變數檢查 (在瀏覽器控制台)
+console.log('API Base URL:', import.meta.env.VITE_API_BASE_URL)
+console.log('WS Base URL:', import.meta.env.VITE_WS_BASE_URL)
+console.log('Environment:', import.meta.env.VITE_ENVIRONMENT)
+```
+
+#### 網絡連接測試
+```javascript
+// 在瀏覽器控制台執行
+fetch(`${import.meta.env.VITE_API_BASE_URL}/health`)
+  .then(res => res.json())
+  .then(data => console.log('✅ Backend connection:', data))
+  .catch(err => console.error('❌ Backend connection failed:', err))
+```
 
 ---
 
@@ -87,10 +210,23 @@ npm run dev
 ### 測試案例 1: 員工登入測試
 
 #### 測試步驟
-1. 開啟瀏覽器，訪問 http://localhost:3003
-2. 在登入頁面輸入測試帳號
-3. 點擊「登入」按鈕
-4. 驗證成功跳轉至主頁面
+1. 開啟瀏覽器，訪問 http://localhost:3002
+2. 確認環境配置正確載入 (F12 → Console)
+3. 在登入頁面輸入測試帳號
+4. 點擊「登入」按鈕
+5. 驗證成功跳轉至主頁面
+
+#### 環境配置驗證步驟
+```bash
+# 步驟 1: 檢查 .env 文件存在
+ls staff-ui-react/.env
+
+# 步驟 2: 驗證環境變數內容
+cat staff-ui-react/.env | grep VITE_API_BASE_URL
+
+# 步驟 3: 確認 API 端點正確
+curl http://localhost:8084/api/staff/auth/login -X OPTIONS -v
+```
 
 #### 測試資料
 ```json
@@ -240,14 +376,57 @@ npm run type-check
 
 ### 問題 3: API 請求失敗
 ```javascript
-// 檢查 CORS 設定
-// 確認 API URL 正確
-console.log(import.meta.env.VITE_API_URL)
+// 檢查環境變數載入
+console.log('API Base URL:', import.meta.env.VITE_API_BASE_URL)
+console.log('WS Base URL:', import.meta.env.VITE_WS_BASE_URL)
+console.log('Environment:', import.meta.env.VITE_ENVIRONMENT)
 
-// 測試 API 連接
-fetch('http://localhost:8081/api/health')
+// 測試 API 連接 (使用正確端口)
+fetch('http://localhost:8084/api/health')
   .then(res => res.json())
   .then(console.log)
+  .catch(console.error)
+
+// 測試登入 API
+fetch('http://localhost:8084/api/staff/auth/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    loginId: 'ADMIN001',
+    password: 'Password123',
+    deviceInfo: { deviceId: 'test', deviceType: 'web', appVersion: '1.0.0' }
+  })
+})
+.then(res => res.json())
+.then(console.log)
+.catch(console.error)
+```
+
+### 問題 4: 環境變數未正確載入
+```bash
+# 檢查 .env 文件位置和內容
+ls -la staff-ui-react/.env*
+cat staff-ui-react/.env
+
+# 重新啟動前端服務
+cd staff-ui-react
+npm run dev
+
+# 檢查 Vite 是否正確載入環境變數
+npm run build --mode development
+```
+
+### 問題 5: 端口衝突
+```bash
+# 檢查端口占用
+netstat -ano | findstr :8084
+netstat -ano | findstr :3002
+
+# 殺死占用端口的程序 (Windows)
+taskkill /PID [PID號碼] /F
+
+# 使用不同端口啟動
+mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8085"
 ```
 
 ---
@@ -314,6 +493,63 @@ git push origin main
 
 ---
 
+## 🔧 環境配置完整指南
+
+### 環境配置檔案結構
+```
+staff-ui-react/
+├── .env                    # 開發環境配置
+├── .env.production        # 生產環境配置
+├── src/
+│   └── config/
+│       └── api.ts         # 統一API端點配置
+```
+
+### API 端點配置說明
+```typescript
+// src/config/api.ts - 統一管理所有 API 端點
+export const AUTH_ENDPOINTS = {
+  LOGIN: `${API_BASE_URL}/staff/auth/login`,
+  LOGOUT: `${API_BASE_URL}/staff/auth/logout`,
+  REFRESH: `${API_BASE_URL}/staff/auth/refresh`,
+  // ... 更多端點
+}
+```
+
+### 環境切換操作
+```bash
+# 開發環境 (預設)
+npm run dev
+# 使用 .env 配置
+
+# 生產環境構建
+npm run build
+# 使用 .env.production 配置
+
+# 預覽生產版本
+npm run preview
+```
+
+### 環境變數除錯
+```javascript
+// 在瀏覽器控制台檢查當前環境配置
+console.table({
+  'API Base URL': import.meta.env.VITE_API_BASE_URL,
+  'WS Base URL': import.meta.env.VITE_WS_BASE_URL,
+  'Environment': import.meta.env.VITE_ENVIRONMENT,
+  'Debug Mode': import.meta.env.VITE_DEBUG_MODE,
+  'Mode': import.meta.env.MODE
+})
+```
+
+### 配置最佳實務
+1. **不要將敏感資訊放入 .env 文件** (如 API 金鑰)
+2. **將 .env.local 加入 .gitignore** (個人本地配置)
+3. **使用描述性的變數名稱** (如 `VITE_API_BASE_URL`)
+4. **為每個環境提供預設值** (防止配置遺失)
+
+---
+
 ## 📚 相關資源
 
 ### 內部文檔
@@ -338,4 +574,18 @@ git push origin main
 ---
 
 *本指南由 Claude Code 團隊編寫*  
-*最後更新: 2025-08-23*
+*最後更新: 2025-08-23*  
+*環境配置更新版本: v2.0*
+
+## 📝 更新紀錄
+
+### v2.0 (2025-08-23)
+- ✅ 新增完整的環境變數配置指南
+- ✅ 更新 API 端點為 8084 端口
+- ✅ 新增 .env 和 .env.production 配置說明
+- ✅ 新增環境配置除錯方法
+- ✅ 更新所有測試指令和端點
+
+### v1.0 (2025-08-23)
+- 初始版本建立
+- 基礎測試流程建立
