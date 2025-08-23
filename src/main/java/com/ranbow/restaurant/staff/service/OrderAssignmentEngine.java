@@ -462,7 +462,7 @@ public class OrderAssignmentEngine {
     private int getMaxCapacityForRole(StaffRole role) {
         return switch (role) {
             case KITCHEN -> MAX_ORDERS_PER_KITCHEN_STAFF;
-            case SERVICE -> MAX_ORDERS_PER_SERVICE_STAFF;
+            case SERVICE, WAITER -> MAX_ORDERS_PER_SERVICE_STAFF;
             case CASHIER -> MAX_ORDERS_PER_CASHIER;
             case MANAGER, ADMIN -> MAX_ORDERS_PER_SERVICE_STAFF;
         };

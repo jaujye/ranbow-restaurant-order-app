@@ -17,6 +17,9 @@ public class KitchenWorkloadResponse {
     private KitchenStatistics statistics;
     private List<Alert> alerts;
     private LocalDateTime lastUpdated;
+    private Integer currentCapacity;
+    private Integer activeOrderCount;
+    private String status;
     
     // Constructors
     public KitchenWorkloadResponse() {
@@ -495,6 +498,30 @@ public class KitchenWorkloadResponse {
     
     public void setLastUpdated(LocalDateTime lastUpdated) {
         this.lastUpdated = lastUpdated;
+    }
+    
+    public Integer getCurrentCapacity() {
+        return currentCapacity;
+    }
+    
+    public void setCurrentCapacity(Integer currentCapacity) {
+        this.currentCapacity = currentCapacity;
+    }
+    
+    public Integer getActiveOrderCount() {
+        return activeOrderCount;
+    }
+    
+    public void setActiveOrderCount(Integer activeOrderCount) {
+        this.activeOrderCount = activeOrderCount;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
     }
     
     @Override

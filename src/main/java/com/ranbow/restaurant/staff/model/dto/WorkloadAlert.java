@@ -11,12 +11,15 @@ public class WorkloadAlert {
     private String message;
     private String severity; // LOW, MEDIUM, HIGH, CRITICAL
     private LocalDateTime timestamp;
+    private LocalDateTime createdAt;
     private String stationId;
     private String relatedOrderId;
+    private String recommendation;
     
     // Constructors
     public WorkloadAlert() {
         this.timestamp = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
     }
     
     public WorkloadAlert(String alertType, String message, String severity) {
@@ -78,6 +81,38 @@ public class WorkloadAlert {
     
     public void setRelatedOrderId(String relatedOrderId) {
         this.relatedOrderId = relatedOrderId;
+    }
+    
+    public String getRecommendation() {
+        return recommendation;
+    }
+    
+    public void setRecommendation(String recommendation) {
+        this.recommendation = recommendation;
+    }
+    
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+    
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+    
+    public String getLevel() {
+        return severity; // severity acts as level
+    }
+    
+    public void setLevel(String level) {
+        this.severity = level; // severity acts as level
+    }
+    
+    public String getTitle() {
+        return alertType; // alertType acts as title
+    }
+    
+    public void setTitle(String title) {
+        this.alertType = title; // alertType acts as title
     }
     
     @Override

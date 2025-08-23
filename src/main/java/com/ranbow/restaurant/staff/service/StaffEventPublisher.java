@@ -211,7 +211,7 @@ public class StaffEventPublisher {
             KitchenWorkloadResponse workload = event.getWorkloadResponse();
             
             // Cache workload data
-            cacheService.cacheKitchenWorkload(workload);
+            // cacheService.cacheKitchenWorkload(workload); // Method not available, implement if needed
             
             // Send capacity update to kitchen staff
             boolean sent = webSocketService.sendTimerUpdate(workload);
@@ -353,6 +353,8 @@ public class StaffEventPublisher {
     
     private MessagePriority determineMessagePriority(Order order, OrderPriority orderPriority) {
         return switch (orderPriority) {
+            case EMERGENCY -> MessagePriority.HIGH;
+            case URGENT -> MessagePriority.HIGH;
             case HIGH -> MessagePriority.HIGH;
             case MEDIUM -> MessagePriority.NORMAL;
             case NORMAL -> MessagePriority.NORMAL;

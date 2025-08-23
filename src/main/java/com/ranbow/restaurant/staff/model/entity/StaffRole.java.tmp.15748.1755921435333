@@ -62,7 +62,7 @@ public enum StaffRole {
     public int getHierarchyLevel() {
         return switch (this) {
             case KITCHEN -> 1;
-            case SERVICE, WAITER -> 2;
+            case SERVICE -> 2;
             case CASHIER -> 3;
             case MANAGER -> 4;
             case ADMIN -> 5;

@@ -2,6 +2,7 @@ package com.ranbow.restaurant.api;
 
 import com.ranbow.restaurant.models.*;
 import com.ranbow.restaurant.services.*;
+import com.ranbow.restaurant.staff.model.dto.KitchenOrderDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -288,13 +289,13 @@ public class StaffController {
                 Order order = orderOpt.get();
                 
                 // Get kitchen order details if available
-                Optional<KitchenService.KitchenOrderDetails> kitchenDetails = 
+                KitchenOrderDetails kitchenDetails = 
                     kitchenService.getKitchenOrderDetails(orderId);
                 
                 return ResponseEntity.ok(Map.of(
                     "order", order,
-                    "kitchenDetails", kitchenDetails.orElse(null),
-                    "hasKitchenInfo", kitchenDetails.isPresent()
+                    "kitchenDetails", kitchenDetails,
+                    "hasKitchenInfo", kitchenDetails != null
                 ));
             }
             

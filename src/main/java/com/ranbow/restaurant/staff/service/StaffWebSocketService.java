@@ -423,7 +423,7 @@ public class StaffWebSocketService {
     private String getStaffRole(String staffId) {
         try {
             return staffMemberRepository.findById(staffId)
-                .map(StaffMember::getRole)
+                .map(staff -> staff.getRole().name()) // Convert StaffRole enum to String
                 .orElse("UNKNOWN");
         } catch (Exception e) {
             logger.error("Error getting staff role for {}: ", staffId, e);

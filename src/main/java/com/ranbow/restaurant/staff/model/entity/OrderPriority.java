@@ -7,6 +7,7 @@ package com.ranbow.restaurant.staff.model.entity;
 public enum OrderPriority {
     LOW(1, "Low Priority", "Standard processing order"),
     NORMAL(2, "Normal Priority", "Regular orders with standard timing"),
+    MEDIUM(2, "Medium Priority", "Regular orders with standard timing"), // Alias for NORMAL
     HIGH(3, "High Priority", "Orders requiring faster processing"),
     URGENT(4, "Urgent Priority", "Time-sensitive orders"),
     EMERGENCY(5, "Emergency Priority", "Critical orders requiring immediate attention");
