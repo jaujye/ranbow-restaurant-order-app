@@ -493,6 +493,14 @@ public class CookingTimer {
         this.createdAt = createdAt;
     }
     
+    public void setCreatedTime(LocalDateTime createdTime) {
+        this.createdAt = createdTime;
+    }
+    
+    public void setCompletedTime(LocalDateTime completedTime) {
+        this.endTime = completedTime;
+    }
+    
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }

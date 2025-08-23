@@ -381,7 +381,7 @@ public class StaffWebSocketHandler extends TextWebSocketHandler {
     private StaffRole determineStaffRole(String staffId) {
         // This would normally fetch from database or cache
         // For now, return a default role
-        return StaffRole.WAITER; // TODO: Implement proper role lookup
+        return StaffRole.SERVICE; // TODO: Implement proper role lookup
     }
     
     private void handleIncomingMessage(WebSocketSession session, WSMessage message, StaffConnectionInfo connInfo) {

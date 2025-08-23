@@ -5,6 +5,7 @@ package com.ranbow.restaurant.models;
  * Represents the current status of a cooking timer/session
  */
 public enum CookingStatus {
+    CREATED("已建立", "Timer is created and waiting to be started"),
     IDLE("待開始", "Timer is created but not started yet"),
     RUNNING("進行中", "Timer is actively running"),
     PAUSED("已暫停", "Timer is paused, can be resumed"),

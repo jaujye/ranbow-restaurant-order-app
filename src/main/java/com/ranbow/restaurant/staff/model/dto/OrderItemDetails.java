@@ -74,6 +74,10 @@ public class OrderItemDetails {
         this.name = name;
     }
     
+    public void setItemName(String itemName) {
+        this.name = itemName;
+    }
+    
     public int getQuantity() {
         return quantity;
     }
@@ -89,6 +93,11 @@ public class OrderItemDetails {
     
     public void setUnitPrice(BigDecimal unitPrice) {
         this.unitPrice = unitPrice;
+        calculateTotalPrice();
+    }
+    
+    public void setPrice(BigDecimal price) {
+        this.unitPrice = price;
         calculateTotalPrice();
     }
     

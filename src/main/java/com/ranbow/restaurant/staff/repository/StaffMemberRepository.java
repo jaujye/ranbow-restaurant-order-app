@@ -24,9 +24,21 @@ public interface StaffMemberRepository extends JpaRepository<StaffMember, String
     Optional<StaffMember> findByEmployeeNumber(String employeeNumber);
     
     /**
+     * Find staff member by staff ID
+     */
+    Optional<StaffMember> findByStaffId(String staffId);
+    
+    /**
      * Find all active staff members
      */
     List<StaffMember> findByIsActiveTrue();
+    
+    /**
+     * Find active staff (alias for findByIsActiveTrue for compatibility)
+     */
+    default List<StaffMember> findActiveStaff() {
+        return findByIsActiveTrue();
+    }
     
     /**
      * Find all staff members by role

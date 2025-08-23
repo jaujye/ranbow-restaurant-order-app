@@ -176,12 +176,24 @@ public class WorkloadStatus {
         determineOverallStatus();
     }
     
+    public void setMaxCapacity(int maxCapacity) {
+        this.totalCapacity = maxCapacity;
+        calculateWorkloadPercentage();
+        determineOverallStatus();
+    }
+    
     public int getCurrentWorkload() {
         return currentWorkload;
     }
     
     public void setCurrentWorkload(int currentWorkload) {
         this.currentWorkload = currentWorkload;
+        calculateWorkloadPercentage();
+        determineOverallStatus();
+    }
+    
+    public void setCurrentOrders(int currentOrders) {
+        this.currentWorkload = currentOrders;
         calculateWorkloadPercentage();
         determineOverallStatus();
     }
@@ -200,6 +212,10 @@ public class WorkloadStatus {
     
     public void setOverallStatus(String overallStatus) {
         this.overallStatus = overallStatus;
+    }
+    
+    public void setStatus(String status) {
+        this.overallStatus = status;
     }
     
     public List<StaffWorkload> getStaffWorkloads() {

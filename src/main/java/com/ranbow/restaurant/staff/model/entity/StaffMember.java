@@ -174,12 +174,17 @@ public class StaffMember {
         return this.fullName;
     }
     
+    public String getDisplayName() {
+        return this.fullName;
+    }
+    
     public String getDepartment() {
         // Map role to department for compatibility
         if (role == null) return "UNKNOWN";
         return switch (role) {
-            case KITCHEN_STAFF, HEAD_CHEF -> "KITCHEN";
-            case WAITER, HEAD_WAITER -> "SERVICE";
+            case KITCHEN -> "KITCHEN";
+            case SERVICE -> "SERVICE";
+            case CASHIER -> "CASHIER";
             case MANAGER, ADMIN -> "MANAGEMENT";
             default -> "GENERAL";
         };
