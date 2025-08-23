@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, Button, Input, useDialogContext } from '@/components/ui'
 import { useCheckoutStore } from '@/store'
-import { getOrderStatusText, getPaymentMethodText } from '@/store/orderStore'
+import { getPaymentMethodText } from '@/store/orderStore'
 import { formatPrice } from '@/store/cartStore'
 import { PaymentMethod } from '@/services/api'
 import { 
   ArrowLeft, 
   CreditCard, 
   Smartphone, 
-  DollarSign, 
   Wallet,
   MapPin,
   MessageSquare,
@@ -29,22 +28,18 @@ const Checkout: React.FC = () => {
     subtotal,
     tax,
     serviceCharge,
-    clearCart,
     checkoutData,
     isCreatingOrder,
     isProcessingPayment,
     setTableNumber,
     setPaymentMethod,
     setSpecialRequests,
-    createOrder,
-    createPayment,
-    processPayment,
-    resetCheckoutData
+    createOrder
   } = useCheckoutStore()
 
   const [currentStep, setCurrentStep] = useState(1) // 1: 訂單確認, 2: 付款方式, 3: 完成
   const [orderComplete, setOrderComplete] = useState(false)
-  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null)
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null)
 
   // 檢查用戶是否已登入和購物車是否有商品
   useEffect(() => {
@@ -118,8 +113,8 @@ const Checkout: React.FC = () => {
     try {
       // 創建訂單 - 符合CreateOrderRequest接口
       const orderData = {
-        customerId: user?.userId || user?.id || 'guest-user',
-        tableNumber: parseInt(checkoutData.tableNumber.replace(/[^\d]/g, '') || '1'),
+        customerId: user?.id || 'guest-user',
+        tableNumber: checkoutData.tableNumber.replace(/[^\d]/g, '') || '1',
         items: cartItems.map(item => ({
           menuItemId: item.menuItem.itemId || item.menuItem.id?.toString() || '',
           quantity: item.quantity,

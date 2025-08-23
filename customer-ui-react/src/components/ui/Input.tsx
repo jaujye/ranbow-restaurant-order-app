@@ -2,7 +2,7 @@ import React, { forwardRef, useState } from 'react'
 import { cn, variants } from '@/utils/cn'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   size?: keyof typeof variants.inputSize
   error?: boolean
   errorMessage?: string

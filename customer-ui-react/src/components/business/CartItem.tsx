@@ -8,8 +8,7 @@ import {
   Trash2, 
   Edit3, 
   Save, 
-  X,
-  Image as ImageIcon
+  X
 } from 'lucide-react'
 
 interface CartItemProps {

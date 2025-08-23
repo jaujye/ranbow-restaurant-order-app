@@ -1,5 +1,5 @@
 import { HttpClient, ApiResponse } from './client'
-import { MenuItem, CreateOrderRequest } from './types'
+import { MenuItem, CreateOrderRequest, PaymentMethod } from './types'
 
 /**
  * 購物車項目介面
@@ -119,17 +119,15 @@ export class CartService {
     notes?: string
   }): Promise<ApiResponse<{orderId: number, total: number}>> {
     const orderRequest: CreateOrderRequest = {
-      orderItems: cartData.items.map(item => ({
+      customerId: cartData.customerInfo?.id || 'guest-user',
+      tableNumber: cartData.tableNumber || '1',
+      items: cartData.items.map(item => ({
         menuItemId: item.menuItemId,
         quantity: item.quantity,
         specialRequests: item.specialRequests || ''
       })),
-      customerName: cartData.customerInfo?.name,
-      customerPhone: cartData.customerInfo?.phone,
-      deliveryAddress: cartData.customerInfo?.address,
-      paymentMethod: cartData.paymentMethod || 'CASH',
-      notes: cartData.notes,
-      appliedCoupons: cartData.appliedCoupons
+      paymentMethod: (cartData.paymentMethod || 'CASH') as PaymentMethod,
+      specialInstructions: cartData.notes || ''
     }
 
     return HttpClient.post<{orderId: number, total: number}>('/orders', orderRequest)

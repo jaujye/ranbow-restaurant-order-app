@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Button } from '@/components/ui'
+import { Card } from '@/components/ui'
 import { PaymentMethod } from '@/services/api'
 import { 
   CreditCard, 

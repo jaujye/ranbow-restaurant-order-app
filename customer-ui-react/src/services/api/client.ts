@@ -67,7 +67,7 @@ const httpClient: AxiosInstance = axios.create({
 
 // 請求攔截器
 httpClient.interceptors.request.use(
-  (config: AxiosRequestConfig): AxiosRequestConfig => {
+  (config) => {
     // 優先從 Zustand store 獲取 token，回退到 localStorage
     try {
       const authStore = getAuthStore()

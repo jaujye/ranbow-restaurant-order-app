@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { PaymentMethod } from '@/services/api'
 
 // 桌號驗證
 export const tableNumberSchema = z

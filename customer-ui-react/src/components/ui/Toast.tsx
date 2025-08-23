@@ -42,7 +42,7 @@ export const showToast = {
   success: (message: string, options?: ToastOptions) => {
     return toast.success(message, {
       duration: 4000,
-      icon: options?.icon || toastIcons.success,
+      icon: options?.icon || toastIcons.success as any,
       className: cn('toast', toastStyles.success, options?.className),
       id: options?.id,
     })
@@ -51,7 +51,7 @@ export const showToast = {
   error: (message: string, options?: ToastOptions) => {
     return toast.error(message, {
       duration: 5000,
-      icon: options?.icon || toastIcons.error,
+      icon: options?.icon || toastIcons.error as any,
       className: cn('toast', toastStyles.error, options?.className),
       id: options?.id,
     })
@@ -60,7 +60,7 @@ export const showToast = {
   warning: (message: string, options?: ToastOptions) => {
     return toast(message, {
       duration: 4500,
-      icon: options?.icon || toastIcons.warning,
+      icon: options?.icon || toastIcons.warning as any,
       className: cn('toast', toastStyles.warning, options?.className),
       id: options?.id,
     })
@@ -69,7 +69,7 @@ export const showToast = {
   info: (message: string, options?: ToastOptions) => {
     return toast(message, {
       duration: 4000,
-      icon: options?.icon || toastIcons.info,
+      icon: options?.icon || toastIcons.info as any,
       className: cn('toast', toastStyles.info, options?.className),
       id: options?.id,
     })

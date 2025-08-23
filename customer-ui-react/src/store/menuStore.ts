@@ -19,7 +19,7 @@ interface MenuState {
   availableOnly: boolean
   
   // Actions
-  fetchMenuItems: () => Promise<void>
+  fetchMenuItems: (category?: string) => Promise<void>
   fetchCategories: () => Promise<void>
   fetchPopularItems: () => Promise<void>
   fetchFeaturedItems: () => Promise<void>
@@ -33,8 +33,8 @@ interface MenuState {
   // Getters
   filteredItems: MenuItem[]
   getCategoryItems: (categoryName: string) => MenuItem[]
-  getItemById: (id: number) => MenuItem | undefined
-  isItemAvailable: (id: number) => boolean
+  getItemById: (id: number | string) => MenuItem | undefined
+  isItemAvailable: (id: number | string) => boolean
 }
 
 export const useMenuStore = create<MenuState>()((set, get) => ({

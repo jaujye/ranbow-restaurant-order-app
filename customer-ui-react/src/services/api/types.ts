@@ -1,6 +1,6 @@
 // 用戶相關類型定義
 export interface User {
-  id: number
+  id: string  // 修正: 後端使用string類型的UUID
   email: string
   name: string
   phone: string
@@ -53,8 +53,8 @@ export interface MenuCategory {
 
 // 購物車相關類型定義
 export interface CartItem {
-  id: number
-  menuItemId: number
+  id: string  // 修正: 後端使用string類型
+  menuItemId: string  // 修正: 與MenuItem.itemId保持一致
   menuItem: MenuItem
   quantity: number
   unitPrice: number
@@ -63,8 +63,8 @@ export interface CartItem {
 }
 
 export interface Cart {
-  id: number
-  userId: number
+  id: string  // 修正: 後端使用string類型
+  userId: string  // 修正: 後端使用string類型
   items: CartItem[]
   subtotal: number
   tax: number
@@ -75,7 +75,7 @@ export interface Cart {
 }
 
 export interface AddToCartRequest {
-  menuItemId: number
+  menuItemId: string  // 修正: 與MenuItem.itemId保持一致
   quantity: number
   specialRequests?: string
 }
@@ -87,8 +87,8 @@ export interface UpdateCartItemRequest {
 
 // 訂單相關類型定義
 export interface Order {
-  id: number
-  userId: number
+  id: string  // 修正: 後端使用string類型
+  userId: string  // 修正: 後端使用string類型
   user?: User
   items: OrderItem[]
   tableNumber: string
@@ -107,9 +107,9 @@ export interface Order {
 }
 
 export interface OrderItem {
-  id: number
-  orderId: number
-  menuItemId: number
+  id: string  // 修正: 後端使用string類型
+  orderId: string  // 修正: 後端使用string類型
+  menuItemId: string  // 修正: 與MenuItem.itemId保持一致
   menuItem: MenuItem
   quantity: number
   unitPrice: number
@@ -157,8 +157,8 @@ export interface UpdateOrderStatusRequest {
 
 // 支付相關類型定義
 export interface Payment {
-  id: number
-  orderId: number
+  id: string  // 修正: 後端使用string類型
+  orderId: string  // 修正: 與Order.id保持一致
   order?: Order
   amount: number
   method: PaymentMethod

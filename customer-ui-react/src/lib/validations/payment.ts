@@ -190,7 +190,7 @@ export const createPaymentValidator = <T>(schema: z.ZodSchema<T>) => {
           field: err.path.join('.'),
           code: err.code,
           message: err.message,
-          value: err.path.reduce((obj, key) => obj?.[key], data)
+          value: err.path.reduce((obj: any, key) => obj?.[key], data)
         }))
         
         return {

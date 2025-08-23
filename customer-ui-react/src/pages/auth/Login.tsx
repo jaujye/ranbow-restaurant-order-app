@@ -95,7 +95,8 @@ const Login: React.FC = () => {
             label="Email"
             type="email"
             placeholder="請輸入您的Email"
-            error={errors.email?.message}
+            error={!!errors.email}
+            errorMessage={errors.email?.message}
             fullWidth
             {...register('email')}
           />
@@ -104,7 +105,8 @@ const Login: React.FC = () => {
             label="密碼"
             type="password"
             placeholder="請輸入密碼"
-            error={errors.password?.message}
+            error={!!errors.password}
+            errorMessage={errors.password?.message}
             fullWidth
             showPasswordToggle
             {...register('password')}

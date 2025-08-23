@@ -4,7 +4,7 @@ import { Card, Button } from '@/components/ui'
 import { useOrderManagementStore } from '@/store'
 import { getOrderStatusText } from '@/store/orderStore'
 import { formatPrice } from '@/store/cartStore'
-import { Order, OrderStatus } from '@/services/api'
+import { OrderStatus } from '@/services/api'
 import { 
   ArrowLeft, 
   Clock, 

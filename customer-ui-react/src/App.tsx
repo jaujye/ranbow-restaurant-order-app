@@ -87,7 +87,7 @@ const publicRoutes = ['/login', '/register']
 // Main App Component
 const App: React.FC = () => {
   const location = useLocation()
-  const isPublicRoute = publicRoutes.includes(location.pathname)
+  // const isPublicRoute = publicRoutes.includes(location.pathname)
   
   // Auth store for application initialization
   const { token, refreshUser } = useAuthStore((state) => ({
