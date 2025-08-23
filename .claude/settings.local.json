@@ -93,7 +93,13 @@
       "Bash(git log:*)",
       "Bash(npx playwright test:*)",
       "Bash(git pull:*)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "mcp__chrome-devtools__get_document",
+      "Bash(for i in {1..5})",
+      "Bash(do echo:*)",
+      "Bash(done)",
+      "mcp__postgres__analyze_db_health",
+      "Bash(jps:*)"
     ],
     "deny": [],
     "ask": [],
