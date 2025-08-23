@@ -79,7 +79,7 @@ export const useWebSocketStore = create<WebSocketState & WebSocketActions>()(
         ...initialState,
         
         // Connection management
-        connect: (url = 'http://localhost:8081', options = {}) => {
+        connect: (url = import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8084', options = {}) => {
           const state = get()
           
           if (state.socket?.connected) {

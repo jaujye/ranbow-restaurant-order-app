@@ -5,28 +5,18 @@
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 import { toast } from 'react-hot-toast'
-
-// 🔧 API Configuration
-const API_CONFIG = {
-  // 🏠 Local Development
-  LOCAL_BASE_URL: 'http://localhost:8081/api',
-  // 🚀 Production Ubuntu Server  
-  PROD_BASE_URL: 'http://192.168.0.113:8087/api',
-  TIMEOUT: 10000,
-  RETRY_ATTEMPTS: 3,
-  RETRY_DELAY: 1000
-}
+import { API_CONFIG } from '@/config/api'
 
 // 🌍 Environment Detection
 const getBaseURL = (): string => {
-  const isDevelopment = import.meta.env.MODE === 'development'
-  const customApiUrl = import.meta.env.VITE_API_URL
+  // Use environment variable or fallback to config
+  const envApiUrl = import.meta.env.VITE_API_BASE_URL
   
-  if (customApiUrl) {
-    return customApiUrl
+  if (envApiUrl) {
+    return envApiUrl
   }
   
-  return isDevelopment ? API_CONFIG.LOCAL_BASE_URL : API_CONFIG.PROD_BASE_URL
+  return API_CONFIG.BASE_URL
 }
 
 // 🔄 Request/Response Types

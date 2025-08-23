@@ -45,7 +45,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ className = '' }) => {
 
         // Check for network connectivity
         try {
-          const response = await fetch('http://localhost:8081/api/health', {
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/health`, {
             method: 'GET',
             timeout: 5000
           } as any)
@@ -122,7 +122,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ className = '' }) => {
     setIsInitializing(true)
     
     try {
-      const response = await fetch('http://localhost:8081/api/health')
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/health`)
       if (response.ok) {
         setNetworkError(false)
       } else {

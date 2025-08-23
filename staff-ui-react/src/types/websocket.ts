@@ -5,7 +5,7 @@
 
 // 🌐 WebSocket Configuration
 export interface WebSocketConfig {
-  url: string                      // ws://localhost:8081/ws/staff/{staffId}
+  url: string                      // ws://localhost:8084/ws/staff/{staffId}
   reconnectInterval: number        // 5000ms
   maxReconnectAttempts: number     // 10
   heartbeatInterval: number        // 30000ms

@@ -5,6 +5,7 @@
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { AUTH_ENDPOINTS } from '@/config/api'
 import type { 
   StaffMember, 
   StaffAuthState, 
@@ -168,8 +169,8 @@ export const useAuthStore = create<EnhancedAuthStore>()(
           }
 
           const endpoint = credentials.isPinLogin ? 
-            'http://localhost:8081/api/staff/auth/pin-login' : 
-            'http://localhost:8081/api/staff/auth/login'
+            AUTH_ENDPOINTS.PIN_LOGIN : 
+            AUTH_ENDPOINTS.LOGIN
 
           // Call authentication API
           const response = await fetch(endpoint, {
@@ -253,7 +254,7 @@ export const useAuthStore = create<EnhancedAuthStore>()(
           
           if (authToken) {
             // Call logout API
-            await fetch('http://localhost:8081/api/staff/auth/logout', {
+            await fetch(AUTH_ENDPOINTS.LOGOUT, {
               method: 'POST',
               headers: { 
                 'Authorization': `Bearer ${authToken}`,
@@ -273,7 +274,7 @@ export const useAuthStore = create<EnhancedAuthStore>()(
         try {
           const { authToken } = get()
           
-          const response = await fetch('http://localhost:8081/api/staff/auth/quick-switch', {
+          const response = await fetch(AUTH_ENDPOINTS.QUICK_SWITCH, {
             method: 'POST',
             headers: { 
               'Authorization': `Bearer ${authToken}`,
@@ -320,7 +321,7 @@ export const useAuthStore = create<EnhancedAuthStore>()(
 
           const deviceId = localStorage.getItem('staffDeviceId')
           
-          const response = await fetch('http://localhost:8081/api/staff/auth/refresh', {
+          const response = await fetch(AUTH_ENDPOINTS.REFRESH, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -574,7 +575,7 @@ export const useAuthStore = create<EnhancedAuthStore>()(
         try {
           const { authToken } = get()
           
-          const response = await fetch('http://localhost:8081/api/staff/auth/terminate-session', {
+          const response = await fetch(AUTH_ENDPOINTS.TERMINATE_SESSION, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -599,7 +600,7 @@ export const useAuthStore = create<EnhancedAuthStore>()(
           const { authToken } = get()
           const currentDeviceId = localStorage.getItem('staffDeviceId')
           
-          const response = await fetch('http://localhost:8081/api/staff/auth/terminate-all-sessions', {
+          const response = await fetch(AUTH_ENDPOINTS.TERMINATE_ALL_SESSIONS, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${authToken}`,
