@@ -272,7 +272,6 @@ public class StaffOrderDetails {
     private LocalDateTime startedAt;
     private LocalDateTime completedAt;
     private LocalDateTime estimatedCompletionTime;
-    private int overdueMinutes;
     
     // Getters and Setters for new fields
     public String getCustomerId() {
@@ -339,9 +338,6 @@ public class StaffOrderDetails {
         this.estimatedCompletionTime = estimatedCompletionTime;
     }
     
-    public void setOverdueMinutes(int overdueMinutes) {
-        this.overdueMinutes = overdueMinutes;
-    }
     
     @Override
     public String toString() {

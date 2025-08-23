@@ -3,7 +3,7 @@ package com.ranbow.restaurant.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ranbow.restaurant.models.CookingTimer;
 import com.ranbow.restaurant.models.Order;
-import com.ranbow.restaurant.services.KitchenCapacityEngine.WorkloadAlert;
+import com.ranbow.restaurant.staff.model.dto.WorkloadAlert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
