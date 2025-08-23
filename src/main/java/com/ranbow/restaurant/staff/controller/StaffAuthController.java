@@ -36,7 +36,7 @@ import java.util.UUID;
  * - Request tracking and audit trails
  */
 @RestController
-@RequestMapping("/api/staff/auth")
+@RequestMapping("/staff/auth")
 @CrossOrigin(origins = "*")
 public class StaffAuthController {
     

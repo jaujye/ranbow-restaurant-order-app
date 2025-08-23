@@ -38,7 +38,7 @@ public class StaffAuthRepositorySimple {
      */
     public Optional<StaffMember> findStaffByLoginId(String loginId) {
         String sql = """
-            SELECT staff_id, employee_number, email, password_hash, pin_hash, full_name, phone_number, 
+            SELECT staff_id, employee_number, email, password_hash, pin_hash, name as full_name, phone as phone_number, 
                    role, department, avatar_url, is_active, quick_switch_enabled, 
                    permissions, created_at, updated_at, last_login_at
             FROM staff_members 
@@ -57,7 +57,7 @@ public class StaffAuthRepositorySimple {
      */
     public Optional<StaffMember> findStaffById(String staffId) {
         String sql = """
-            SELECT staff_id, employee_number, email, password_hash, pin_hash, full_name, phone_number, 
+            SELECT staff_id, employee_number, email, password_hash, pin_hash, name as full_name, phone as phone_number, 
                    role, department, avatar_url, is_active, quick_switch_enabled, 
                    permissions, created_at, updated_at, last_login_at
             FROM staff_members 
@@ -176,12 +176,12 @@ public class StaffAuthRepositorySimple {
      */
     public List<StaffMember> getQuickSwitchAvailableStaff() {
         String sql = """
-            SELECT staff_id, employee_number, email, password_hash, pin_hash, full_name, phone_number, 
+            SELECT staff_id, employee_number, email, password_hash, pin_hash, name as full_name, phone as phone_number, 
                    role, department, avatar_url, is_active, quick_switch_enabled, 
                    permissions, created_at, updated_at, last_login_at
             FROM staff_members 
             WHERE is_active = true AND quick_switch_enabled = true
-            ORDER BY full_name
+            ORDER BY name
             """;
         
         return jdbcTemplate.query(sql, new StaffMemberRowMapper());
