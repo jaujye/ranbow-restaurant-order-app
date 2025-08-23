@@ -24,6 +24,12 @@ public class OrderStatusUpdateResponse {
     private boolean priorityEscalated;
     private String nextRequiredAction;
     
+    // Additional alias fields for compatibility
+    private String oldStatus; // Alias for previousStatus
+    private String updatedBy; // Alias for updatedByStaffId
+    private LocalDateTime updatedAt; // Alias for updateTime
+    private boolean success; // Alias for wasSuccessful
+    
     // Constructors
     public OrderStatusUpdateResponse() {
         this.updateTime = LocalDateTime.now();
@@ -215,6 +221,48 @@ public class OrderStatusUpdateResponse {
     
     public void setNextRequiredAction(String nextRequiredAction) {
         this.nextRequiredAction = nextRequiredAction;
+    }
+    
+    // Alias methods for compatibility
+    public String getOldStatus() {
+        return oldStatus != null ? oldStatus : (previousStatus != null ? previousStatus.toString() : null);
+    }
+    
+    public void setOldStatus(String oldStatus) {
+        this.oldStatus = oldStatus;
+    }
+    
+    public String getUpdatedBy() {
+        return updatedBy != null ? updatedBy : updatedByStaffId;
+    }
+    
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+        // Keep consistency with updatedByStaffId
+        if (this.updatedByStaffId == null) {
+            this.updatedByStaffId = updatedBy;
+        }
+    }
+    
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt != null ? updatedAt : updateTime;
+    }
+    
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+        // Keep consistency with updateTime
+        if (this.updateTime == null) {
+            this.updateTime = updatedAt;
+        }
+    }
+    
+    public boolean isSuccess() {
+        return success ? success : wasSuccessful;
+    }
+    
+    public void setSuccess(boolean success) {
+        this.success = success;
+        this.wasSuccessful = success;
     }
     
     @Override

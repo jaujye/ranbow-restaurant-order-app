@@ -100,7 +100,8 @@
     "defaultMode": "acceptEdits",
     "additionalDirectories": [
       "C:\\c\\Users\\JauJyeCH\\Desktop",
-      "C:\\c\\Users"
+      "C:\\c\\Users",
+      "C:\\c\\Users\\JauJyeCH\\Desktop\\ranbow-restaurant-order-app"
     ]
   }
 }

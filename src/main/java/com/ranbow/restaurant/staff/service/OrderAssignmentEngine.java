@@ -118,10 +118,11 @@ public class OrderAssignmentEngine {
      */
     public WorkloadScore calculateStaffWorkload(String staffId) {
         try {
-            StaffMember staff = staffMemberRepository.findByStaffId(staffId);
-            if (staff == null) {
+            Optional<StaffMember> staffOpt = staffMemberRepository.findByStaffId(staffId);
+            if (staffOpt.isEmpty()) {
                 return WorkloadScore.notFound();
             }
+            StaffMember staff = staffOpt.get();
             
             // Get current assignments
             int currentAssignments = orderAssignmentRepository.countActiveAssignmentsByStaff(staffId);

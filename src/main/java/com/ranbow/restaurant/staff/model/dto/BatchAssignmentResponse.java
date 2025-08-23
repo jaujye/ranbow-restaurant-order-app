@@ -27,6 +27,10 @@ public class BatchAssignmentResponse {
     private int newStaffWorkload;
     private int staffMaxCapacity;
     private String staffWorkloadStatus;
+    private List<String> failedOrderIds;
+    private List<String> successfulOrderIds; // List of successful order IDs
+    private String staffId; // Alias for assignedToStaffId
+    private LocalDateTime assignedAt; // Alias for assignmentTime
     
     // Constructors
     public BatchAssignmentResponse() {
@@ -309,6 +313,46 @@ public class BatchAssignmentResponse {
     
     public void setStaffWorkloadStatus(String staffWorkloadStatus) {
         this.staffWorkloadStatus = staffWorkloadStatus;
+    }
+    
+    public List<String> getFailedOrderIds() {
+        return failedOrderIds;
+    }
+    
+    public void setFailedOrderIds(List<String> failedOrderIds) {
+        this.failedOrderIds = failedOrderIds;
+    }
+    
+    public List<String> getSuccessfulOrderIds() {
+        return successfulOrderIds;
+    }
+    
+    public void setSuccessfulOrderIds(List<String> successfulOrderIds) {
+        this.successfulOrderIds = successfulOrderIds;
+    }
+    
+    public String getStaffId() {
+        return staffId != null ? staffId : assignedToStaffId;
+    }
+    
+    public void setStaffId(String staffId) {
+        this.staffId = staffId;
+        // Keep consistency with assignedToStaffId
+        if (this.assignedToStaffId == null) {
+            this.assignedToStaffId = staffId;
+        }
+    }
+    
+    public LocalDateTime getAssignedAt() {
+        return assignedAt != null ? assignedAt : assignmentTime;
+    }
+    
+    public void setAssignedAt(LocalDateTime assignedAt) {
+        this.assignedAt = assignedAt;
+        // Keep consistency with assignmentTime
+        if (this.assignmentTime == null) {
+            this.assignmentTime = assignedAt;
+        }
     }
     
     @Override

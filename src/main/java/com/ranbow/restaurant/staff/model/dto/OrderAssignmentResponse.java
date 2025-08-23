@@ -26,6 +26,15 @@ public class OrderAssignmentResponse {
     private String workloadStatus; // AVAILABLE, BUSY, OVERLOADED
     private String nextRequiredAction;
     
+    // Additional alias fields for compatibility
+    private String staffId; // Alias for assignedToStaffId
+    private String assignmentId;
+    private String assignmentType;
+    private String priority;
+    private LocalDateTime estimatedCompletionTime; // Alias for estimatedCompleteTime
+    private LocalDateTime assignedAt; // Alias for assignmentTime
+    private boolean success; // Alias for wasSuccessful
+    
     // Constructors
     public OrderAssignmentResponse() {
         this.assignmentTime = LocalDateTime.now();
@@ -242,6 +251,76 @@ public class OrderAssignmentResponse {
     
     public void setNextRequiredAction(String nextRequiredAction) {
         this.nextRequiredAction = nextRequiredAction;
+    }
+    
+    // Alias methods for compatibility
+    public String getStaffId() {
+        return staffId != null ? staffId : assignedToStaffId;
+    }
+    
+    public void setStaffId(String staffId) {
+        this.staffId = staffId;
+        // Keep consistency with assignedToStaffId
+        if (this.assignedToStaffId == null) {
+            this.assignedToStaffId = staffId;
+        }
+    }
+    
+    public String getAssignmentId() {
+        return assignmentId;
+    }
+    
+    public void setAssignmentId(String assignmentId) {
+        this.assignmentId = assignmentId;
+    }
+    
+    public String getAssignmentType() {
+        return assignmentType;
+    }
+    
+    public void setAssignmentType(String assignmentType) {
+        this.assignmentType = assignmentType;
+    }
+    
+    public String getPriority() {
+        return priority;
+    }
+    
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+    
+    public LocalDateTime getEstimatedCompletionTime() {
+        return estimatedCompletionTime != null ? estimatedCompletionTime : estimatedCompleteTime;
+    }
+    
+    public void setEstimatedCompletionTime(LocalDateTime estimatedCompletionTime) {
+        this.estimatedCompletionTime = estimatedCompletionTime;
+        // Keep consistency with estimatedCompleteTime
+        if (this.estimatedCompleteTime == null) {
+            this.estimatedCompleteTime = estimatedCompletionTime;
+        }
+    }
+    
+    public LocalDateTime getAssignedAt() {
+        return assignedAt != null ? assignedAt : assignmentTime;
+    }
+    
+    public void setAssignedAt(LocalDateTime assignedAt) {
+        this.assignedAt = assignedAt;
+        // Keep consistency with assignmentTime
+        if (this.assignmentTime == null) {
+            this.assignmentTime = assignedAt;
+        }
+    }
+    
+    public boolean isSuccess() {
+        return success ? success : wasSuccessful;
+    }
+    
+    public void setSuccess(boolean success) {
+        this.success = success;
+        this.wasSuccessful = success;
     }
     
     @Override

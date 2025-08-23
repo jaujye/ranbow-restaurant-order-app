@@ -256,9 +256,9 @@ public class OrderQueueService {
             
             // Create response
             OrderStatusUpdateResponse response = new OrderStatusUpdateResponse();
-            response.setOrderId(orderId.toString());
+            response.setOrderId(Long.parseLong(orderId.toString()));
             response.setOldStatus(currentStatus.toString());
-            response.setNewStatus(newStatus.toString());
+            response.setNewStatus(newStatus);
             response.setUpdatedBy(staffId);
             response.setUpdatedAt(LocalDateTime.now());
             response.setNotes(request.getNotes());
@@ -344,7 +344,7 @@ public class OrderQueueService {
             
             // Create response
             OrderAssignmentResponse response = new OrderAssignmentResponse();
-            response.setOrderId(orderId.toString());
+            response.setOrderId(Long.parseLong(orderId.toString()));
             response.setStaffId(staffId);
             response.setAssignmentId(assignment.getAssignmentId());
             response.setAssignmentType(assignment.getAssignmentType().toString());
@@ -595,7 +595,7 @@ public class OrderQueueService {
         details.setOrderNumber(order.getOrderId());
         details.setCustomerId(order.getCustomerId());
         details.setTableNumber(order.getTableNumber());
-        details.setStatus(order.getStatus().toString());
+        details.setStatus(order.getStatus());
         details.setTotalAmount(order.getTotalAmount());
         details.setOrderTime(order.getOrderTime());
         details.setSpecialInstructions(order.getSpecialInstructions());
@@ -606,7 +606,7 @@ public class OrderQueueService {
             order.getSpecialInstructions(),
             order.getOrderItems() != null ? order.getOrderItems().size() : 0
         );
-        details.setPriority(priority.toString());
+        details.setPriority(priority);
         
         // Check if overdue
         if (order.getOrderTime() != null) {
@@ -620,7 +620,7 @@ public class OrderQueueService {
             List<OrderItemDetails> itemDetails = order.getOrderItems().stream()
                 .map(item -> {
                     OrderItemDetails itemDetail = new OrderItemDetails();
-                    itemDetail.setItemId(item.getMenuItem().getItemId());
+                    itemDetail.setItemId(Long.parseLong(item.getMenuItem().getItemId()));
                     itemDetail.setItemName(item.getMenuItem().getName());
                     itemDetail.setQuantity(item.getQuantity());
                     itemDetail.setPrice(item.getMenuItem().getPrice());

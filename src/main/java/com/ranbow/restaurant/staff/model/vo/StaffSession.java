@@ -15,6 +15,8 @@ public class StaffSession {
     private String deviceType;
     private String appVersion;
     private LocalDateTime loginTime;
+    private LocalDateTime createdAt;
+    private String employeeNumber;
     private LocalDateTime lastActivity;
     private LocalDateTime expiresAt;
     private boolean isActive;
@@ -129,6 +131,22 @@ public class StaffSession {
     
     public void setIpAddress(String ipAddress) {
         this.ipAddress = ipAddress;
+    }
+    
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+    
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+    
+    public String getEmployeeNumber() {
+        return employeeNumber;
+    }
+    
+    public void setEmployeeNumber(String employeeNumber) {
+        this.employeeNumber = employeeNumber;
     }
     
     @Override

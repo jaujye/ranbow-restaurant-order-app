@@ -116,6 +116,11 @@ public class PaginationInfo {
         isLast = last;
     }
     
+    // Alias method for compatibility
+    public void setPageNumber(int pageNumber) {
+        setCurrentPage(pageNumber);
+    }
+    
     @Override
     public String toString() {
         return "PaginationInfo{" +

@@ -54,6 +54,16 @@ public class OrderStatistics {
     private double averageOrderValue;
     private double revenuePerHour;
     
+    // Additional fields for compatibility
+    private String staffId;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    private int pendingOrders;
+    private int processingOrders;
+    private double averageProcessingTime;
+    private double ordersPerHour;
+    private double successRate;
+    
     // Constructors
     public OrderStatistics() {
         this.generatedAt = LocalDateTime.now();
@@ -432,6 +442,78 @@ public class OrderStatistics {
     
     public void setRevenuePerHour(double revenuePerHour) {
         this.revenuePerHour = revenuePerHour;
+    }
+    
+    public String getStaffId() {
+        return staffId;
+    }
+    
+    public void setStaffId(String staffId) {
+        this.staffId = staffId;
+    }
+    
+    public LocalDateTime getStartDate() {
+        return startDate != null ? startDate : periodStart;
+    }
+    
+    public void setStartDate(LocalDateTime startDate) {
+        this.startDate = startDate;
+        // Keep consistency with periodStart
+        if (this.periodStart == null) {
+            this.periodStart = startDate;
+        }
+    }
+    
+    public LocalDateTime getEndDate() {
+        return endDate != null ? endDate : periodEnd;
+    }
+    
+    public void setEndDate(LocalDateTime endDate) {
+        this.endDate = endDate;
+        // Keep consistency with periodEnd
+        if (this.periodEnd == null) {
+            this.periodEnd = endDate;
+        }
+    }
+    
+    public int getPendingOrders() {
+        return pendingOrders;
+    }
+    
+    public void setPendingOrders(int pendingOrders) {
+        this.pendingOrders = pendingOrders;
+    }
+    
+    public int getProcessingOrders() {
+        return processingOrders;
+    }
+    
+    public void setProcessingOrders(int processingOrders) {
+        this.processingOrders = processingOrders;
+    }
+    
+    public double getAverageProcessingTime() {
+        return averageProcessingTime != 0 ? averageProcessingTime : averageCompletionTime;
+    }
+    
+    public void setAverageProcessingTime(double averageProcessingTime) {
+        this.averageProcessingTime = averageProcessingTime;
+    }
+    
+    public double getOrdersPerHour() {
+        return ordersPerHour;
+    }
+    
+    public void setOrdersPerHour(double ordersPerHour) {
+        this.ordersPerHour = ordersPerHour;
+    }
+    
+    public double getSuccessRate() {
+        return successRate != 0 ? successRate : completionRate;
+    }
+    
+    public void setSuccessRate(double successRate) {
+        this.successRate = successRate;
     }
     
     @Override

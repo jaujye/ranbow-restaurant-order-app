@@ -31,13 +31,14 @@ public class CookingTimerEngine {
         
         // Set chef info if available
         if (staffId != null) {
-            // Create a basic Chef object - in real implementation you'd fetch from StaffDAO
-            Chef chef = new Chef();
+            // Create a basic StaffMember object - in real implementation you'd fetch from StaffDAO
+            com.ranbow.restaurant.staff.model.entity.StaffMember chef = new com.ranbow.restaurant.staff.model.entity.StaffMember();
             chef.setStaffId(staffId);
             timer.setChef(chef);
         }
         
-        return cookingTimerDAO.save(timer);
+        cookingTimerDAO.save(timer);
+        return timer;
     }
     
     /**
@@ -50,7 +51,8 @@ public class CookingTimerEngine {
         timer.setStatus(CookingStatus.RUNNING);
         timer.setStartTime(LocalDateTime.now());
         
-        return cookingTimerDAO.update(timer);
+        cookingTimerDAO.update(timer);
+        return timer;
     }
     
     /**
@@ -63,7 +65,8 @@ public class CookingTimerEngine {
         timer.setStatus(CookingStatus.PAUSED);
         // In real implementation, you'd track pause time and adjust duration
         
-        return cookingTimerDAO.update(timer);
+        cookingTimerDAO.update(timer);
+        return timer;
     }
     
     /**
@@ -75,7 +78,8 @@ public class CookingTimerEngine {
         
         timer.setStatus(CookingStatus.RUNNING);
         
-        return cookingTimerDAO.update(timer);
+        cookingTimerDAO.update(timer);
+        return timer;
     }
     
     /**
@@ -89,7 +93,8 @@ public class CookingTimerEngine {
         timer.setCompletedTime(LocalDateTime.now());
         timer.setActualDurationSeconds(actualDurationSeconds);
         
-        return cookingTimerDAO.update(timer);
+        cookingTimerDAO.update(timer);
+        return timer;
     }
     
     /**
@@ -101,7 +106,8 @@ public class CookingTimerEngine {
         
         timer.setStatus(CookingStatus.CANCELLED);
         
-        return cookingTimerDAO.update(timer);
+        cookingTimerDAO.update(timer);
+        return timer;
     }
     
     /**
