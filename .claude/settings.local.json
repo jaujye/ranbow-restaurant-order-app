@@ -102,7 +102,9 @@
       "Bash(jps:*)",
       "Bash(pkill:*)",
       "mcp__redis__delete",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "mcp__chrome-devtools__start_chrome",
+      "mcp__chrome-devtools__connect_to_browser"
     ],
     "deny": [],
     "ask": [],
