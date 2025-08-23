@@ -84,12 +84,9 @@ public class StaffSecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         
         // Allow specific origins for production security
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3001",           // Local React dev server (customer UI)
-            "http://localhost:3002",           // Local React dev server (staff UI)
-            "http://192.168.0.113:3001",       // Production customer UI
-            "http://192.168.0.113:3002",       // Production staff UI
-            "http://localhost:5173",           // Vite dev server
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:*",              // Local development servers
+            "http://192.168.0.113:*",          // Production servers
             "https://staff.ranbow-restaurant.local"  // Production domain
         ));
         
@@ -120,7 +117,7 @@ public class StaffSecurityConfig {
         configuration.setMaxAge(3600L); // Cache preflight requests for 1 hour
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/staff/**", configuration);
+        source.registerCorsConfiguration("/**", configuration);
         
         return source;
     }
