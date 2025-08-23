@@ -1,4 +1,4 @@
-# 📚 **彩虹餐廳員工UI系統 - 開發文檔 v2.0**
+# 📚 **彩虹餐廳員工UI系統 - 開發文檔 v2.0 - 前端部分**
 
 ---
 
@@ -28,7 +28,271 @@
 
 ## 1. 前端架構要求
 
-### 1.1 技術選型與配置
+### 1.1 環境配置管理 🔧
+
+#### **環境變量配置策略**
+
+**基於客戶端應用模式的環境變量設計** (參考 `customer-ui-react/.env`)
+
+**開發環境配置檔案** (`.env.development`):
+```bash
+# API Configuration - 開發環境
+VITE_API_BASE_URL=http://localhost:8081/api
+VITE_WS_BASE_URL=ws://localhost:8081/ws
+VITE_API_TIMEOUT=10000
+
+# WebSocket Configuration
+VITE_WS_RECONNECT_INTERVAL=5000
+VITE_WS_MAX_RECONNECT_ATTEMPTS=10
+VITE_WS_HEARTBEAT_INTERVAL=30000
+
+# Application Configuration
+VITE_APP_TITLE=Ranbow Restaurant Staff UI
+VITE_APP_VERSION=2.0.0
+VITE_ENVIRONMENT=development
+VITE_APP_DESCRIPTION=彩虹餐廳員工作業系統
+
+# Feature Flags
+VITE_ENABLE_ANALYTICS=false
+VITE_ENABLE_PWA=true
+VITE_ENABLE_DARK_MODE=true
+VITE_ENABLE_NOTIFICATIONS=true
+VITE_ENABLE_SOUND_EFFECTS=true
+VITE_ENABLE_VIBRATION=true
+
+# Query Configuration  
+VITE_QUERY_STALE_TIME=10000
+VITE_QUERY_CACHE_TIME=300000
+VITE_ORDERS_REFETCH_INTERVAL=30000
+VITE_KITCHEN_REFETCH_INTERVAL=15000
+
+# Development Settings
+VITE_MOCK_API=false
+VITE_DEBUG_MODE=true
+VITE_ENABLE_DEVTOOLS=true
+VITE_LOG_LEVEL=debug
+
+# Performance Configuration
+VITE_REQUEST_TIMEOUT=8000
+VITE_MAX_CONCURRENT_REQUESTS=10
+VITE_CACHE_DURATION=300000
+
+# Security Configuration
+VITE_SESSION_TIMEOUT=28800000  # 8 hours in milliseconds
+VITE_IDLE_TIMEOUT=1800000     # 30 minutes in milliseconds
+```
+
+**生產環境配置檔案** (`.env.production`):
+```bash
+# API Configuration - 生產環境
+VITE_API_BASE_URL=http://192.168.0.113:8087/api
+VITE_WS_BASE_URL=ws://192.168.0.113:8087/ws
+VITE_API_TIMEOUT=12000
+
+# WebSocket Configuration
+VITE_WS_RECONNECT_INTERVAL=3000
+VITE_WS_MAX_RECONNECT_ATTEMPTS=15
+VITE_WS_HEARTBEAT_INTERVAL=20000
+
+# Application Configuration
+VITE_APP_TITLE=Ranbow Restaurant Staff UI
+VITE_APP_VERSION=2.0.0
+VITE_ENVIRONMENT=production
+VITE_APP_DESCRIPTION=彩虹餐廳員工作業系統
+
+# Feature Flags
+VITE_ENABLE_ANALYTICS=true
+VITE_ENABLE_PWA=true
+VITE_ENABLE_DARK_MODE=true
+VITE_ENABLE_NOTIFICATIONS=true
+VITE_ENABLE_SOUND_EFFECTS=true
+VITE_ENABLE_VIBRATION=true
+
+# Query Configuration
+VITE_QUERY_STALE_TIME=5000
+VITE_QUERY_CACHE_TIME=600000
+VITE_ORDERS_REFETCH_INTERVAL=20000
+VITE_KITCHEN_REFETCH_INTERVAL=10000
+
+# Development Settings
+VITE_MOCK_API=false
+VITE_DEBUG_MODE=false
+VITE_ENABLE_DEVTOOLS=false
+VITE_LOG_LEVEL=warn
+
+# Performance Configuration
+VITE_REQUEST_TIMEOUT=10000
+VITE_MAX_CONCURRENT_REQUESTS=15
+VITE_CACHE_DURATION=600000
+
+# Security Configuration
+VITE_SESSION_TIMEOUT=14400000  # 4 hours in milliseconds
+VITE_IDLE_TIMEOUT=900000       # 15 minutes in milliseconds
+```
+
+**測試環境配置檔案** (`.env.test`):
+```bash
+# API Configuration - 測試環境
+VITE_API_BASE_URL=http://localhost:8081/api
+VITE_WS_BASE_URL=ws://localhost:8081/ws
+VITE_API_TIMEOUT=5000
+
+# Application Configuration
+VITE_APP_TITLE=Ranbow Restaurant Staff UI (Test)
+VITE_APP_VERSION=2.0.0-test
+VITE_ENVIRONMENT=test
+
+# Feature Flags (Testing)
+VITE_ENABLE_ANALYTICS=false
+VITE_ENABLE_PWA=false
+VITE_ENABLE_NOTIFICATIONS=false
+VITE_ENABLE_SOUND_EFFECTS=false
+VITE_ENABLE_VIBRATION=false
+
+# Development Settings
+VITE_MOCK_API=true
+VITE_DEBUG_MODE=true
+VITE_ENABLE_DEVTOOLS=true
+VITE_LOG_LEVEL=debug
+
+# Test Configuration
+VITE_TEST_TIMEOUT=10000
+VITE_TEST_USER_ID=test-staff-001
+```
+
+#### **環境變數類型定義** (`src/config/env.config.ts`)
+```typescript
+interface EnvironmentConfig {
+  // API Configuration
+  API_BASE_URL: string;
+  WS_BASE_URL: string;
+  API_TIMEOUT: number;
+  
+  // WebSocket Configuration
+  WS_RECONNECT_INTERVAL: number;
+  WS_MAX_RECONNECT_ATTEMPTS: number;
+  WS_HEARTBEAT_INTERVAL: number;
+  
+  // Application Configuration
+  APP_TITLE: string;
+  APP_VERSION: string;
+  ENVIRONMENT: 'development' | 'production' | 'test';
+  APP_DESCRIPTION: string;
+  
+  // Feature Flags
+  ENABLE_ANALYTICS: boolean;
+  ENABLE_PWA: boolean;
+  ENABLE_DARK_MODE: boolean;
+  ENABLE_NOTIFICATIONS: boolean;
+  ENABLE_SOUND_EFFECTS: boolean;
+  ENABLE_VIBRATION: boolean;
+  
+  // Query Configuration
+  QUERY_STALE_TIME: number;
+  QUERY_CACHE_TIME: number;
+  ORDERS_REFETCH_INTERVAL: number;
+  KITCHEN_REFETCH_INTERVAL: number;
+  
+  // Development Settings
+  MOCK_API: boolean;
+  DEBUG_MODE: boolean;
+  ENABLE_DEVTOOLS: boolean;
+  LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error';
+  
+  // Performance Configuration
+  REQUEST_TIMEOUT: number;
+  MAX_CONCURRENT_REQUESTS: number;
+  CACHE_DURATION: number;
+  
+  // Security Configuration
+  SESSION_TIMEOUT: number;
+  IDLE_TIMEOUT: number;
+}
+
+export const ENV_CONFIG: EnvironmentConfig = {
+  // API Configuration
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api',
+  WS_BASE_URL: import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8081/ws',
+  API_TIMEOUT: Number(import.meta.env.VITE_API_TIMEOUT) || 10000,
+  
+  // WebSocket Configuration
+  WS_RECONNECT_INTERVAL: Number(import.meta.env.VITE_WS_RECONNECT_INTERVAL) || 5000,
+  WS_MAX_RECONNECT_ATTEMPTS: Number(import.meta.env.VITE_WS_MAX_RECONNECT_ATTEMPTS) || 10,
+  WS_HEARTBEAT_INTERVAL: Number(import.meta.env.VITE_WS_HEARTBEAT_INTERVAL) || 30000,
+  
+  // Application Configuration
+  APP_TITLE: import.meta.env.VITE_APP_TITLE || 'Ranbow Restaurant Staff UI',
+  APP_VERSION: import.meta.env.VITE_APP_VERSION || '2.0.0',
+  ENVIRONMENT: (import.meta.env.VITE_ENVIRONMENT as 'development' | 'production' | 'test') || 'development',
+  APP_DESCRIPTION: import.meta.env.VITE_APP_DESCRIPTION || '彩虹餐廳員工作業系統',
+  
+  // Feature Flags
+  ENABLE_ANALYTICS: import.meta.env.VITE_ENABLE_ANALYTICS === 'true',
+  ENABLE_PWA: import.meta.env.VITE_ENABLE_PWA !== 'false', // Default true
+  ENABLE_DARK_MODE: import.meta.env.VITE_ENABLE_DARK_MODE !== 'false', // Default true
+  ENABLE_NOTIFICATIONS: import.meta.env.VITE_ENABLE_NOTIFICATIONS !== 'false', // Default true
+  ENABLE_SOUND_EFFECTS: import.meta.env.VITE_ENABLE_SOUND_EFFECTS !== 'false', // Default true
+  ENABLE_VIBRATION: import.meta.env.VITE_ENABLE_VIBRATION !== 'false', // Default true
+  
+  // Query Configuration
+  QUERY_STALE_TIME: Number(import.meta.env.VITE_QUERY_STALE_TIME) || 10000,
+  QUERY_CACHE_TIME: Number(import.meta.env.VITE_QUERY_CACHE_TIME) || 300000,
+  ORDERS_REFETCH_INTERVAL: Number(import.meta.env.VITE_ORDERS_REFETCH_INTERVAL) || 30000,
+  KITCHEN_REFETCH_INTERVAL: Number(import.meta.env.VITE_KITCHEN_REFETCH_INTERVAL) || 15000,
+  
+  // Development Settings
+  MOCK_API: import.meta.env.VITE_MOCK_API === 'true',
+  DEBUG_MODE: import.meta.env.VITE_DEBUG_MODE === 'true',
+  ENABLE_DEVTOOLS: import.meta.env.VITE_ENABLE_DEVTOOLS === 'true',
+  LOG_LEVEL: (import.meta.env.VITE_LOG_LEVEL as 'debug' | 'info' | 'warn' | 'error') || 'info',
+  
+  // Performance Configuration
+  REQUEST_TIMEOUT: Number(import.meta.env.VITE_REQUEST_TIMEOUT) || 8000,
+  MAX_CONCURRENT_REQUESTS: Number(import.meta.env.VITE_MAX_CONCURRENT_REQUESTS) || 10,
+  CACHE_DURATION: Number(import.meta.env.VITE_CACHE_DURATION) || 300000,
+  
+  // Security Configuration
+  SESSION_TIMEOUT: Number(import.meta.env.VITE_SESSION_TIMEOUT) || 28800000, // 8 hours
+  IDLE_TIMEOUT: Number(import.meta.env.VITE_IDLE_TIMEOUT) || 1800000, // 30 minutes
+};
+
+// 環境驗證函數
+export const validateEnvironment = (): void => {
+  const requiredVars = [
+    'VITE_API_BASE_URL',
+    'VITE_WS_BASE_URL',
+    'VITE_APP_TITLE',
+    'VITE_APP_VERSION'
+  ];
+  
+  const missingVars = requiredVars.filter(varName => 
+    !import.meta.env[varName]
+  );
+  
+  if (missingVars.length > 0) {
+    console.error('缺少必要的環境變數:', missingVars);
+    throw new Error(`缺少環境變數: ${missingVars.join(', ')}`);
+  }
+  
+  console.log('✅ 環境變數驗證通過');
+  console.log('🌍 當前環境:', ENV_CONFIG.ENVIRONMENT);
+  console.log('🔗 API Base URL:', ENV_CONFIG.API_BASE_URL);
+  console.log('🔌 WebSocket URL:', ENV_CONFIG.WS_BASE_URL);
+};
+
+// 開發模式下的配置檢查
+if (ENV_CONFIG.DEBUG_MODE) {
+  console.table({
+    '環境': ENV_CONFIG.ENVIRONMENT,
+    'API URL': ENV_CONFIG.API_BASE_URL,
+    'WebSocket URL': ENV_CONFIG.WS_BASE_URL,
+    '除錯模式': ENV_CONFIG.DEBUG_MODE,
+    'Mock API': ENV_CONFIG.MOCK_API,
+  });
+}
+```
+
+### 1.2 技術選型與配置
 
 #### **核心依賴版本**
 ```json
@@ -366,18 +630,154 @@ staff-ui-react/
 
 ### **前端工程師API調用完整指南**
 
+### 1.5 環境配置管理策略
+
+#### **環境變數使用最佳實踐**
+
+**1️⃣ 環境檢測與驗證** (`src/config/env.validation.ts`):
+```typescript
+import { ENV_CONFIG } from './env.config';
+
+// 環境配置驗證規則
+const ENV_VALIDATION_RULES = {
+  API_BASE_URL: {
+    required: true,
+    pattern: /^https?:\/\/.+\/api$/,
+    message: 'API_BASE_URL must be a valid URL ending with /api'
+  },
+  WS_BASE_URL: {
+    required: true,
+    pattern: /^wss?:\/\/.+\/ws$/,
+    message: 'WS_BASE_URL must be a valid WebSocket URL ending with /ws'
+  },
+  API_TIMEOUT: {
+    required: true,
+    min: 1000,
+    max: 30000,
+    message: 'API_TIMEOUT must be between 1000-30000ms'
+  },
+  APP_VERSION: {
+    required: true,
+    pattern: /^\d+\.\d+\.\d+/,
+    message: 'APP_VERSION must follow semantic versioning (x.y.z)'
+  }
+};
+
+// 驗證函數
+export const validateEnvironment = (): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+  
+  // 檢查 API URL 是否有效
+  if (!ENV_CONFIG.API_BASE_URL.match(ENV_VALIDATION_RULES.API_BASE_URL.pattern)) {
+    errors.push(ENV_VALIDATION_RULES.API_BASE_URL.message);
+  }
+  
+  // 檢查 WebSocket URL 是否有效
+  if (!ENV_CONFIG.WS_BASE_URL.match(ENV_VALIDATION_RULES.WS_BASE_URL.pattern)) {
+    errors.push(ENV_VALIDATION_RULES.WS_BASE_URL.message);
+  }
+  
+  // 檢查超時設定
+  if (ENV_CONFIG.API_TIMEOUT < 1000 || ENV_CONFIG.API_TIMEOUT > 30000) {
+    errors.push(ENV_VALIDATION_RULES.API_TIMEOUT.message);
+  }
+  
+  // 檢查版本號格式
+  if (!ENV_CONFIG.APP_VERSION.match(ENV_VALIDATION_RULES.APP_VERSION.pattern)) {
+    errors.push(ENV_VALIDATION_RULES.APP_VERSION.message);
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+// 開發模式環境變數警告
+export const checkDevelopmentWarnings = (): void => {
+  if (ENV_CONFIG.ENVIRONMENT === 'development') {
+    const warnings: string[] = [];
+    
+    if (ENV_CONFIG.DEBUG_MODE) {
+      warnings.push('⚠️ Debug mode is enabled - performance may be impacted');
+    }
+    
+    if (ENV_CONFIG.MOCK_API) {
+      warnings.push('🧪 Mock API is enabled - using simulated data');
+    }
+    
+    if (!ENV_CONFIG.ENABLE_ANALYTICS) {
+      warnings.push('📊 Analytics is disabled in development mode');
+    }
+    
+    warnings.forEach(warning => console.warn(warning));
+  }
+};
+```
+
+**2️⃣ 環境切換工具** (`src/config/env.switcher.ts`):
+```typescript
+// 動態環境切換工具
+type EnvironmentMode = 'development' | 'staging' | 'production';
+
+interface EnvironmentConfig {
+  API_BASE_URL: string;
+  WS_BASE_URL: string;
+  APP_TITLE: string;
+  ENABLE_DEBUG: boolean;
+}
+
+const ENVIRONMENT_CONFIGS: Record<EnvironmentMode, EnvironmentConfig> = {
+  development: {
+    API_BASE_URL: 'http://localhost:8081/api',
+    WS_BASE_URL: 'ws://localhost:8081/ws',
+    APP_TITLE: 'Staff UI (Dev)',
+    ENABLE_DEBUG: true,
+  },
+  staging: {
+    API_BASE_URL: 'http://192.168.0.113:8087/api',
+    WS_BASE_URL: 'ws://192.168.0.113:8087/ws',
+    APP_TITLE: 'Staff UI (Staging)',
+    ENABLE_DEBUG: true,
+  },
+  production: {
+    API_BASE_URL: 'http://192.168.0.113:8087/api',
+    WS_BASE_URL: 'ws://192.168.0.113:8087/ws',
+    APP_TITLE: 'Staff UI',
+    ENABLE_DEBUG: false,
+  },
+};
+
+// 環境切換函數
+export const switchEnvironment = (mode: EnvironmentMode): EnvironmentConfig => {
+  const config = ENVIRONMENT_CONFIGS[mode];
+  
+  // 更新海量標題
+  if (typeof document !== 'undefined') {
+    document.title = config.APP_TITLE;
+  }
+  
+  // 發出環境切換事件
+  window.dispatchEvent(new CustomEvent('environment-changed', { 
+    detail: { mode, config } 
+  }));
+  
+  return config;
+};
+```
+
 #### **🔧 API客戶端核心配置**
 
 **Axios客戶端設置** (`src/shared/services/api/client.ts`)
 ```typescript
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { tokenManager } from '../auth/tokenManager';
-import { API_CONFIG } from '../../../config/api.config';
+import { ENV_CONFIG } from '../../../config/env.config';
 
-// 創建Axios實例
+// 創建Axios實例 - 使用環境變數配置
 export const apiClient: AxiosInstance = axios.create({
-  baseURL: API_CONFIG.BASE_URL, // http://localhost:8081 (開發) | http://192.168.0.113:8087 (生產)
-  timeout: API_CONFIG.TIMEOUT, // 10000ms
+  baseURL: ENV_CONFIG.API_BASE_URL, // 動態載入: development | production | test
+  timeout: ENV_CONFIG.API_TIMEOUT, // 動態載入: 8000-12000ms
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -396,7 +796,7 @@ apiClient.interceptors.request.use(
     config.headers['X-Request-ID'] = generateRequestId();
     
     // 開發環境記錄請求
-    if (process.env.NODE_ENV === 'development') {
+    if (ENV_CONFIG.DEBUG_MODE) {
       console.log('🔄 API Request:', config.method?.toUpperCase(), config.url);
     }
     
@@ -409,7 +809,7 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     // 成功響應處理
-    if (process.env.NODE_ENV === 'development') {
+    if (ENV_CONFIG.DEBUG_MODE) {
       console.log('✅ API Response:', response.status, response.config.url);
     }
     return response;
@@ -456,6 +856,7 @@ apiClient.interceptors.response.use(
 import { apiClient } from '../../../shared/services/api/client';
 import { StaffLoginRequest, StaffProfile, StaffSwitchRequest } from '../types/auth.types';
 import { ApiResponse } from '../../../shared/types/api.types';
+import { API_ENDPOINTS } from '../../../shared/services/api/config';
 
 export class AuthApiService {
   // 員工登入
@@ -463,7 +864,7 @@ export class AuthApiService {
     staff: StaffProfile;
     unreadNotifications: number;
   }>> {
-    const response = await apiClient.post('/api/staff/login', credentials);
+    const response = await apiClient.post(API_ENDPOINTS.STAFF_LOGIN, credentials);
     return response.data;
   }
 
@@ -473,7 +874,7 @@ export class AuthApiService {
     todayStats: any;
     unreadNotifications: number;
   }>> {
-    const response = await apiClient.get(`/api/staff/profile/${staffId}`);
+    const response = await apiClient.get(API_ENDPOINTS.STAFF_PROFILE(staffId));
     return response.data;
   }
 
@@ -481,13 +882,13 @@ export class AuthApiService {
   static async switchStaff(switchData: StaffSwitchRequest): Promise<ApiResponse<{
     newStaff: StaffProfile;
   }>> {
-    const response = await apiClient.post('/api/staff/switch', switchData);
+    const response = await apiClient.post(API_ENDPOINTS.STAFF_SWITCH, switchData);
     return response.data;
   }
 
   // 獲取可切換員工列表
   static async getAvailableStaff(currentStaffId: string): Promise<StaffProfile[]> {
-    const response = await apiClient.get(`/api/staff/available/${currentStaffId}`);
+    const response = await apiClient.get(API_ENDPOINTS.STAFF_AVAILABLE(currentStaffId));
     return response.data;
   }
 }
@@ -498,6 +899,7 @@ export class AuthApiService {
 import { apiClient } from '../../../shared/services/api/client';
 import { OrderStatusUpdateRequest } from '../types/orders.types';
 import { ApiResponse } from '../../../shared/types/api.types';
+import { API_ENDPOINTS } from '../../../shared/services/api/config';
 
 export class OrdersApiService {
   // 獲取待處理訂單
@@ -506,7 +908,7 @@ export class OrdersApiService {
     confirmed: Order[];
     total: number;
   }>> {
-    const response = await apiClient.get('/api/staff/orders/pending');
+    const response = await apiClient.get(API_ENDPOINTS.ORDERS_PENDING);
     return response.data;
   }
 
@@ -516,7 +918,7 @@ export class OrdersApiService {
     ready: Order[];
     total: number;
   }>> {
-    const response = await apiClient.get('/api/staff/orders/in-progress');
+    const response = await apiClient.get(API_ENDPOINTS.ORDERS_IN_PROGRESS);
     return response.data;
   }
 
@@ -526,7 +928,7 @@ export class OrdersApiService {
     completed: Order[];
     total: number;
   }>> {
-    const response = await apiClient.get('/api/staff/orders/completed');
+    const response = await apiClient.get(API_ENDPOINTS.ORDERS_COMPLETED);
     return response.data;
   }
 
@@ -537,7 +939,7 @@ export class OrdersApiService {
   ): Promise<ApiResponse<{
     order: Order;
   }>> {
-    const response = await apiClient.put(`/api/staff/orders/${orderId}/status`, updateData);
+    const response = await apiClient.put(API_ENDPOINTS.ORDER_STATUS_UPDATE(orderId), updateData);
     return response.data;
   }
 
@@ -547,10 +949,156 @@ export class OrdersApiService {
     kitchenDetails: any;
     hasKitchenInfo: boolean;
   }>> {
-    const response = await apiClient.get(`/api/staff/orders/${orderId}/details`);
+    const response = await apiClient.get(API_ENDPOINTS.ORDER_DETAILS(orderId));
     return response.data;
   }
 }
+```
+
+#### **📡 API 端點統一管理** (`src/shared/services/api/config.ts`)
+```typescript
+import { ENV_CONFIG } from '../../config/env.config';
+
+// API 端點常量定義
+export const API_ENDPOINTS = {
+  // 員工認證相關
+  STAFF_LOGIN: '/staff/login',
+  STAFF_PROFILE: (staffId: string) => `/staff/profile/${staffId}`,
+  STAFF_SWITCH: '/staff/switch',
+  STAFF_AVAILABLE: (staffId: string) => `/staff/available/${staffId}`,
+  
+  // 訂單管理相關
+  ORDERS_PENDING: '/staff/orders/pending',
+  ORDERS_IN_PROGRESS: '/staff/orders/in-progress',
+  ORDERS_COMPLETED: '/staff/orders/completed',
+  ORDER_STATUS_UPDATE: (orderId: string) => `/staff/orders/${orderId}/status`,
+  ORDER_DETAILS: (orderId: string) => `/staff/orders/${orderId}/details`,
+  
+  // 廚房操作相關
+  KITCHEN_QUEUE: '/staff/kitchen/queue',
+  KITCHEN_START: (orderId: string) => `/staff/kitchen/start/${orderId}`,
+  KITCHEN_TIMER: (orderId: string) => `/staff/kitchen/timer/${orderId}`,
+  KITCHEN_COMPLETE: (orderId: string) => `/staff/kitchen/complete/${orderId}`,
+  
+  // 統計報表相關
+  STATS_DAILY: (staffId: string) => `/staff/${staffId}/stats/daily`,
+  STATS_WEEKLY: (staffId: string) => `/staff/${staffId}/stats/weekly`,
+  STATS_MONTHLY: (staffId: string) => `/staff/${staffId}/stats/monthly`,
+  TEAM_STATS: '/staff/team/stats',
+  LEADERBOARD: '/staff/leaderboard',
+  
+  // 通知管理相關
+  NOTIFICATIONS: (staffId: string) => `/staff/notifications/${staffId}`,
+  NOTIFICATIONS_MARK_READ: (staffId: string) => `/staff/notifications/${staffId}/mark-read`,
+} as const;
+
+// WebSocket 端點常量
+export const WS_ENDPOINTS = {
+  STAFF_CHANNEL: (staffId: string) => `/staff/${staffId}`,
+  KITCHEN_CHANNEL: '/kitchen',
+  NOTIFICATIONS_CHANNEL: '/notifications',
+  BROADCAST_CHANNEL: '/broadcast',
+} as const;
+
+// HTTP 狀態碼常量
+export const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  NO_CONTENT: 204,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  UNPROCESSABLE_ENTITY: 422,
+  INTERNAL_SERVER_ERROR: 500,
+  BAD_GATEWAY: 502,
+  SERVICE_UNAVAILABLE: 503,
+  GATEWAY_TIMEOUT: 504,
+} as const;
+
+// 錯誤訊息常量
+export const ERROR_MESSAGES = {
+  NETWORK_ERROR: '網路連接失敗，請檢查網路狀態',
+  TIMEOUT_ERROR: '請求超時，請稍後再試',
+  UNAUTHORIZED: '認證已過期，請重新登入',
+  FORBIDDEN: '權限不足，無法執行此操作',
+  NOT_FOUND: '請求的資源不存在',
+  SERVER_ERROR: '伺服器錯誤，請稍後再試',
+  VALIDATION_ERROR: '資料驗證失敗，請檢查輸入',
+  CONFLICT_ERROR: '資源衝突，請重新操作',
+  UNKNOWN_ERROR: '發生未知錯誤，請聯絡技術支援',
+} as const;
+
+// API 配置常量
+export const API_CONFIG = {
+  BASE_URL: ENV_CONFIG.API_BASE_URL,
+  TIMEOUT: ENV_CONFIG.API_TIMEOUT,
+  RETRY_ATTEMPTS: ENV_CONFIG.ENVIRONMENT === 'production' ? 3 : 1,
+  RETRY_DELAY: ENV_CONFIG.ENVIRONMENT === 'production' ? 1000 : 500,
+  
+  // 請求攔截器配置
+  ENABLE_REQUEST_LOGGING: ENV_CONFIG.DEBUG_MODE,
+  ENABLE_RESPONSE_LOGGING: ENV_CONFIG.DEBUG_MODE,
+  ENABLE_ERROR_TRACKING: ENV_CONFIG.ENABLE_ANALYTICS,
+  
+  // 快取配置
+  CACHE_ENABLED: ENV_CONFIG.ENVIRONMENT === 'production',
+  CACHE_DURATION: ENV_CONFIG.CACHE_DURATION,
+  
+  // 安全配置
+  ENABLE_CSRF_PROTECTION: ENV_CONFIG.ENVIRONMENT === 'production',
+  ENABLE_RATE_LIMITING: ENV_CONFIG.ENVIRONMENT === 'production',
+} as const;
+
+// WebSocket 配置常量
+export const WS_CONFIG = {
+  BASE_URL: ENV_CONFIG.WS_BASE_URL,
+  RECONNECT_INTERVAL: ENV_CONFIG.WS_RECONNECT_INTERVAL,
+  MAX_RECONNECT_ATTEMPTS: ENV_CONFIG.WS_MAX_RECONNECT_ATTEMPTS,
+  HEARTBEAT_INTERVAL: ENV_CONFIG.WS_HEARTBEAT_INTERVAL,
+  
+  // 訊息處理配置
+  ENABLE_MESSAGE_LOGGING: ENV_CONFIG.DEBUG_MODE,
+  MESSAGE_QUEUE_SIZE: ENV_CONFIG.ENVIRONMENT === 'production' ? 1000 : 100,
+  
+  // 通知配置
+  ENABLE_SOUND: ENV_CONFIG.ENABLE_SOUND_EFFECTS,
+  ENABLE_VIBRATION: ENV_CONFIG.ENABLE_VIBRATION,
+  SOUND_VOLUME: ENV_CONFIG.ENVIRONMENT === 'production' ? 0.7 : 0.5,
+  
+  // 安全配置
+  ENABLE_MESSAGE_VALIDATION: true,
+  ENABLE_ORIGIN_CHECK: ENV_CONFIG.ENVIRONMENT === 'production',
+} as const;
+
+// React Query 配置
+export const QUERY_CONFIG = {
+  defaultOptions: {
+    queries: {
+      staleTime: ENV_CONFIG.QUERY_STALE_TIME,
+      cacheTime: ENV_CONFIG.QUERY_CACHE_TIME,
+      refetchOnWindowFocus: ENV_CONFIG.ENVIRONMENT === 'production',
+      refetchOnReconnect: true,
+      retry: ENV_CONFIG.ENVIRONMENT === 'production' ? 3 : 1,
+      retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
+    mutations: {
+      retry: ENV_CONFIG.ENVIRONMENT === 'production' ? 2 : 0,
+      onError: (error: any) => {
+        if (ENV_CONFIG.DEBUG_MODE) {
+          console.error('Mutation Error:', error);
+        }
+      },
+    },
+  },
+};
+
+// 輸出類型定義
+export type ApiEndpoint = typeof API_ENDPOINTS[keyof typeof API_ENDPOINTS];
+export type WsEndpoint = typeof WS_ENDPOINTS[keyof typeof WS_ENDPOINTS];
+export type HttpStatus = typeof HTTP_STATUS[keyof typeof HTTP_STATUS];
+export type ErrorMessage = typeof ERROR_MESSAGES[keyof typeof ERROR_MESSAGES];
 ```
 
 #### **🔗 React Hook整合模式**
@@ -575,8 +1123,8 @@ export const useOrderQueue = () => {
   } = useQuery({
     queryKey: ['orders', 'pending'],
     queryFn: OrdersApiService.getPendingOrders,
-    refetchInterval: 30000, // 30秒自動刷新
-    staleTime: 10000, // 10秒內數據視為新鮮
+    refetchInterval: ENV_CONFIG.ORDERS_REFETCH_INTERVAL, // 動態配置刷新間隔
+    staleTime: ENV_CONFIG.QUERY_STALE_TIME, // 動態配置數據新鮮度
   });
 
   // 獲取進行中訂單
@@ -587,7 +1135,7 @@ export const useOrderQueue = () => {
   } = useQuery({
     queryKey: ['orders', 'in-progress'],
     queryFn: OrdersApiService.getInProgressOrders,
-    refetchInterval: 15000, // 15秒自動刷新
+    refetchInterval: ENV_CONFIG.KITCHEN_REFETCH_INTERVAL, // 動態配置廚房刷新間隔
   });
 
   // 更新訂單狀態
@@ -652,18 +1200,19 @@ export const useOrderQueue = () => {
 import { toast } from 'react-hot-toast';
 import { notificationsStore } from '../store/notificationsStore';
 import { ordersStore } from '../../orders/store/ordersStore';
+import { ENV_CONFIG } from '../../../shared/config/env.config';
 
 export class WebSocketService {
   private ws: WebSocket | null = null;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectInterval = 5000;
+  private maxReconnectAttempts = ENV_CONFIG.WS_MAX_RECONNECT_ATTEMPTS; // 動態配置
+  private reconnectInterval = ENV_CONFIG.WS_RECONNECT_INTERVAL; // 動態配置
 
   constructor(private staffId: string) {}
 
   // 連接WebSocket
   connect() {
-    const wsUrl = `ws://localhost:8081/ws/staff/${this.staffId}`;
+    const wsUrl = `${ENV_CONFIG.WS_BASE_URL}/staff/${this.staffId}`; // 動態WebSocket URL
     
     try {
       this.ws = new WebSocket(wsUrl);
@@ -721,13 +1270,20 @@ export class WebSocketService {
     ordersStore.getState().addNewOrder(orderData);
     
     // 顯示通知
-    toast.success(`新訂單 #${orderData.orderNumber} - 桌號${orderData.tableNumber}`, {
-      duration: 5000,
-      icon: '🔔',
-    });
+    if (ENV_CONFIG.ENABLE_NOTIFICATIONS) {
+      toast.success(`新訂單 #${orderData.orderNumber} - 桌號${orderData.tableNumber}`, {
+        duration: 5000,
+        icon: '🔔',
+      });
+    }
     
     // 播放音效
     this.playNotificationSound('new-order');
+    
+    // 震動提醒
+    if (ENV_CONFIG.ENABLE_VIBRATION && 'vibrate' in navigator) {
+      navigator.vibrate([100, 50, 100]); // 短震動
+    }
     
     // 添加到通知中心
     notificationsStore.getState().addNotification({
@@ -736,19 +1292,27 @@ export class WebSocketService {
       message: `桌號${orderData.tableNumber}有新訂單 #${orderData.orderNumber}`,
       priority: 'HIGH',
       relatedOrderId: orderData.orderId,
+      timestamp: new Date().toISOString(),
     });
   }
 
   // 處理緊急訂單警報
   private handleUrgentOrder(alertData: any) {
     // 緊急通知 - 持續顯示直到用戶確認
-    toast.error(`🚨 緊急訂單！訂單 #${alertData.orderNumber} 已超時 ${alertData.overdueMinutes} 分鐘`, {
-      duration: Infinity, // 持續顯示
-      id: `urgent-order-${alertData.orderId}`, // 防止重複
-    });
+    if (ENV_CONFIG.ENABLE_NOTIFICATIONS) {
+      toast.error(`🚨 緊急訂單！訂單 #${alertData.orderNumber} 已超時 ${alertData.overdueMinutes} 分鐘`, {
+        duration: Infinity, // 持續顯示
+        id: `urgent-order-${alertData.orderId}`, // 防止重複
+      });
+    }
     
     // 播放緊急音效
     this.playNotificationSound('urgent-alert');
+    
+    // 震動提醒
+    if (ENV_CONFIG.ENABLE_VIBRATION && 'vibrate' in navigator) {
+      navigator.vibrate([200, 100, 200, 100, 200]); // 緊急震動模式
+    }
     
     // 更新訂單狀態為緊急
     ordersStore.getState().markOrderAsUrgent(alertData.orderId);
@@ -756,6 +1320,11 @@ export class WebSocketService {
 
   // 播放通知音效
   private playNotificationSound(soundType: 'new-order' | 'urgent-alert' | 'order-ready' | 'notification') {
+    // 檢查音效功能是否啟用
+    if (!ENV_CONFIG.ENABLE_SOUND_EFFECTS) {
+      return;
+    }
+    
     const audio = new Audio(`/sounds/${soundType}.mp3`);
     audio.volume = 0.7;
     audio.play().catch(error => {
@@ -774,7 +1343,9 @@ export class WebSocketService {
       }, this.reconnectInterval * this.reconnectAttempts);
     } else {
       console.error('WebSocket 重連失敗，已達最大嘗試次數');
-      toast.error('即時通訊連接失敗，請刷新頁面重試');
+      if (ENV_CONFIG.ENABLE_NOTIFICATIONS) {
+        toast.error('即時通訊連接失敗，請刷新頁面重試');
+      }
     }
   }
 
@@ -784,7 +1355,7 @@ export class WebSocketService {
       if (this.ws?.readyState === WebSocket.OPEN) {
         this.ws.send(JSON.stringify({ type: 'HEARTBEAT' }));
       }
-    }, 30000);
+    }, ENV_CONFIG.WS_HEARTBEAT_INTERVAL); // 動態配置心跳間隔
   }
 
   // 斷開連接
@@ -1343,1236 +1914,226 @@ type MessageType =
 - **狀態管理**: 避免不必要的重新渲染
 - **虛擬滾動**: 長列表性能優化
 
+## 📦 **環境變數總結與對照表**
+
+### **API URL 環境變數轉換對照表**
+
+#### **原硬編碼 URL 與新環境變數對照**
+
+| 功能領域 | 原硬編碼 URL | 新環境變數配置 |
+|---------|--------------|----------------|
+| **API 基礎 URL** | | |
+| 開發環境 | `http://localhost:8081/api` | `ENV_CONFIG.API_BASE_URL` |
+| 生產環境 | `http://192.168.0.113:8087/api` | `ENV_CONFIG.API_BASE_URL` |
+| **WebSocket URL** | | |
+| 開發環境 | `ws://localhost:8081/ws/staff` | `ENV_CONFIG.WS_BASE_URL + '/staff'` |
+| 生產環境 | `ws://192.168.0.113:8087/ws/staff` | `ENV_CONFIG.WS_BASE_URL + '/staff'` |
+| **API 端點** | | |
+| 員工登入 | `'/api/staff/login'` | `API_ENDPOINTS.STAFF_LOGIN` |
+| 員工訊息 | `'/api/staff/profile/{id}'` | `API_ENDPOINTS.STAFF_PROFILE(id)` |
+| 訂單列表 | `'/api/staff/orders/pending'` | `API_ENDPOINTS.ORDERS_PENDING` |
+| 訂單狀態 | `'/api/staff/orders/{id}/status'` | `API_ENDPOINTS.ORDER_STATUS_UPDATE(id)` |
+| 廚房隊列 | `'/api/staff/kitchen/queue'` | `API_ENDPOINTS.KITCHEN_QUEUE` |
+| 統計報表 | `'/api/staff/{id}/stats/daily'` | `API_ENDPOINTS.STATS_DAILY(id)` |
+| 通知管理 | `'/api/staff/notifications/{id}'` | `API_ENDPOINTS.NOTIFICATIONS(id)` |
+
+#### **配置參數環境變數轉換**
+
+| 配置類型 | 原硬編碼值 | 新環境變數 |
+|----------|------------|-------------|
+| **API 配置** | | |
+| 請求超時 | `10000ms` | `ENV_CONFIG.API_TIMEOUT` |
+| 重試次數 | `3 times` | `API_CONFIG.RETRY_ATTEMPTS` |
+| **WebSocket 配置** | | |
+| 重連間隔 | `5000ms` | `ENV_CONFIG.WS_RECONNECT_INTERVAL` |
+| 最大重連 | `10 times` | `ENV_CONFIG.WS_MAX_RECONNECT_ATTEMPTS` |
+| 心跳間隔 | `30000ms` | `ENV_CONFIG.WS_HEARTBEAT_INTERVAL` |
+| **查詢配置** | | |
+| 數據新鮮度 | `10000ms` | `ENV_CONFIG.QUERY_STALE_TIME` |
+| 快取時間 | `300000ms` | `ENV_CONFIG.QUERY_CACHE_TIME` |
+| 訂單刷新 | `30000ms` | `ENV_CONFIG.ORDERS_REFETCH_INTERVAL` |
+| 廚房刷新 | `15000ms` | `ENV_CONFIG.KITCHEN_REFETCH_INTERVAL` |
+| **功能開關** | | |
+| 除錯模式 | `process.env.NODE_ENV === 'development'` | `ENV_CONFIG.DEBUG_MODE` |
+| 音效功能 | `true` (硬編碼) | `ENV_CONFIG.ENABLE_SOUND_EFFECTS` |
+| 震動功能 | `true` (硬編碼) | `ENV_CONFIG.ENABLE_VIBRATION` |
+| 通知功能 | `true` (硬編碼) | `ENV_CONFIG.ENABLE_NOTIFICATIONS` |
+
+### **完整 .env 配置檔案範例**
+
+#### **開發環境配置** (`.env.development`)
+```bash
+# ==============================================
+# 彩虹餐廳員工UI系統 - 開發環境配置
+# Staff UI Development Environment Configuration  
+# ==============================================
+
+# 🌐 API 配置
+VITE_API_BASE_URL=http://localhost:8081/api
+VITE_WS_BASE_URL=ws://localhost:8081/ws
+VITE_API_TIMEOUT=10000
+
+# 🔌 WebSocket 配置
+VITE_WS_RECONNECT_INTERVAL=5000
+VITE_WS_MAX_RECONNECT_ATTEMPTS=10
+VITE_WS_HEARTBEAT_INTERVAL=30000
+
+# 🎨 應用程式配置
+VITE_APP_TITLE=彩虹餐廳員工UI系統
+VITE_APP_VERSION=2.0.0
+VITE_ENVIRONMENT=development
+VITE_APP_DESCRIPTION=彩虹餐廳員工作業系統
+
+# 🚀 功能開關
+VITE_ENABLE_ANALYTICS=false
+VITE_ENABLE_PWA=true
+VITE_ENABLE_DARK_MODE=true
+VITE_ENABLE_NOTIFICATIONS=true
+VITE_ENABLE_SOUND_EFFECTS=true
+VITE_ENABLE_VIBRATION=true
+
+# 🔄 查詢配置
+VITE_QUERY_STALE_TIME=10000
+VITE_QUERY_CACHE_TIME=300000
+VITE_ORDERS_REFETCH_INTERVAL=30000
+VITE_KITCHEN_REFETCH_INTERVAL=15000
+
+# 👻 開發設定
+VITE_MOCK_API=false
+VITE_DEBUG_MODE=true
+VITE_ENABLE_DEVTOOLS=true
+VITE_LOG_LEVEL=debug
+
+# ⚡ 性能配置
+VITE_REQUEST_TIMEOUT=8000
+VITE_MAX_CONCURRENT_REQUESTS=10
+VITE_CACHE_DURATION=300000
+
+# 🔒 安全配置
+VITE_SESSION_TIMEOUT=28800000     # 8小時
+VITE_IDLE_TIMEOUT=1800000         # 30分鐘
+```
+
+#### **生產環境配置** (`.env.production`)
+```bash
+# ==============================================
+# 彩虹餐廳員工UI系統 - 生產環境配置
+# Staff UI Production Environment Configuration
+# ==============================================
+
+# 🌐 API 配置
+VITE_API_BASE_URL=http://192.168.0.113:8087/api
+VITE_WS_BASE_URL=ws://192.168.0.113:8087/ws
+VITE_API_TIMEOUT=12000
+
+# 🔌 WebSocket 配置
+VITE_WS_RECONNECT_INTERVAL=3000
+VITE_WS_MAX_RECONNECT_ATTEMPTS=15
+VITE_WS_HEARTBEAT_INTERVAL=20000
+
+# 🎨 應用程式配置
+VITE_APP_TITLE=彩虹餐廳員工UI系統
+VITE_APP_VERSION=2.0.0
+VITE_ENVIRONMENT=production
+VITE_APP_DESCRIPTION=彩虹餐廳員工作業系統
+
+# 🚀 功能開關
+VITE_ENABLE_ANALYTICS=true
+VITE_ENABLE_PWA=true
+VITE_ENABLE_DARK_MODE=true
+VITE_ENABLE_NOTIFICATIONS=true
+VITE_ENABLE_SOUND_EFFECTS=true
+VITE_ENABLE_VIBRATION=true
+
+# 🔄 查詢配置
+VITE_QUERY_STALE_TIME=5000
+VITE_QUERY_CACHE_TIME=600000
+VITE_ORDERS_REFETCH_INTERVAL=20000
+VITE_KITCHEN_REFETCH_INTERVAL=10000
+
+# 👻 生產設定
+VITE_MOCK_API=false
+VITE_DEBUG_MODE=false
+VITE_ENABLE_DEVTOOLS=false
+VITE_LOG_LEVEL=warn
+
+# ⚡ 性能配置
+VITE_REQUEST_TIMEOUT=10000
+VITE_MAX_CONCURRENT_REQUESTS=15
+VITE_CACHE_DURATION=600000
+
+# 🔒 安全配置
+VITE_SESSION_TIMEOUT=14400000     # 4小時
+VITE_IDLE_TIMEOUT=900000          # 15分鐘
+```
+
+### **環境變數化效益總結**
+
+#### **✅ 已完成的轉換項目**
+- [x] **API 基礎 URL** - 從硬編碼轉換為環境變數
+- [x] **WebSocket URL** - 支援動態配置  
+- [x] **API 端點** - 統一管理於常數檔案
+- [x] **配置參數** - 所有超時和間隔參數可配置
+- [x] **功能開關** - Debug、音效、震動、通知等可控制
+- [x] **查詢設定** - React Query 刷新策略可調整
+- [x] **日誌等級** - 根據環境自動調整詳細度
+- [x] **安全配置** - 生產環境安全參數優化
+
+#### **🎁 主要效益**
+
+**1. 開發效率提升**
+- ✨ 一鍵切換不同環境配置
+- 🚀 快速部署測試環境
+- 🛠️ 支援多種部署場景
+
+**2. 維護成本降低**
+- 🔧 統一配置管理中心
+- 📝 配置變更可追蹤
+- 🔍 環境驗證防止錯誤
+
+**3. 安全性提高**
+- 🔒 敏感資訊不再硬編碼
+- 🌍 環境特定安全策略
+- 🛡️ 生產環境自動安全優化
+
+**4. 性能優化**
+- ⚡ 環境特定性能調整
+- 📈 生產環境優化配置
+- 🗜️ 智慧日誌等級控制
+
+### **使用指南**
+
+#### **快速開始**
+```bash
+# 1. 複製環境配置範本
+cp .env.development.example .env.development
+
+# 2. 編輯本地API位址
+# 修改 VITE_API_BASE_URL 和 VITE_WS_BASE_URL
+
+# 3. 驗證環境配置
+npm run env:validate
+
+# 4. 啟動開發環境
+npm run dev
+```
+
+#### **部署流程**
+```bash
+# 開發環境
+npm run build:dev
+
+# 生產環境
+npm run build:prod
+
+# 測試環境
+npm run build:test
+```
+
 ---
 
-# 🔧 **第二部分：後端開發規範**
+🎉 **環境變數整合完成！**
 
-## 0. 後端架構整合計劃 📋
-
-### 0.1 現有架構分析與整合建議
-
-#### **現狀評估**
-
-**✅ 現有員工功能已完整實現**
-- **API層**: `StaffController.java` (完整的REST API)
-- **服務層**: `StaffService.java`, `StaffStatisticsService.java` (完整業務邏輯)
-- **DAO層**: `StaffDAO.java`, `StaffStatisticsDAO.java` (完整資料存取)
-- **模型層**: `Staff.java`, `StaffStatistics.java` (完整資料模型)
-- **支援服務**: `KitchenService.java`, `NotificationService.java` (相關功能)
-
-**🗑️ 需要清理的冗餘結構**
-```
-❌ 建議刪除: src/main/java/com/ranbow/restaurant/staff/
-├── config/StaffRedisConfig.java.tmp          # 臨時檔案
-├── repository/StaffAuthRepository.java.bak   # 備份檔案  
-└── service/StaffSessionRedisService.java.tmp # 臨時檔案
-```
-
-**原因**:
-- 只包含 .tmp 和 .bak 臨時/備份檔案
-- 所有實際功能已整合在主要架構中
-- 遵循單一來源原則，避免重複
-
-#### **整合策略：在現有MVC架構中擴展**
-
-**🏗️ 架構原則**
-```
-現有結構 (保持不變):
-src/main/java/com/ranbow/restaurant/
-├── api/           # REST Controllers
-├── services/      # Business Logic  
-├── dao/           # Data Access Objects
-├── models/        # Entity Models
-├── config/        # Configuration Classes
-└── utils/         # Utility Classes
-```
-
-### 0.2 員工UI功能擴展計劃
-
-#### **需要新增/加強的檔案**
-
-**🔧 配置層 (config/)**
-```java
-// 新增WebSocket配置 (已有備份檔案可參考)
-✅ WebSocketConfig.java           # 統一的WebSocket配置
-✅ StaffNotificationHandler.java  # 員工通知WebSocket處理器
-✅ KitchenWebSocketHandler.java   # 廚房即時更新處理器
-
-// Redis配置優化
-✅ RedisConfig.java               # 已存在，需要加強員工會話管理
-```
-
-**📡 API層 (api/)**
-```java
-✅ StaffController.java           # 已完整實現
-   - 員工登入認證 ✅
-   - 訂單管理 ✅  
-   - 廚房操作 ✅
-   - 統計報表 ✅
-   - 通知管理 ✅
-   
-// 可能需要新增的專用控制器
-🔄 StaffWebSocketController.java # WebSocket連接管理
-🔄 StaffDashboardController.java # 員工儀表板專用API
-```
-
-**⚙️ 服務層 (services/)**
-```java
-✅ StaffService.java              # 已完整實現
-✅ StaffStatisticsService.java    # 已完整實現  
-✅ KitchenService.java            # 已完整實現
-✅ NotificationService.java       # 已完整實現
-
-// 需要新增的服務
-🔄 StaffWebSocketService.java    # WebSocket訊息廣播服務
-🔄 StaffSessionService.java      # 員工會話管理服務
-```
-
-**💾 DAO層 (dao/)**
-```java  
-✅ StaffDAO.java                  # 已完整實現
-✅ StaffStatisticsDAO.java        # 已完整實現
-✅ KitchenOrderDAO.java           # 已完整實現
-✅ NotificationDAO.java           # 已完整實現
-
-// 可能需要新增
-🔄 StaffSessionDAO.java           # 員工會話資料存取
-```
-
-**📊 模型層 (models/)**
-```java
-✅ Staff.java                     # 已完整實現
-✅ StaffStatistics.java           # 已完整實現
-✅ KitchenOrder.java              # 已完整實現  
-✅ Notification.java              # 已完整實現
-
-// 需要新增的模型
-🔄 StaffSession.java              # 員工會話模型
-🔄 WebSocketMessage.java          # WebSocket訊息模型
-🔄 StaffWorkshift.java            # 員工班表模型
-```
-
-### 0.3 實施步驟建議
-
-#### **第一階段：清理與優化 🧹**
-```bash
-1. 刪除冗餘staff資料夾
-   rm -rf src/main/java/com/ranbow/restaurant/staff/
-
-2. 驗證現有功能完整性
-   - 測試StaffController所有端點
-   - 確認Service層業務邏輯正確
-   - 驗證DAO層資料存取功能
-```
-
-#### **第二階段：WebSocket整合 🔌**
-```bash
-1. 啟用現有WebSocket配置
-   - 移除 .bak 後綴，啟用WebSocketConfig.java
-   - 配置StaffNotificationHandler
-   - 配置KitchenWebSocketHandler
-
-2. 整合即時通訊功能
-   - 新訂單即時推送
-   - 廚房狀態同步  
-   - 員工通知系統
-```
-
-#### **第三階段：前端整合 🎨**
-```bash
-1. 建立前端專案
-   npx create-react-app staff-ui-react --template typescript
-
-2. 配置API客戶端
-   - Axios配置指向現有StaffController端點
-   - WebSocket客戶端連接配置
-
-3. 實現UI組件
-   - 對應後端API的前端組件
-   - WebSocket即時更新功能
-```
-
-### 0.4 檔案清理建議
-
-#### **立即執行的清理操作**
-```bash
-# 刪除冗餘的staff資料夾 (只含臨時檔案)
-rm -rf src/main/java/com/ranbow/restaurant/staff/
-
-# 啟用WebSocket配置檔案
-mv config/WebSocketConfig.java.bak config/WebSocketConfig.java
-mv config/StaffNotificationHandler.java.bak config/StaffNotificationHandler.java  
-mv config/KitchenWebSocketHandler.java.bak config/KitchenWebSocketHandler.java
-```
-
-#### **保持現有架構的優勢**
-- ✅ 遵循Spring Boot最佳實踐
-- ✅ 清晰的MVC分層架構  
-- ✅ 單一來源原則
-- ✅ 易於維護和擴展
-- ✅ 代碼重用性高
-
----
-
-## 1. 後端架構要求
-
-### 1.1 技術棧與版本
-
-```xml
-<!-- Maven Dependencies -->
-<dependencies>
-    <!-- Spring Boot -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
-        <version>3.1.0</version>
-    </dependency>
-    
-    <!-- WebSocket -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-websocket</artifactId>
-    </dependency>
-    
-    <!-- Security -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-security</artifactId>
-    </dependency>
-    
-    <!-- JWT -->
-    <dependency>
-        <groupId>io.jsonwebtoken</groupId>
-        <artifactId>jjwt</artifactId>
-        <version>0.9.1</version>
-    </dependency>
-    
-    <!-- Database -->
-    <dependency>
-        <groupId>org.postgresql</groupId>
-        <artifactId>postgresql</artifactId>
-    </dependency>
-    
-    <!-- Redis -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-data-redis</artifactId>
-    </dependency>
-</dependencies>
-```
-
-### 1.2 包結構規範（基於現有架構）
-
-#### **✅ 現有架構（已實現且運行中）**
-```
-com.ranbow.restaurant/
-├── RestaurantApplication.java  # Spring Boot主應用程式類
-│
-├── api/                        # REST API控制器
-│   ├── StaffController.java    # ✅ 員工相關API（完整實現）
-│   ├── OrderController.java    # ✅ 訂單管理API
-│   ├── MenuController.java     # 菜單管理API
-│   ├── PaymentController.java  # 支付處理API
-│   ├── UserController.java     # 用戶管理API
-│   ├── AdminController.java    # 管理員API
-│   ├── ReportController.java   # 報表API
-│   └── HealthController.java   # 健康檢查API
-│
-├── services/                   # 業務邏輯層
-│   ├── StaffService.java       # ✅ 員工業務邏輯（完整實現）
-│   ├── StaffStatisticsService.java # ✅ 員工統計服務（完整實現）
-│   ├── KitchenService.java     # ✅ 廚房管理服務（完整實現）
-│   ├── NotificationService.java # ✅ 通知服務（完整實現）
-│   ├── OrderService.java       # 訂單業務邏輯
-│   ├── MenuService.java        # 菜單業務邏輯
-│   ├── PaymentService.java     # 支付業務邏輯
-│   ├── UserService.java        # 用戶業務邏輯
-│   ├── AdminService.java       # 管理員業務邏輯
-│   ├── ReportService.java      # 報表業務邏輯
-│   ├── JwtService.java         # JWT認證服務
-│   ├── SessionService.java     # 會話管理服務
-│   └── AuditService.java       # 審計服務
-│
-├── dao/                        # 數據訪問層
-│   ├── StaffDAO.java           # ✅ 員工資料存取（完整實現）
-│   ├── StaffStatisticsDAO.java # ✅ 員工統計資料存取（完整實現）
-│   ├── KitchenOrderDAO.java    # ✅ 廚房訂單資料存取（完整實現）
-│   ├── NotificationDAO.java    # ✅ 通知資料存取（完整實現）
-│   ├── OrderDAO.java           # 訂單資料存取
-│   ├── MenuDAO.java            # 菜單資料存取
-│   ├── PaymentDAO.java         # 支付資料存取
-│   └── UserDAO.java            # 用戶資料存取
-│
-├── models/                     # 資料模型
-│   ├── Staff.java              # ✅ 員工模型（完整實現）
-│   ├── StaffStatistics.java    # ✅ 員工統計模型（完整實現）
-│   ├── KitchenOrder.java       # ✅ 廚房訂單模型（完整實現）
-│   ├── KitchenStatus.java      # ✅ 廚房狀態模型（完整實現）
-│   ├── Notification.java       # ✅ 通知模型（完整實現）
-│   ├── NotificationType.java   # ✅ 通知類型模型（完整實現）
-│   ├── NotificationPriority.java # ✅ 通知優先級模型（完整實現）
-│   ├── StatisticsPeriod.java   # ✅ 統計週期模型（完整實現）
-│   ├── Order.java              # 訂單模型
-│   ├── OrderItem.java          # 訂單項目模型
-│   ├── OrderStatus.java        # 訂單狀態模型
-│   ├── MenuItem.java           # 菜單項目模型
-│   ├── MenuCategory.java       # 菜單分類模型
-│   ├── Payment.java            # 支付模型
-│   ├── PaymentMethod.java      # 支付方式模型
-│   ├── PaymentStatus.java      # 支付狀態模型
-│   ├── User.java               # 用戶模型
-│   ├── UserRole.java           # 用戶角色模型
-│   ├── UserAddress.java        # 用戶地址模型
-│   ├── Coupon.java             # 優惠券模型
-│   ├── CouponType.java         # 優惠券類型模型
-│   ├── MemberLevel.java        # 會員等級模型
-│   ├── AdminPermission.java    # 管理員權限模型
-│   ├── AdminSession.java       # 管理員會話模型
-│   ├── AuditLog.java           # 審計日誌模型
-│   └── DashboardOverview.java  # 儀表板概覽模型
-│
-├── config/                     # 配置類
-│   ├── DatabaseConfig.java     # 資料庫配置
-│   ├── DatabaseInitializer.java # 資料庫初始化
-│   ├── RedisConfig.java        # Redis配置
-│   ├── SecurityConfig.java     # 安全配置
-│   ├── AuthenticationInterceptor.java # 認證攔截器
-│   ├── WebConfig.java          # Web配置
-│   ├── WebSocketConfig.java.bak # WebSocket配置（備份檔，待啟用）
-│   ├── StaffNotificationHandler.java.bak # 員工通知處理器（備份檔，待啟用）
-│   └── KitchenWebSocketHandler.java.bak # 廚房WebSocket處理器（備份檔，待啟用）
-│
-├── core/                       # 核心組件
-│   └── RestaurantApp.java      # 核心應用程式類
-│
-└── utils/                      # 工具類（空資料夾，待擴展）
-```
-
-#### **❌ 需要刪除的冗餘結構**
-```
-com.ranbow.restaurant.staff/    # 🗑️ 建議完全刪除
-├── config/
-│   └── StaffRedisConfig.java.tmp       # 臨時檔案，無實際功能
-├── repository/
-│   └── StaffAuthRepository.java.bak    # 備份檔案，功能已整合到主架構
-└── service/
-    └── StaffSessionRedisService.java.tmp # 臨時檔案，無實際功能
-```
-
-#### **整合優勢分析**
-✅ **現有架構優勢**：
-- 遵循標準Spring Boot MVC架構
-- 清晰的分層設計（API → Service → DAO → Model）
-- 單一來源原則，避免重複代碼
-- 易於維護和擴展
-- 所有員工相關功能已完整實現並運行中
-
-✅ **員工UI功能覆蓋完整性**：
-- StaffController：完整REST API端點 ✅
-- StaffService：完整業務邏輯 ✅
-- StaffDAO：完整資料存取 ✅
-- 相關支援服務（Kitchen, Notification）已實現 ✅
-- 統計功能完整實現 ✅
-
-## 2. API接口定義
-
-### 2.1 員工認證API（基於現有StaffController）
-
-#### **POST /api/staff/login**
-**功能**: 員工登入
-```json
-// Request
-{
-  "identifier": "ST001",  // 工號或Email
-  "password": "password123"
-}
-
-// Response 200
-{
-  "success": true,
-  "message": "登入成功",
-  "staff": {
-    "staffId": "550e8400-e29b-41d4-a716-446655440000",
-    "employeeNumber": "ST001",
-    "name": "李小華",
-    "role": "KITCHEN",
-    "department": "廚房",
-    "email": "li.xiaohua@ranbow.com",
-    "phone": "0912345678",
-    "isOnDuty": true,
-    "currentShiftStart": "2024-01-22T09:00:00",
-    "todayOrdersProcessed": 15,
-    "averageProcessingTime": 18.5
-  },
-  "unreadNotifications": 3
-}
-```
-
-#### **GET /api/staff/profile/{staffId}**
-**功能**: 獲取員工資料
-```json
-// Response 200
-{
-  "profile": {
-    "staffId": "550e8400-e29b-41d4-a716-446655440000",
-    "employeeNumber": "ST001",
-    "name": "李小華",
-    "role": "KITCHEN",
-    "department": "廚房",
-    "isOnDuty": true,
-    "todayOrdersProcessed": 15,
-    "averageProcessingTime": 18.5
-  },
-  "todayStats": {
-    "ordersCompleted": 15,
-    "averageTime": 18.5,
-    "efficiencyScore": 95.5
-  },
-  "unreadNotifications": 3
-}
-```
-
-#### **POST /api/staff/switch**
-**功能**: 快速切換員工
-```json
-// Request
-{
-  "fromStaffId": "550e8400-e29b-41d4-a716-446655440000",
-  "toStaffId": "660e8400-e29b-41d4-a716-446655440001"
-}
-
-// Response 200
-{
-  "success": true,
-  "message": "員工切換成功",
-  "newStaff": {
-    "staffId": "660e8400-e29b-41d4-a716-446655440001",
-    "name": "王大明",
-    "role": "SERVICE"
-  }
-}
-```
-
-#### **GET /api/staff/available/{currentStaffId}**
-**功能**: 獲取可切換員工列表
-```json
-// Response 200
-[
-  {
-    "staffId": "660e8400-e29b-41d4-a716-446655440001",
-    "employeeNumber": "ST002",
-    "name": "王大明",
-    "role": "SERVICE",
-    "isOnDuty": true
-  },
-  {
-    "staffId": "770e8400-e29b-41d4-a716-446655440002",
-    "employeeNumber": "ST003",
-    "name": "張小美",
-    "role": "CASHIER",
-    "isOnDuty": false
-  }
-]
-```
-
-### 2.2 訂單管理API（基於現有StaffController）
-
-#### **GET /api/staff/orders/pending**
-**功能**: 獲取待處理訂單
-```json
-// Response 200
-{
-  "pending": [
-    {
-      "id": 12347,
-      "userId": 101,
-      "status": "PENDING",
-      "totalAmount": 940.00,
-      "items": [
-        {
-          "menuItemId": 1,
-          "quantity": 2,
-          "price": 470.00,
-          "specialRequests": "不要洋蔥"
-        }
-      ],
-      "createdAt": "2024-01-22T14:25:00",
-      "tableNumber": "3",
-      "customerName": "王先生",
-      "customerPhone": "0912345678"
-    }
-  ],
-  "confirmed": [
-    {
-      "id": 12346,
-      "status": "CONFIRMED",
-      "totalAmount": 580.00
-    }
-  ],
-  "total": 2
-}
-```
-
-#### **GET /api/staff/orders/in-progress**
-**功能**: 獲取進行中訂單
-```json
-// Response 200
-{
-  "preparing": [
-    {
-      "id": 12345,
-      "status": "PREPARING",
-      "totalAmount": 780.00,
-      "items": [...],
-      "assignedStaff": "ST001",
-      "estimatedCompleteTime": "2024-01-22T14:45:00"
-    }
-  ],
-  "ready": [
-    {
-      "id": 12344,
-      "status": "READY",
-      "totalAmount": 450.00,
-      "completedAt": "2024-01-22T14:20:00"
-    }
-  ],
-  "total": 2
-}
-```
-
-#### **GET /api/staff/orders/completed**
-**功能**: 獲取已完成訂單
-```json
-// Response 200
-{
-  "delivered": [
-    {
-      "id": 12343,
-      "status": "DELIVERED",
-      "totalAmount": 680.00,
-      "deliveredAt": "2024-01-22T14:00:00"
-    }
-  ],
-  "completed": [
-    {
-      "id": 12342,
-      "status": "COMPLETED",
-      "totalAmount": 320.00,
-      "completedAt": "2024-01-22T13:45:00"
-    }
-  ],
-  "total": 2
-}
-```
-
-#### **PUT /api/staff/orders/{orderId}/status**
-**功能**: 更新訂單狀態
-```json
-// Request
-{
-  "status": "PREPARING",  // PENDING, CONFIRMED, PREPARING, READY, DELIVERED, COMPLETED, CANCELLED
-  "staffId": "ST001",
-  "notes": "開始製作"
-}
-
-// Response 200
-{
-  "success": true,
-  "message": "訂單狀態已更新",
-  "order": {
-    "id": 12347,
-    "status": "PREPARING",
-    "updatedAt": "2024-01-22T14:30:00"
-  }
-}
-```
-
-#### **GET /api/staff/orders/{orderId}/details**
-**功能**: 獲取訂單詳細資訊
-```json
-// Response 200
-{
-  "order": {
-    "id": 12347,
-    "userId": 101,
-    "status": "PREPARING",
-    "totalAmount": 940.00,
-    "items": [
-      {
-        "menuItemId": 1,
-        "menuItemName": "招牌牛排",
-        "quantity": 2,
-        "price": 470.00,
-        "specialRequests": "不要洋蔥"
-      }
-    ],
-    "createdAt": "2024-01-22T14:25:00",
-    "tableNumber": "3",
-    "customerName": "王先生",
-    "customerPhone": "0912345678",
-    "paymentMethod": "CASH",
-    "paymentStatus": "PENDING"
-  },
-  "kitchenDetails": {
-    "orderId": 12347,
-    "staffId": "ST001",
-    "startTime": "2024-01-22T14:30:00",
-    "estimatedMinutesRemaining": 15,
-    "status": "COOKING"
-  },
-  "hasKitchenInfo": true
-}
-```
-
-### 2.3 廚房工作台API（基於現有StaffController）
-
-#### **GET /api/staff/kitchen/queue**
-**功能**: 獲取廚房隊列
-```json
-// Response 200
-{
-  "queued": [
-    {
-      "kitchenOrderId": "ko-001",
-      "orderId": 12347,
-      "status": "QUEUED",
-      "priority": "NORMAL",
-      "estimatedPrepTime": 25,
-      "queuePosition": 1
-    }
-  ],
-  "active": [
-    {
-      "kitchenOrderId": "ko-002",
-      "orderId": 12346,
-      "status": "COOKING",
-      "staffId": "ST001",
-      "startTime": "2024-01-22T14:25:00",
-      "estimatedMinutesRemaining": 10
-    }
-  ],
-  "overdue": [
-    {
-      "kitchenOrderId": "ko-003",
-      "orderId": 12345,
-      "status": "OVERDUE",
-      "overdueMinutes": 5
-    }
-  ],
-  "totalQueued": 1,
-  "totalActive": 1,
-  "totalOverdue": 1
-}
-```
-
-#### **POST /api/staff/kitchen/start/{orderId}**
-**功能**: 開始製作訂單
-```json
-// Request
-{
-  "staffId": "ST001"
-}
-
-// Response 200
-{
-  "success": true,
-  "message": "開始準備訂單",
-  "orderId": "12347",
-  "staffId": "ST001"
-}
-```
-
-#### **PUT /api/staff/kitchen/timer/{orderId}**
-**功能**: 更新製作計時器
-```json
-// Request
-{
-  "estimatedMinutesRemaining": 15,
-  "notes": "正在烹飪主菜"
-}
-
-// Response 200
-{
-  "success": true,
-  "message": "計時器已更新",
-  "orderId": "12347",
-  "estimatedMinutesRemaining": 15
-}
-```
-
-#### **POST /api/staff/kitchen/complete/{orderId}**
-**功能**: 完成訂單製作
-```json
-// Request
-{
-  "staffId": "ST001"
-}
-
-// Response 200
-{
-  "success": true,
-  "message": "訂單製作完成",
-  "orderId": "12347",
-  "completedBy": "ST001"
-}
-```
-
-### 2.4 統計與報表API（基於現有StaffController）
-
-#### **GET /api/staff/{staffId}/stats/daily**
-**功能**: 獲取每日績效統計
-```json
-// Request Query Parameters
-?date=2024-01-22  // 可選，預設為今天
-
-// Response 200
-{
-  "date": "2024-01-22",
-  "statistics": {
-    "staffId": "ST001",
-    "statisticsId": "stat-001",
-    "period": "DAILY",
-    "ordersProcessed": 24,
-    "ordersCompleted": 22,
-    "ordersCancelled": 1,
-    "averageProcessingTime": 18.5,
-    "efficiencyScore": 95.5,
-    "totalRevenue": 12580.00,
-    "hoursWorked": 5.5,
-    "overtimeHours": 0.0,
-    "customerRating": 4.8,
-    "periodStart": "2024-01-22T00:00:00",
-    "periodEnd": "2024-01-22T23:59:59"
-  },
-  "hasData": true
-}
-```
-
-#### **GET /api/staff/{staffId}/stats/weekly**
-**功能**: 獲取每週績效統計
-```json
-// Request Query Parameters
-?weekStart=2024-01-15  // 可選，預設為本週
-
-// Response 200
-{
-  "statistics": {
-    "staffId": "ST001",
-    "period": "WEEKLY",
-    "ordersProcessed": 145,
-    "ordersCompleted": 140,
-    "ordersCancelled": 3,
-    "averageProcessingTime": 17.2,
-    "efficiencyScore": 96.8,
-    "totalRevenue": 78450.00,
-    "hoursWorked": 38.5,
-    "overtimeHours": 2.5,
-    "customerRating": 4.7,
-    "periodStart": "2024-01-15T00:00:00",
-    "periodEnd": "2024-01-21T23:59:59"
-  },
-  "hasData": true
-}
-```
-
-#### **GET /api/staff/{staffId}/stats/monthly**
-**功能**: 獲取每月績效統計
-```json
-// Request Query Parameters
-?monthStart=2024-01-01  // 可選，預設為本月
-
-// Response 200
-{
-  "statistics": {
-    "staffId": "ST001",
-    "period": "MONTHLY",
-    "ordersProcessed": 580,
-    "ordersCompleted": 565,
-    "ordersCancelled": 10,
-    "averageProcessingTime": 16.8,
-    "efficiencyScore": 97.4,
-    "totalRevenue": 325600.00,
-    "hoursWorked": 168.0,
-    "overtimeHours": 12.0,
-    "customerRating": 4.6,
-    "periodStart": "2024-01-01T00:00:00",
-    "periodEnd": "2024-01-31T23:59:59"
-  },
-  "hasData": true
-}
-```
-
-#### **GET /api/staff/team/stats**
-**功能**: 獲取團隊績效指標
-```json
-// Response 200
-{
-  "totalStaff": 8,
-  "activeStaff": 5,
-  "todayOrdersProcessed": 125,
-  "todayAverageProcessingTime": 17.5,
-  "todayEfficiencyScore": 94.2,
-  "todayRevenue": 58900.00,
-  "topPerformers": [
-    {
-      "staffId": "ST001",
-      "name": "李小華",
-      "ordersProcessed": 24,
-      "efficiencyScore": 95.5
-    },
-    {
-      "staffId": "ST002",
-      "name": "王大明",
-      "ordersProcessed": 20,
-      "efficiencyScore": 93.2
-    }
-  ],
-  "departmentStats": {
-    "KITCHEN": {
-      "staffCount": 3,
-      "ordersProcessed": 75,
-      "averageTime": 18.5
-    },
-    "SERVICE": {
-      "staffCount": 3,
-      "ordersProcessed": 30,
-      "averageTime": 12.3
-    },
-    "CASHIER": {
-      "staffCount": 2,
-      "ordersProcessed": 20,
-      "averageTime": 5.5
-    }
-  }
-}
-```
-
-#### **GET /api/staff/leaderboard**
-**功能**: 獲取員工排行榜
-```json
-// Request Query Parameters
-?period=DAILY&limit=10
-
-// Response 200
-{
-  "period": "DAILY",
-  "leaderboard": [
-    {
-      "rank": 1,
-      "staffId": "ST001",
-      "name": "李小華",
-      "department": "KITCHEN",
-      "ordersProcessed": 24,
-      "efficiencyScore": 95.5,
-      "averageTime": 18.5
-    },
-    {
-      "rank": 2,
-      "staffId": "ST002",
-      "name": "王大明",
-      "department": "SERVICE",
-      "ordersProcessed": 20,
-      "efficiencyScore": 93.2,
-      "averageTime": 12.3
-    }
-  ],
-  "totalEntries": 2
-}
-```
-
-### 2.5 通知管理API（基於現有StaffController）
-
-#### **GET /api/staff/notifications/{staffId}**
-**功能**: 獲取員工通知
-```json
-// Request Query Parameters
-?unreadOnly=false  // 是否只獲取未讀通知
-
-// Response 200
-{
-  "notifications": [
-    {
-      "notificationId": "notif-001",
-      "staffId": "ST001",
-      "type": "NEW_ORDER",
-      "priority": "HIGH",
-      "title": "新訂單",
-      "message": "桌號3有新訂單 #12347",
-      "isRead": false,
-      "createdAt": "2024-01-22T14:30:00",
-      "relatedOrderId": 12347
-    },
-    {
-      "notificationId": "notif-002",
-      "staffId": "ST001",
-      "type": "ORDER_OVERDUE",
-      "priority": "URGENT",
-      "title": "訂單超時",
-      "message": "訂單 #12345 已超時5分鐘",
-      "isRead": false,
-      "createdAt": "2024-01-22T14:35:00",
-      "relatedOrderId": 12345
-    }
-  ],
-  "unreadCount": 2,
-  "totalCount": 2
-}
-```
-
-#### **POST /api/staff/notifications/{staffId}/mark-read**
-**功能**: 標記通知為已讀
-```json
-// Request (標記單個通知)
-{
-  "notificationId": "notif-001"
-}
-
-// Response 200
-{
-  "success": true,
-  "message": "通知已標記為已讀"
-}
-
-// Request (標記所有通知) - 不傳送body
-// Response 200
-{
-  "success": true,
-  "message": "所有通知已標記為已讀",
-  "markedCount": 5
-}
-```
-
-### 2.6 WebSocket即時通訊
-
-#### **WebSocket端點: ws://localhost:8081/ws/staff/{staffId}**
-
-**訂閱訊息類型**
-```javascript
-// 1. 新訂單通知
-{
-  "type": "NEW_ORDER",
-  "timestamp": "2024-01-22T14:30:00",
-  "priority": "HIGH",
-  "data": {
-    "orderId": 12348,
-    "orderNumber": "ORD-20240122-002",
-    "tableNumber": "5",
-    "itemCount": 3,
-    "totalAmount": 580,
-    "isUrgent": false
-  }
-}
-
-// 2. 訂單狀態更新
-{
-  "type": "ORDER_STATUS_UPDATE",
-  "timestamp": "2024-01-22T14:35:00",
-  "data": {
-    "orderId": 12347,
-    "previousStatus": "PENDING",
-    "newStatus": "PROCESSING",
-    "updatedBy": "王大明"
-  }
-}
-
-// 3. 緊急訂單警報
-{
-  "type": "URGENT_ORDER_ALERT",
-  "timestamp": "2024-01-22T14:40:00",
-  "priority": "URGENT",
-  "data": {
-    "orderId": 12349,
-    "reason": "OVERTIME",
-    "overdueMinutes": 10,
-    "tableNumber": "8",
-    "requiresImmediate": true
-  }
-}
-
-// 4. 廚房容量警告
-{
-  "type": "KITCHEN_CAPACITY_WARNING",
-  "timestamp": "2024-01-22T14:45:00",
-  "data": {
-    "currentCapacity": 95,
-    "queueLength": 15,
-    "estimatedDelay": 10  // 分鐘
-  }
-}
-```
-
-## 3. 資料庫設計
-
-### 3.1 員工相關表結構
-
-#### **staff_members表**
-```sql
-CREATE TABLE staff_members (
-    staff_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    employee_number VARCHAR(20) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    pin_hash VARCHAR(255),
-    name VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
-    role VARCHAR(50) NOT NULL,
-    department VARCHAR(50),
-    avatar_url VARCHAR(255),
-    is_active BOOLEAN DEFAULT true,
-    quick_switch_enabled BOOLEAN DEFAULT false,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_login_at TIMESTAMP,
-    
-    INDEX idx_employee_number (employee_number),
-    INDEX idx_role (role),
-    INDEX idx_department (department)
-);
-```
-
-#### **work_shifts表**
-```sql
-CREATE TABLE work_shifts (
-    shift_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    staff_id UUID REFERENCES staff_members(staff_id),
-    shift_date DATE NOT NULL,
-    start_time TIMESTAMP NOT NULL,
-    end_time TIMESTAMP,
-    actual_start TIMESTAMP,
-    actual_end TIMESTAMP,
-    break_minutes INTEGER DEFAULT 0,
-    overtime_minutes INTEGER DEFAULT 0,
-    status VARCHAR(20) DEFAULT 'SCHEDULED',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    INDEX idx_staff_date (staff_id, shift_date),
-    INDEX idx_status (status)
-);
-```
-
-#### **staff_activities表**
-```sql
-CREATE TABLE staff_activities (
-    activity_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    staff_id UUID REFERENCES staff_members(staff_id),
-    activity_type VARCHAR(50) NOT NULL,
-    order_id INTEGER,
-    description TEXT,
-    duration_seconds INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    INDEX idx_staff_activity (staff_id, activity_type),
-    INDEX idx_created_at (created_at)
-);
-```
-
-### 3.2 訂單擴展表結構
-
-#### **order_assignments表**
-```sql
-CREATE TABLE order_assignments (
-    assignment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id INTEGER REFERENCES orders(id),
-    staff_id UUID REFERENCES staff_members(staff_id),
-    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    started_at TIMESTAMP,
-    completed_at TIMESTAMP,
-    status VARCHAR(20) DEFAULT 'ASSIGNED',
-    notes TEXT,
-    
-    INDEX idx_order_staff (order_id, staff_id),
-    INDEX idx_status (status)
-);
-```
-
-#### **cooking_timers表**
-```sql
-CREATE TABLE cooking_timers (
-    timer_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id INTEGER REFERENCES orders(id),
-    staff_id UUID REFERENCES staff_members(staff_id),
-    start_time TIMESTAMP NOT NULL,
-    pause_time TIMESTAMP,
-    resume_time TIMESTAMP,
-    end_time TIMESTAMP,
-    estimated_duration INTEGER NOT NULL,  -- 秒
-    actual_duration INTEGER,
-    status VARCHAR(20) DEFAULT 'RUNNING',
-    
-    INDEX idx_order_timer (order_id),
-    INDEX idx_status (status)
-);
-```
-
-## 4. Redis緩存設計
-
-### 4.1 緩存鍵設計
-
-```yaml
-# 員工會話緩存
-staff:session:{staffId}:
-  - token: JWT token
-  - loginTime: 登入時間
-  - lastActivity: 最後活動時間
-  - deviceInfo: 設備信息
-  TTL: 8小時
-
-# 訂單隊列緩存
-orders:queue:pending:
-  - 待處理訂單列表（有序集合）
-  - Score: 優先級 + 時間戳
-  TTL: 5分鐘
-
-orders:queue:processing:
-  - 處理中訂單列表
-  TTL: 5分鐘
-
-# 員工狀態緩存
-staff:status:{staffId}:
-  - currentOrder: 當前處理訂單
-  - workload: 工作負載
-  - efficiency: 即時效率
-  TTL: 1分鐘
-
-# 廚房容量緩存
-kitchen:capacity:
-  - current: 當前容量百分比
-  - stations: 各工作站狀態
-  - estimatedWait: 預計等待時間
-  TTL: 30秒
-
-# 通知隊列
-notifications:staff:{staffId}:
-  - 未讀通知列表（列表結構）
-  TTL: 24小時
-```
-
-### 4.2 緩存更新策略
-
-| 數據類型 | 更新策略 | 失效時機 |
-|---------|---------|---------|
-| 員工會話 | Write-through | 登出/超時 |
-| 訂單隊列 | Write-behind (1秒) | 狀態變更 |
-| 員工狀態 | 實時更新 | 每分鐘刷新 |
-| 廚房容量 | 實時計算 | 30秒過期 |
-| 通知隊列 | Write-through | 讀取後刪除 |
-
-## 5. 安全性要求
-
-### 5.1 認證與授權
-
-#### **JWT Token結構**
-```json
-{
-  "header": {
-    "alg": "HS256",
-    "typ": "JWT"
-  },
-  "payload": {
-    "sub": "550e8400-e29b-41d4-a716-446655440000",
-    "employeeNumber": "ST001",
-    "name": "李小華",
-    "role": "KITCHEN",
-    "permissions": ["ORDER_VIEW", "ORDER_UPDATE"],
-    "iat": 1705920000,
-    "exp": 1705923600,
-    "deviceId": "POS-001"
-  }
-}
-```
-
-#### **權限矩陣**
-| 角色 | 訂單查看 | 訂單更新 | 廚房管理 | 統計查看 | 系統設置 |
-|-----|---------|---------|---------|---------|---------|
-| KITCHEN | ✓ | ✓ | ✓ | ✓ | ✗ |
-| SERVICE | ✓ | ✓ | ✗ | ✓ | ✗ |
-| CASHIER | ✓ | ✗ | ✗ | ✓ | ✗ |
-| MANAGER | ✓ | ✓ | ✓ | ✓ | ✓ |
-
-### 5.2 API安全措施
-
-- **請求限流**: 每分鐘100次/IP
-- **Token刷新**: AccessToken 1小時，RefreshToken 7天
-- **設備綁定**: Token與設備ID綁定
-- **操作審計**: 記錄所有狀態變更操作
-- **敏感數據加密**: PIN碼、密碼使用BCrypt
-- **HTTPS強制**: 生產環境強制HTTPS
-
-## 6. 性能優化要求
-
-### 6.1 API響應時間要求
-
-| API類型 | 目標響應時間 | 最大響應時間 |
-|---------|------------|-------------|
-| 認證登入 | < 200ms | 500ms |
-| 訂單列表 | < 150ms | 300ms |
-| 狀態更新 | < 100ms | 200ms |
-| 統計查詢 | < 300ms | 600ms |
-| WebSocket推送 | < 50ms | 100ms |
-
-### 6.2 數據庫優化
-
-- **索引優化**: 所有查詢欄位建立索引
-- **查詢優化**: 使用分頁、避免N+1查詢
-- **連接池**: HikariCP，最小10，最大50
-- **讀寫分離**: 主從複製，讀操作走從庫
-- **定期維護**: 每週執行VACUUM和ANALYZE
-
-### 6.3 緩存策略
-
-- **多級緩存**: 本地緩存 + Redis
-- **預加載**: 熱門數據預加載
-- **異步更新**: 非關鍵數據異步更新
-- **緩存預熱**: 系統啟動時預熱關鍵數據
-
-## 7. 監控與日誌
-
-### 7.1 監控指標
-
-```yaml
-# 應用監控
-- API響應時間（P50, P95, P99）
-- API錯誤率
-- 並發請求數
-- WebSocket連接數
-
-# 業務監控
-- 訂單處理時間
-- 員工在線數
-- 訂單積壓數
-- 廚房容量使用率
-
-# 系統監控
-- CPU使用率
-- 內存使用率
-- 數據庫連接池狀態
-- Redis命中率
-```
-
-### 7.2 日誌規範
-
-```java
-// 日誌級別使用
-ERROR - 系統錯誤、異常
-WARN  - 性能問題、潛在風險
-INFO  - 重要業務操作
-DEBUG - 調試信息
-
-// 日誌格式
-{
-  "timestamp": "2024-01-22T14:30:00.123Z",
-  "level": "INFO",
-  "service": "StaffOrderService",
-  "staffId": "ST001",
-  "action": "UPDATE_ORDER_STATUS",
-  "orderId": 12347,
-  "details": {
-    "previousStatus": "PENDING",
-    "newStatus": "PROCESSING"
-  },
-  "duration": 45,
-  "traceId": "abc-123-def"
-}
-```
+本文檔已將所有硬編碼的 API URL、配置參數和功能開關成功轉換為環境變數管理系統。現在您可以透過修改 `.env` 檔案輕鬆切換不同環境配置，無需修改任何程式碼，大幅提升開發效率和系統維護性！
 
 ---
