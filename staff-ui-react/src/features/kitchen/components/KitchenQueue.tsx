@@ -128,7 +128,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
         'hover:shadow-md transform hover:scale-[1.02]',
         isSelected ? 'ring-2 ring-blue-500 border-blue-300' : 'border-gray-200',
         isOverdue && 'ring-2 ring-red-400 bg-red-50',
-        compactMode ? 'p-3' : 'p-4'
+        compactMode ? 'p-2 md:p-3' : 'p-3 md:p-4'
       )}
     >
       {/* 訂單標題區 */}
@@ -138,7 +138,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
           <div className="flex items-center space-x-2">
             <h3 className={cn(
               'font-bold',
-              compactMode ? 'text-lg' : 'text-xl',
+              compactMode ? 'text-sm md:text-lg' : 'text-lg md:text-xl',
               priorityColors[order.priority]
             )}>
               #{order.orderNumber}
@@ -201,9 +201,9 @@ const OrderCard: React.FC<OrderCardProps> = ({
       <div className="space-y-2 mb-3">
         {order.items.map((item, index) => (
           <div key={item.id} className={cn(
-            'flex items-center justify-between p-2 rounded border',
+            'flex items-center justify-between p-1.5 md:p-2 rounded border',
             item.status === 'ready' ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200',
-            compactMode && 'text-sm'
+            compactMode && 'text-xs md:text-sm'
           )}>
             <div className="flex items-center space-x-2">
               <span className={cn(
@@ -388,27 +388,31 @@ export const KitchenQueue: React.FC<KitchenQueueProps> = ({
   return (
     <div className={cn('bg-gray-50 rounded-lg', className)}>
       {/* 標題和統計 */}
-      <div className="bg-white rounded-t-lg border-b border-gray-200 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900">廚房隊列</h2>
+      <div className="bg-white rounded-t-lg border-b border-gray-200 p-3 md:p-4">
+        <div className="flex items-center justify-between mb-3 md:mb-4">
+          <h2 className="text-lg md:text-xl font-bold text-gray-900">廚房隊列</h2>
           
           {/* 統計標籤 */}
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-1 text-sm">
-              <div className="w-3 h-3 rounded-full bg-gray-400"></div>
-              <span>排隊: {stats.queued}</span>
+          <div className="flex items-center space-x-1 md:space-x-3 text-xs md:text-sm">
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-400"></div>
+              <span className="hidden sm:inline">排隊: </span>
+              <span>{stats.queued}</span>
             </div>
-            <div className="flex items-center space-x-1 text-sm">
-              <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-              <span>製作中: {stats.active}</span>
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-yellow-400"></div>
+              <span className="hidden sm:inline">製作中: </span>
+              <span>{stats.active}</span>
             </div>
-            <div className="flex items-center space-x-1 text-sm">
-              <div className="w-3 h-3 rounded-full bg-red-400"></div>
-              <span>逾時: {stats.overdue}</span>
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-red-400"></div>
+              <span className="hidden sm:inline">逾時: </span>
+              <span>{stats.overdue}</span>
             </div>
-            <div className="flex items-center space-x-1 text-sm">
-              <div className="w-3 h-3 rounded-full bg-green-400"></div>
-              <span>完成: {stats.completed}</span>
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-green-400"></div>
+              <span className="hidden sm:inline">完成: </span>
+              <span>{stats.completed}</span>
             </div>
           </div>
         </div>

@@ -389,12 +389,11 @@ export const KitchenWorkstationPage: React.FC<KitchenWorkstationPageProps> = ({
             </span>
           </div>
 
-          <div className="flex items-center space-x-1 md:space-x-3">
+          <div className="flex items-center space-x-3">
             {/* 視圖切換器 */}
             <ViewSwitcher
               currentView={currentView}
               onViewChange={setCurrentView}
-              className="hidden sm:flex"
             />
             
             {/* 控制按鈕 */}
@@ -402,63 +401,48 @@ export const KitchenWorkstationPage: React.FC<KitchenWorkstationPageProps> = ({
               onClick={handleRefresh}
               disabled={isLoading}
               className={cn(
-                'p-1.5 md:p-2 rounded-lg transition-colors',
+                'p-2 rounded-lg transition-colors',
                 isLoading 
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
                   : 'bg-blue-600 text-white hover:bg-blue-700'
               )}
               title="刷新數據"
             >
-              <RefreshCw className={cn('w-3 h-3 md:w-4 md:h-4', isLoading && 'animate-spin')} />
+              <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin')} />
             </button>
             
             <button
               onClick={() => setShowSettings(true)}
-              className="p-1.5 md:p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
               title="設定"
             >
-              <Settings className="w-3 h-3 md:w-4 md:h-4" />
+              <Settings className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* 手機版視圖選擇器 */}
-      <div className="sm:hidden px-3 py-2 bg-white border-b border-gray-200">
-        <select
-          value={currentView}
-          onChange={(e) => setCurrentView(e.target.value as ViewMode)}
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm"
-        >
-          {Object.entries(viewConfigs).map(([key, config]) => (
-            <option key={key} value={key}>
-              {config.title}
-            </option>
-          ))}
-        </select>
-      </div>
-
       {/* 快速統計 */}
-      <div className="px-3 md:px-6 py-3 md:py-4">
+      <div className="px-6 py-4">
         <QuickStats />
       </div>
 
       {/* 錯誤提示 */}
       {error && (
-        <div className="mx-3 md:mx-6 mb-3 md:mb-4 p-3 md:p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mx-6 mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-red-600" />
-            <span className="text-red-800 font-medium text-sm md:text-base">錯誤:</span>
-            <span className="text-red-700 text-sm md:text-base">{error}</span>
+            <AlertCircle className="w-5 h-5 text-red-600" />
+            <span className="text-red-800 font-medium">錯誤:</span>
+            <span className="text-red-700">{error}</span>
           </div>
         </div>
       )}
 
       {/* 主內容區 */}
-      <div className="px-3 md:px-6 pb-3 md:pb-6">
+      <div className="px-6 pb-6">
         <div className={cn(
-          'bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-6 min-h-[calc(100vh-280px)]',
-          layoutMode === 'grid' && 'grid grid-cols-2 gap-3 md:gap-6'
+          'bg-white rounded-lg shadow-sm border border-gray-200 p-6 min-h-[calc(100vh-280px)]',
+          layoutMode === 'grid' && 'grid grid-cols-2 gap-6'
         )}>
           {renderCurrentView()}
         </div>

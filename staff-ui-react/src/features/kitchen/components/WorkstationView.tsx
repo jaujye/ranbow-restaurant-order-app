@@ -294,7 +294,7 @@ const WorkstationCard: React.FC<WorkstationCardProps> = ({
           isSelected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
           !workstation.isActive && 'opacity-60 bg-gray-50',
           hasOverdue && 'border-red-300 bg-red-50',
-          compactMode ? 'p-3' : 'p-4'
+          compactMode ? 'p-2 md:p-3' : 'p-3 md:p-4'
         )}
       >
         {/* 工作站標題 */}
@@ -313,7 +313,7 @@ const WorkstationCard: React.FC<WorkstationCardProps> = ({
             <div>
               <h3 className={cn(
                 'font-bold text-gray-900',
-                compactMode ? 'text-sm' : 'text-lg'
+                compactMode ? 'text-xs md:text-sm' : 'text-sm md:text-lg'
               )}>
                 {workstationNames[workstation.type]}
               </h3>
@@ -414,18 +414,18 @@ const WorkstationCard: React.FC<WorkstationCardProps> = ({
 
         {/* 訂單概覽 */}
         <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="text-center p-2 bg-blue-50 rounded">
-            <div className="text-lg font-bold text-blue-700">{queuedOrders.length}</div>
+          <div className="text-center p-1.5 md:p-2 bg-blue-50 rounded">
+            <div className="text-sm md:text-lg font-bold text-blue-700">{queuedOrders.length}</div>
             <div className="text-xs text-blue-600">排隊</div>
           </div>
           
-          <div className="text-center p-2 bg-yellow-50 rounded">
-            <div className="text-lg font-bold text-yellow-700">{activeOrders.length}</div>
+          <div className="text-center p-1.5 md:p-2 bg-yellow-50 rounded">
+            <div className="text-sm md:text-lg font-bold text-yellow-700">{activeOrders.length}</div>
             <div className="text-xs text-yellow-600">製作中</div>
           </div>
           
-          <div className="text-center p-2 bg-red-50 rounded">
-            <div className="text-lg font-bold text-red-700">{overdueOrders.length}</div>
+          <div className="text-center p-1.5 md:p-2 bg-red-50 rounded">
+            <div className="text-sm md:text-lg font-bold text-red-700">{overdueOrders.length}</div>
             <div className="text-xs text-red-600">逾時</div>
           </div>
         </div>
@@ -548,28 +548,28 @@ export const WorkstationView: React.FC<WorkstationViewProps> = ({
           <h2 className="text-xl font-bold text-gray-900 mb-4">工作站總覽</h2>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <Activity className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-              <div className="text-2xl font-bold text-blue-700">{activeWorkstations.length}</div>
-              <div className="text-sm text-blue-600">活躍工作站</div>
+            <div className="text-center p-3 md:p-4 bg-blue-50 rounded-lg">
+              <Activity className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1 md:mb-2 text-blue-600" />
+              <div className="text-lg md:text-2xl font-bold text-blue-700">{activeWorkstations.length}</div>
+              <div className="text-xs md:text-sm text-blue-600">活躍工作站</div>
             </div>
             
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <Clock className="w-8 h-8 mx-auto mb-2 text-green-600" />
-              <div className="text-2xl font-bold text-green-700">{totalOrders}</div>
-              <div className="text-sm text-green-600">總訂單數</div>
+            <div className="text-center p-3 md:p-4 bg-green-50 rounded-lg">
+              <Clock className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1 md:mb-2 text-green-600" />
+              <div className="text-lg md:text-2xl font-bold text-green-700">{totalOrders}</div>
+              <div className="text-xs md:text-sm text-green-600">總訂單數</div>
             </div>
             
-            <div className="text-center p-4 bg-yellow-50 rounded-lg">
-              <Users className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
-              <div className="text-2xl font-bold text-yellow-700">{activeOrders}</div>
-              <div className="text-sm text-yellow-600">製作中</div>
+            <div className="text-center p-3 md:p-4 bg-yellow-50 rounded-lg">
+              <Users className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1 md:mb-2 text-yellow-600" />
+              <div className="text-lg md:text-2xl font-bold text-yellow-700">{activeOrders}</div>
+              <div className="text-xs md:text-sm text-yellow-600">製作中</div>
             </div>
             
-            <div className="text-center p-4 bg-red-50 rounded-lg">
-              <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-600" />
-              <div className="text-2xl font-bold text-red-700">{overdueOrders}</div>
-              <div className="text-sm text-red-600">逾時警告</div>
+            <div className="text-center p-3 md:p-4 bg-red-50 rounded-lg">
+              <AlertCircle className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1 md:mb-2 text-red-600" />
+              <div className="text-lg md:text-2xl font-bold text-red-700">{overdueOrders}</div>
+              <div className="text-xs md:text-sm text-red-600">逾時警告</div>
             </div>
           </div>
         </div>
