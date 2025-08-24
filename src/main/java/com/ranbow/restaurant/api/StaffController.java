@@ -285,9 +285,9 @@ public class StaffController {
 
     /**
      * Get pending orders for staff
-     * GET /api/orders/pending
+     * GET /api/staff/orders/pending
      */
-    @GetMapping("/orders/pending")
+    @GetMapping("/staff/orders/pending")
     public ResponseEntity<?> getPendingOrders() {
         try {
             List<Map<String, Object>> pendingOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.PENDING);
@@ -308,9 +308,9 @@ public class StaffController {
 
     /**
      * Get orders currently being prepared
-     * GET /api/orders/in-progress
+     * GET /api/staff/orders/in-progress
      */
-    @GetMapping("/orders/in-progress")
+    @GetMapping("/staff/orders/in-progress")
     public ResponseEntity<?> getInProgressOrders() {
         try {
             List<Map<String, Object>> preparingOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.PREPARING);
@@ -331,9 +331,9 @@ public class StaffController {
 
     /**
      * Get completed orders
-     * GET /api/orders/completed
+     * GET /api/staff/orders/completed
      */
-    @GetMapping("/orders/completed")
+    @GetMapping("/staff/orders/completed")
     public ResponseEntity<?> getCompletedOrders() {
         try {
             List<Map<String, Object>> deliveredOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.DELIVERED);
@@ -354,9 +354,9 @@ public class StaffController {
 
     /**
      * Update order status
-     * PUT /api/orders/{orderId}/status
+     * PUT /api/staff/orders/{orderId}/status
      */
-    @PutMapping("/orders/{orderId}/status")
+    @PutMapping("/staff/orders/{orderId}/status")
     public ResponseEntity<?> updateOrderStatus(@PathVariable String orderId, 
                                              @RequestBody OrderStatusUpdateRequest request) {
         try {
@@ -396,9 +396,9 @@ public class StaffController {
 
     /**
      * Get detailed order information including customer info
-     * GET /api/orders/{orderId}/details
+     * GET /api/staff/orders/{orderId}/details
      */
-    @GetMapping("/orders/{orderId}/details")
+    @GetMapping("/staff/orders/{orderId}/details")
     public ResponseEntity<?> getOrderDetails(@PathVariable String orderId) {
         try {
             Optional<Order> orderOpt = orderService.findOrderById(orderId);
@@ -432,9 +432,9 @@ public class StaffController {
 
     /**
      * Get kitchen preparation queue
-     * GET /api/kitchen/queue
+     * GET /api/staff/kitchen/queue
      */
-    @GetMapping("/kitchen/queue")
+    @GetMapping("/staff/kitchen/queue")
     public ResponseEntity<?> getKitchenQueue() {
         try {
             List<KitchenOrder> queuedOrders = kitchenService.getKitchenQueue();
@@ -459,9 +459,9 @@ public class StaffController {
 
     /**
      * Start preparing an order
-     * POST /api/kitchen/start/{orderId}
+     * POST /api/staff/kitchen/start/{orderId}
      */
-    @PostMapping("/kitchen/start/{orderId}")
+    @PostMapping("/staff/kitchen/start/{orderId}")
     public ResponseEntity<?> startOrder(@PathVariable String orderId, 
                                       @RequestBody KitchenStartRequest request) {
         try {
@@ -491,9 +491,9 @@ public class StaffController {
 
     /**
      * Update cooking timer for an order
-     * PUT /api/kitchen/timer/{orderId}
+     * PUT /api/staff/kitchen/timer/{orderId}
      */
-    @PutMapping("/kitchen/timer/{orderId}")
+    @PutMapping("/staff/kitchen/timer/{orderId}")
     public ResponseEntity<?> updateTimer(@PathVariable String orderId, 
                                        @RequestBody KitchenTimerRequest request) {
         try {
@@ -521,9 +521,9 @@ public class StaffController {
 
     /**
      * Mark order as ready/complete
-     * POST /api/kitchen/complete/{orderId}
+     * POST /api/staff/kitchen/complete/{orderId}
      */
-    @PostMapping("/kitchen/complete/{orderId}")
+    @PostMapping("/staff/kitchen/complete/{orderId}")
     public ResponseEntity<?> completeOrder(@PathVariable String orderId, 
                                          @RequestBody KitchenCompleteRequest request) {
         try {

@@ -3,7 +3,9 @@ package com.ranbow.restaurant.services;
 import com.ranbow.restaurant.dao.OrderDAO;
 import com.ranbow.restaurant.models.*;
 import com.ranbow.restaurant.api.OrderController;
+import com.ranbow.restaurant.events.OrderStatusChangeEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -25,6 +27,9 @@ public class OrderService {
     
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
     
     public Order createOrder(String customerId, String tableNumber) {
         Order newOrder = new Order(customerId, tableNumber);
@@ -188,14 +193,8 @@ public class OrderService {
             }
             
             if (order.getStatus() == OrderStatus.PENDING) {
-                // Use updateStatus method to properly update the status in database
-                boolean updated = orderDAO.updateStatus(orderId, OrderStatus.CONFIRMED);
-                if (updated) {
-                    order.setStatus(OrderStatus.CONFIRMED); // Update local object status
-                    return true;
-                } else {
-                    throw new RuntimeException("Failed to update order status in database");
-                }
+                // Use updateOrderStatus to ensure kitchen order is created
+                return updateOrderStatus(orderId, OrderStatus.CONFIRMED);
             }
         }
         return false;
@@ -205,20 +204,33 @@ public class OrderService {
         Optional<Order> orderOpt = findOrderById(orderId);
         if (orderOpt.isPresent()) {
             Order order = orderOpt.get();
+            OrderStatus oldStatus = order.getStatus();
             
             // Validate status transition
-            if (isValidStatusTransition(order.getStatus(), newStatus)) {
+            if (isValidStatusTransition(oldStatus, newStatus)) {
                 // Use updateStatus method to properly update the status in database
                 boolean updated = orderDAO.updateStatus(orderId, newStatus);
                 if (updated) {
                     order.setStatus(newStatus); // Update local object status
+                    
+                    // Publish order status change event for other services to handle
+                    try {
+                        OrderStatusChangeEvent event = new OrderStatusChangeEvent(
+                            this, orderId, oldStatus, newStatus, order);
+                        eventPublisher.publishEvent(event);
+                    } catch (Exception e) {
+                        System.err.println("Failed to publish order status change event for " + orderId + ": " + e.getMessage());
+                        e.printStackTrace();
+                        // Don't fail the status update if event publishing fails
+                    }
+                    
                     return true;
                 } else {
                     throw new RuntimeException("Failed to update order status in database");
                 }
             } else {
                 throw new IllegalStateException("無效的狀態轉換: " + 
-                        order.getStatus() + " -> " + newStatus);
+                        oldStatus + " -> " + newStatus);
             }
         }
         return false;
