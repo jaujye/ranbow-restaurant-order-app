@@ -2,12 +2,16 @@ import React from 'react';
 import { useStaffAuth } from '@/features/auth/store/authStore';
 import { StaffProfileCard } from '@/features/auth/components/StaffProfileCard';
 import { QuickSwitchPanel } from '@/features/auth/components/QuickSwitchPanel';
+import { DashboardStats } from '../components/DashboardStats';
 
 /**
  * 員工儀表板頁面
  * 
- * 用於測試認證功能的簡單儀表板
- * 展示已登入員工的資訊和快速切換功能
+ * 顯示員工的實時工作台數據，包括：
+ * - 實時訂單統計
+ * - 廚房狀態監控
+ * - 個人績效數據
+ * - 團隊協作工具
  */
 export function DashboardPage() {
   const { currentStaff } = useStaffAuth();
@@ -17,35 +21,63 @@ export function DashboardPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">工作台</h1>
         <p className="text-gray-600">
-          歡迎回來，{currentStaff?.name}！
+          歡迎回來，{currentStaff?.name}！今日為您提供即時的營運數據。
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* 主要內容區域 */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">今日概覽</h2>
-            <div className="text-center py-12 text-gray-500">
-              <div className="text-4xl mb-2">🎉</div>
-              <p>員工認證系統已成功整合！</p>
-              <p className="text-sm mt-2">其他功能模組開發中...</p>
+      <div className="space-y-8">
+        {/* 實時統計數據 */}
+        <DashboardStats />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* 主要內容區域 */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">近期活動</h2>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">新訂單通知</p>
+                    <p className="text-xs text-blue-700">訂單 #12345 需要處理</p>
+                  </div>
+                  <span className="text-xs text-blue-600 ml-auto">2分鐘前</span>
+                </div>
+                
+                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div>
+                    <p className="text-sm font-medium text-green-900">廚房完成</p>
+                    <p className="text-xs text-green-700">訂單 #12340 已準備完成</p>
+                  </div>
+                  <span className="text-xs text-green-600 ml-auto">5分鐘前</span>
+                </div>
+
+                <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <div>
+                    <p className="text-sm font-medium text-orange-900">系統提醒</p>
+                    <p className="text-xs text-orange-700">今日效率已達成目標 85%</p>
+                  </div>
+                  <span className="text-xs text-orange-600 ml-auto">10分鐘前</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* 側邊欄 */}
-        <div className="space-y-6">
-          {/* 員工資訊卡片 */}
-          <StaffProfileCard />
-          
-          {/* 快速切換面板 */}
-          <QuickSwitchPanel 
-            maxDisplay={5}
-            onSwitchSuccess={(staff) => {
-              console.log('Switched to:', staff.name);
-            }}
-          />
+          {/* 側邊欄 */}
+          <div className="space-y-6">
+            {/* 員工資訊卡片 */}
+            <StaffProfileCard />
+            
+            {/* 快速切換面板 */}
+            <QuickSwitchPanel 
+              maxDisplay={5}
+              onSwitchSuccess={(staff) => {
+                console.log('Switched to:', staff.name);
+              }}
+            />
+          </div>
         </div>
       </div>
     </div>

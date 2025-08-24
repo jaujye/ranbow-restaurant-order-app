@@ -161,6 +161,110 @@ public class StaffController {
     }
 
     // ================================
+    // DASHBOARD ENDPOINTS
+    // ================================
+
+    /**
+     * Get dashboard data for staff
+     * GET /api/staff/dashboard/{staffId}
+     */
+    @GetMapping("/dashboard/{staffId}")
+    public ResponseEntity<?> getDashboardData(@PathVariable String staffId) {
+        try {
+            // 獲取今日統計
+            StaffStatistics todayStats = statisticsService.getDailyStatistics(staffId, LocalDate.now()).orElse(null);
+            
+            // 獲取待處理訂單
+            List<Order> pendingOrders = orderService.getOrdersByStatus(OrderStatus.PENDING);
+            List<Order> confirmedOrders = orderService.getOrdersByStatus(OrderStatus.CONFIRMED);
+            List<Order> preparingOrders = orderService.getOrdersByStatus(OrderStatus.PREPARING);
+            List<Order> readyOrders = orderService.getOrdersByStatus(OrderStatus.READY);
+            
+            // 獲取廚房狀態
+            List<KitchenOrder> kitchenQueue = kitchenService.getKitchenQueue();
+            
+            // 獲取團隊統計
+            StaffStatisticsService.TeamStatistics teamStats = statisticsService.getTeamStatistics();
+            
+            // 獲取通知數量
+            int unreadNotifications = notificationService.countUnreadNotifications(staffId);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", Map.of(
+                    "todayStats", todayStats,
+                    "orders", Map.of(
+                        "pending", pendingOrders.size(),
+                        "confirmed", confirmedOrders.size(),
+                        "preparing", preparingOrders.size(),
+                        "ready", readyOrders.size(),
+                        "total", pendingOrders.size() + confirmedOrders.size() + preparingOrders.size() + readyOrders.size(),
+                        "recentOrders", pendingOrders.stream().limit(5).toList()
+                    ),
+                    "kitchen", Map.of(
+                        "queueLength", kitchenQueue.size(),
+                        "activeQueues", kitchenQueue.stream().filter(q -> !q.getKitchenStatus().isCompleted()).count(),
+                        "recentItems", kitchenQueue.stream().limit(5).toList()
+                    ),
+                    "team", teamStats,
+                    "notifications", Map.of(
+                        "unread", unreadNotifications
+                    ),
+                    "lastUpdated", System.currentTimeMillis()
+                )
+            ));
+            
+        } catch (Exception e) {
+            System.err.println("Error getting dashboard data: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "無法載入工作台數據", "details", e.getMessage()));
+        }
+    }
+
+    /**
+     * Get real-time overview data (optimized for frequent polling)
+     * GET /api/staff/overview
+     */
+    @GetMapping("/overview")
+    public ResponseEntity<?> getRealTimeOverview() {
+        try {
+            // 獲取訂單概覽 (輕量級查詢)
+            int pendingCount = orderService.getOrdersByStatus(OrderStatus.PENDING).size();
+            int confirmedCount = orderService.getOrdersByStatus(OrderStatus.CONFIRMED).size();
+            int preparingCount = orderService.getOrdersByStatus(OrderStatus.PREPARING).size();
+            int readyCount = orderService.getOrdersByStatus(OrderStatus.READY).size();
+            
+            // 獲取廚房隊列概覽
+            List<KitchenOrder> activeQueues = kitchenService.getKitchenQueue().stream()
+                .filter(q -> !q.getKitchenStatus().isCompleted()).toList();
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", Map.of(
+                    "orders", Map.of(
+                        "pending", pendingCount,
+                        "confirmed", confirmedCount,
+                        "preparing", preparingCount,
+                        "ready", readyCount,
+                        "total", pendingCount + confirmedCount + preparingCount + readyCount
+                    ),
+                    "kitchen", Map.of(
+                        "activeQueues", activeQueues.size(),
+                        "totalItems", activeQueues.size()
+                    ),
+                    "timestamp", System.currentTimeMillis()
+                )
+            ));
+            
+        } catch (Exception e) {
+            System.err.println("Error getting real-time overview: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "無法載入即時概覽", "details", e.getMessage()));
+        }
+    }
+
+    // ================================
     // ORDER MANAGEMENT FOR STAFF
     // ================================
 

@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield, Clock, Users, TrendingUp } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { LoginForm } from '../components/LoginForm';
 import { useStaffAuth } from '../store/authStore';
+import { LoginStatsApi, type LoginSystemStats } from '../services/loginStatsApi';
 
 /**
  * 功能特色項目
@@ -34,6 +35,83 @@ function FeatureItem({ icon: Icon, title, description, color }: FeatureItemProps
  */
 interface LoginPageProps {
   redirectTo?: string;
+}
+
+/**
+ * 系統統計卡片組件
+ */
+function SystemStatsCard() {
+  const [stats, setStats] = useState<LoginSystemStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const data = await LoginStatsApi.getLoginSystemStats();
+        setStats(data);
+      } catch (error) {
+        console.error('Failed to load system stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStats();
+    
+    // 每分鐘更新一次統計數據
+    const interval = setInterval(loadStats, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">系統概況</h3>
+        <div className="grid grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="text-center animate-pulse">
+              <div className="h-6 bg-gray-200 rounded mx-auto mb-2 w-12"></div>
+              <div className="h-3 bg-gray-200 rounded mx-auto w-16"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">系統概況</h3>
+      <div className="grid grid-cols-3 gap-4">
+        <div className="text-center">
+          <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            {stats?.systemUptime || '24/7'}
+          </p>
+          <p className="text-xs text-gray-600 mt-1">全天候服務</p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            {stats?.activeStaff || 0}+
+          </p>
+          <p className="text-xs text-gray-600 mt-1">員工使用</p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+            {stats?.systemReliability || '99.9%'}
+          </p>
+          <p className="text-xs text-gray-600 mt-1">系統穩定性</p>
+        </div>
+      </div>
+      {stats?.dailyOrders !== undefined && stats.dailyOrders > 0 && (
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-green-600">{stats.dailyOrders}</p>
+            <p className="text-xs text-gray-600">今日處理訂單</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 /**
@@ -163,30 +241,8 @@ export function LoginPage({ redirectTo = '/dashboard' }: LoginPageProps) {
                   />
                 </div>
 
-                {/* 使用統計 */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">系統概況</h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        24/7
-                      </p>
-                      <p className="text-xs text-gray-600 mt-1">全天候服務</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                        50+
-                      </p>
-                      <p className="text-xs text-gray-600 mt-1">員工使用</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                        99.9%
-                      </p>
-                      <p className="text-xs text-gray-600 mt-1">系統穩定性</p>
-                    </div>
-                  </div>
-                </div>
+                {/* 系統統計 */}
+                <SystemStatsCard />
               </div>
 
               {/* 右側 - 登入表單 */}

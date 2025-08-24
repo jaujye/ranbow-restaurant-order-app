@@ -375,28 +375,61 @@ export const useStaffAuthStore = create<StaffAuthState>()(
           return;
         }
         
-        if (state) {
-          // 重新計算computed properties
-          const isAuthenticated = !!(state.token && state.currentStaff);
-          const isManager = state.currentStaff?.position === 'MANAGER' || false;
-          const isSupervisor = state.currentStaff?.position === 'SUPERVISOR' || state.currentStaff?.position === 'MANAGER' || false;
-          
-          // 更新state中的computed properties
-          Object.assign(state, {
-            isAuthenticated,
-            isManager,
-            isSupervisor,
-            isLoading: false,
-            error: null,
-            staffProfile: null, // rehydration後重新載入
-          });
+        if (state && state.token && state.currentStaff) {
+          // 檢查token是否過期
+          const isTokenValid = () => {
+            try {
+              const payload = JSON.parse(atob(state.token.split('.')[1]));
+              const currentTime = Math.floor(Date.now() / 1000);
+              return payload.exp > currentTime;
+            } catch (error) {
+              console.warn('Failed to validate token:', error);
+              return false;
+            }
+          };
+
+          if (isTokenValid()) {
+            // Token有效，重新計算computed properties
+            const isAuthenticated = true;
+            const isManager = state.currentStaff?.position === 'MANAGER' || false;
+            const isSupervisor = state.currentStaff?.position === 'SUPERVISOR' || state.currentStaff?.position === 'MANAGER' || false;
+            
+            // 更新state中的computed properties
+            Object.assign(state, {
+              isAuthenticated,
+              isManager,
+              isSupervisor,
+              isLoading: false,
+              error: null,
+              staffProfile: null, // rehydration後重新載入
+            });
+
+            console.log('[StaffAuthStore] Rehydrated successfully with valid token', {
+              staffId: state.currentStaff?.staffId,
+              staffName: state.currentStaff?.name,
+              isAuthenticated: true
+            });
+          } else {
+            // Token已過期，清除認證狀態
+            Object.assign(state, {
+              currentStaff: null,
+              token: null,
+              sessionId: null,
+              refreshToken: null,
+              staffProfile: null,
+              isAuthenticated: false,
+              isManager: false,
+              isSupervisor: false,
+              isLoading: false,
+              error: 'Token expired'
+            });
+
+            console.log('[StaffAuthStore] Rehydrated but token expired, cleared auth state');
+          }
+        } else {
+          // 沒有有效的認證數據
+          console.log('[StaffAuthStore] Rehydrated without valid auth data');
         }
-        
-        console.log('[StaffAuthStore] Rehydrated successfully', {
-          hasState: !!state,
-          isAuthenticated: state?.isAuthenticated || false,
-          staffId: state?.currentStaff?.staffId
-        });
       },
     }
   )
@@ -407,17 +440,25 @@ export const useStaffAuthStore = create<StaffAuthState>()(
 /**
  * 員工認證狀態 Hook
  */
-export const useStaffAuth = () => 
-  useStaffAuthStore((state) => ({
+export const useStaffAuth = () => {
+  const state = useStaffAuthStore();
+  
+  // 確保computed properties正確反映當前狀態
+  const isAuthenticated = !!(state.token && state.currentStaff);
+  const isManager = state.currentStaff?.position === 'MANAGER' || false;
+  const isSupervisor = state.currentStaff?.position === 'SUPERVISOR' || state.currentStaff?.position === 'MANAGER' || false;
+  
+  return {
     currentStaff: state.currentStaff,
     staffProfile: state.staffProfile,
     token: state.token,
     isLoading: state.isLoading,
     error: state.error,
-    isAuthenticated: state.isAuthenticated,
-    isManager: state.isManager,
-    isSupervisor: state.isSupervisor,
-  }));
+    isAuthenticated,
+    isManager,
+    isSupervisor,
+  };
+};
 
 /**
  * 員工認證操作 Hook
