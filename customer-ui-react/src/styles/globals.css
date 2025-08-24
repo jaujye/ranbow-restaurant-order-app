@@ -61,11 +61,48 @@
   --color-border: 51, 65, 85;
 }
 
-/* 主題切換動畫 */
+/* 主題切換動畫 - 性能優化版本 */
 * {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
+}
+
+/* 性能優化設定 */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* 減少重繪的優化 */
+.optimized-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+  transform: translate3d(0, 0, 0);
+}
+
+/* 字體渲染優化 */
+.optimized-text {
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+/* 圖片載入優化 */
+.optimized-image {
+  content-visibility: auto;
+  contain-intrinsic-size: 200px 200px;
+}
+
+/* 動畫性能優化 */
+@media (prefers-reduced-motion: no-preference) {
+  .animate-optimized {
+    will-change: transform, opacity;
+  }
+  
+  .animate-optimized:not(:hover):not(:focus) {
+    will-change: auto;
+  }
 }
 
 /* 基礎樣式重置和設定 - 優化跨平台兼容性 */
