@@ -1,0 +1,304 @@
+# ============================================
+# Staff UI React Frontend (.gitignore)
+# Based on documentation requirements
+# ============================================
+
+# ============================================
+# Dependencies
+# ============================================
+node_modules/
+.pnp
+.pnp.js
+
+# ============================================
+# Build & Distribution
+# ============================================
+dist/
+dist-ssr/
+build/
+*.local
+
+# Vite specific
+.vite/
+vite.config.js.timestamp-*
+
+# ============================================
+# Environment Variables (根據文檔要求)
+# ============================================
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+!.env.example
+!.env.template
+
+# ============================================
+# Logs
+# ============================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ============================================
+# Testing & Coverage
+# ============================================
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+e2e/screenshots/
+e2e/videos/
+e2e/downloads/
+e2e/test-results/
+
+# ============================================
+# IDE & Editors
+# ============================================
+
+# VSCode
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# WebStorm
+.idea/
+*.iml
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+*.swp
+*.swo
+*~
+.*.swp
+
+# ============================================
+# TypeScript
+# ============================================
+*.tsbuildinfo
+node_modules/.cache/
+
+# TypeScript compiled files (if not using bundler)
+*.js
+*.js.map
+!vite.config.js
+!tailwind.config.js
+!postcss.config.js
+!eslint.config.js
+!prettier.config.js
+
+# Type definitions
+*.d.ts
+!src/**/*.d.ts
+!src/vite-env.d.ts
+
+# ============================================
+# Package Managers
+# ============================================
+
+# npm
+npm-debug.log*
+.npm/
+
+# Yarn
+yarn-debug.log*
+yarn-error.log*
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# pnpm
+pnpm-debug.log*
+.pnpm-store/
+
+# ============================================
+# OS Specific
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+# ============================================
+# Tailwind CSS
+# ============================================
+.tailwindcss-output.css
+
+# ============================================
+# Cache & Temporary Files
+# ============================================
+.cache/
+.parcel-cache/
+.turbo/
+.next/
+.nuxt/
+.vuepress/dist/
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.temp/
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+*.orig
+
+# ============================================
+# PWA & Service Worker (根據文檔要求)
+# ============================================
+public/sw.js
+public/workbox-*.js
+public/worker-*.js
+public/fallback-*.js
+service-worker.js
+sw.js
+
+# ============================================
+# React Query DevTools
+# ============================================
+.react-query-devtools/
+
+# ============================================
+# Storybook
+# ============================================
+storybook-static/
+.storybook/build/
+
+# ============================================
+# Staff UI Specific (根據文檔架構)
+# ============================================
+
+# WebSocket debug logs
+ws-debug/
+websocket-logs/
+
+# Notification sound cache
+public/sounds/*.cache
+
+# Statistics reports cache
+stats-cache/
+performance-reports/
+
+# Staff profile images (uploaded)
+public/uploads/
+staff-avatars/
+
+# Kitchen display cache
+kitchen-cache/
+order-queue-cache/
+
+# Mock data (for development)
+src/mocks/generated/
+mock-db.json
+
+# API response cache
+api-cache/
+response-cache/
+
+# ============================================
+# Bundle Analysis
+# ============================================
+stats.html
+bundle-stats.json
+webpack-stats.json
+.webpack-stats.json
+
+# ============================================
+# Documentation
+# ============================================
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+styleguide/
+
+# ============================================
+# Miscellaneous
+# ============================================
+
+# Patch files
+*.patch
+patches/
+
+# SSL certificates (development)
+*.pem
+*.key
+*.crt
+!localhost.pem
+!localhost-key.pem
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Lock files (debatable, but commonly ignored)
+# Uncomment if you don't want to commit lock files
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Error screenshots
+error-shots/
+
+# Performance profiling
+*.cpuprofile
+*.heapsnapshot
+
+# ============================================
+# Project Specific Excludes
+# ============================================
+
+# Exclude specific config backups
+*.config.backup
+*.config.old
+
+# Exclude deployment scripts (if sensitive)
+deploy/
+deployment/
+scripts/deploy-*.sh
+
+# Exclude environment-specific builds
+build-dev/
+build-staging/
+build-prod/

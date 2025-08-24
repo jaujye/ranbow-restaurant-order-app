@@ -1,5 +1,18 @@
+# ============================================
+# Customer UI React Frontend (.gitignore)
+# ============================================
+
+# ============================================
+# Dependencies
+# ============================================
+node_modules/
+.pnp
+.pnp.js
+
+# ============================================
 # Logs
-logs
+# ============================================
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,53 +20,153 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Dependencies
-node_modules
-dist
-dist-ssr
+# ============================================
+# Build & Distribution
+# ============================================
+dist/
+dist-ssr/
+build/
 *.local
 
-# Editor directories and files
+# Vite specific
+.vite/
+vite.config.js.timestamp-*
+
+# ============================================
+# Environment Variables
+# ============================================
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+!.env.example
+!.env.template
+
+# ============================================
+# IDE & Editor directories and files
+# ============================================
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
-.idea
-.DS_Store
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
+*~
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Build outputs
-build
-coverage
-
+# ============================================
 # OS generated files
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
 Thumbs.db
 ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
-# Testing
-coverage
+# Linux
+.directory
+.Trash-*
+
+# ============================================
+# Testing & Coverage
+# ============================================
+coverage/
 *.lcov
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
 
-# Temporary files
+# ============================================
+# TypeScript
+# ============================================
+*.tsbuildinfo
+*.d.ts
+!src/**/*.d.ts
+!src/vite-env.d.ts
+
+# ============================================
+# Cache & Temporary Files
+# ============================================
+.cache/
+.parcel-cache/
+.turbo/
 *.tmp
 *.temp
+tmp/
+temp/
 
-# Cache
-.cache
-.parcel-cache
-
+# ============================================
 # Runtime data
-pids
+# ============================================
+pids/
 *.pid
 *.seed
 *.pid.lock
+
+# ============================================
+# Package Manager Specific
+# ============================================
+
+# Yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# pnpm
+.pnpm-store/
+
+# ============================================
+# PWA & Service Worker
+# ============================================
+public/sw.js
+public/workbox-*.js
+service-worker.js
+
+# ============================================
+# Tailwind CSS
+# ============================================
+.tailwindcss-output.css
+
+# ============================================
+# Bundle Analysis
+# ============================================
+stats.html
+bundle-stats.json
+
+# ============================================
+# Zustand DevTools
+# ============================================
+.zustand-devtools/
+
+# ============================================
+# React Query DevTools
+# ============================================
+.react-query-devtools/
+
+# ============================================
+# Miscellaneous
+# ============================================
+*.backup
+*.orig
+.eslintcache
+.stylelintcache

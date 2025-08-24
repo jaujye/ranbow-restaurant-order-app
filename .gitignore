@@ -1,4 +1,8 @@
-# Java
+# ============================================
+# Java Spring Boot Backend (.gitignore)
+# ============================================
+
+# Java Compilation
 *.class
 *.jar
 *.war
@@ -9,27 +13,145 @@ build/
 .gradle/
 bin/
 out/
+classes/
 
-# IDE
+# Spring Boot Specific
+application-local.yml
+application-dev.yml
+application-prod.yml
+application-*.properties
+!application.yml
+!application.properties
+*.pid
+spring-boot-app.log
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+.gradletasknamecache
+
+# IDE - IntelliJ IDEA
 .idea/
-.vscode/
 *.iml
 *.iws
 *.ipr
+out/
+.idea_modules/
+atlassian-ide-plugin.xml
+
+# IDE - Eclipse
 .metadata/
 .classpath
 .project
 .settings/
+*.launch
+.recommenders/
+.springBeans
+.sts4-cache/
+
+# IDE - VSCode
+.vscode/
+*.code-workspace
+
+# IDE - NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Text Editors
 *.swp
 *.swo
+*~
+.*.swp
 
-# OS
-.DS_Store
-Thumbs.db
+# ============================================
+# Database & Cache
+# ============================================
 
-# Logs
+# PostgreSQL
+*.sql.bak
+*.dump
+postgres-data/
+pgdata/
+
+# Redis
+dump.rdb
+redis.log
+redis-data/
+appendonly.aof
+
+# H2 Database (for testing)
+*.db
+*.mv.db
+*.trace.db
+
+# ============================================
+# Logs & Reports
+# ============================================
 *.log
 logs/
+log/
+*.log.*
+hs_err_pid*
+replay_pid*
+
+# Test Reports
+TEST*.xml
+test-results/
+test-output/
+surefire-reports/
+failsafe-reports/
+jacoco.exec
+.coverage
+htmlcov/
+*.cover
+
+# ============================================
+# OS Specific
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+# ============================================
+# Output & Temporary Files
+# ============================================
 
 # Output files (use output/ directory instead)
 *.csv
@@ -43,25 +165,98 @@ result*.json
 report*.json
 export*.json
 temp*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!manifest.json
 
 # Temporary files
 tmp/
 temp/
 *.tmp
 *.bak
+*.backup
+*.orig
+*.rej
+*.old
+~$*
 
-# Maven
-target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
-.mvn/timing.properties
+# ============================================
+# Security & Credentials
+# ============================================
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+credentials.yml
+secrets.yml
+.env
+.env.*
+!.env.example
+!.env.template
 
-# Gradle
-.gradle/
-build/
-!gradle/wrapper/gradle-wrapper.jar
+# ============================================
+# Docker
+# ============================================
+docker-compose.override.yml
+.dockerignore
+*.dockerignore
+
+# ============================================
+# Staff System Specific (根據文檔要求)
+# ============================================
+
+# Staff temporary files (based on documentation)
+src/main/java/com/ranbow/restaurant/staff/**/*.tmp
+src/main/java/com/ranbow/restaurant/staff/**/*.bak
+
+# WebSocket temporary configurations
+**/WebSocketConfig.java.tmp
+**/StaffNotificationHandler.java.tmp
+**/KitchenWebSocketHandler.java.tmp
+
+# Staff session cache files
+staff-sessions/
+staff-cache/
+
+# Kitchen order temporary files
+kitchen-orders-temp/
+cooking-timers-temp/
+
+# ============================================
+# Node.js Frontend (如果在根目錄有前端項目)
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+
+# ============================================
+# Project Specific
+# ============================================
+
+# Ranbow Restaurant specific
+ranbow-temp/
+ranbow-cache/
+staff-uploads/
+order-exports/
+statistics-reports/
+
+# Exclude compiled TypeScript (if any)
+*.js.map
+*.d.ts
+!src/**/*.d.ts
+
+# Package files
+*.tgz
+*.zip
+*.tar.gz
+*.rar
+
+# Backup files
+backup/
+backups/
+*.backup
