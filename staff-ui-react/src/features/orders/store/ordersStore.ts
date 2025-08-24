@@ -272,30 +272,46 @@ export const useOrdersStore = create<OrdersStore>()(
             }
 
             // Transform the data to match our Order interface
-            const transformedOrders = allOrders.map((order: any) => ({
-              id: order.orderId || order.id,
-              orderNumber: order.orderId || order.orderNumber || order.id,
-              customerId: order.customerId || order.customer_id || 'unknown',
-              customer: {
-                id: order.customerId || order.customer_id || 'unknown',
-                name: order.customerName || 'Unknown Customer',
-                phone: order.customerPhone || '',
-                email: order.customerEmail || '',
-              },
-              items: order.items || [],
-              totalAmount: order.totalAmount || order.total_amount || 0,
-              status: order.status as OrderStatus,
-              paymentStatus: 'paid' as any, // Default since backend doesn't provide this yet
-              estimatedPrepTime: order.estimatedPrepTime,
-              actualPrepTime: order.actualPrepTime,
-              createdAt: order.orderTime || order.createdAt || new Date().toISOString(),
-              updatedAt: order.updatedAt || new Date().toISOString(),
-              completedAt: order.completedTime || order.completedAt,
-              specialInstructions: order.specialInstructions || order.special_instructions,
-              tableNumber: order.tableNumber || order.table_number?.toString(),
-              isUrgent: false,
-              priority: 'normal' as OrderPriority
-            }));
+            const transformedOrders = allOrders.map((order: any) => {
+              // Map backend status to frontend OrderStatus enum
+              const mapStatus = (backendStatus: string): OrderStatus => {
+                const statusMap: Record<string, OrderStatus> = {
+                  'PENDING': OrderStatus.PENDING,
+                  'CONFIRMED': OrderStatus.CONFIRMED, 
+                  'PREPARING': OrderStatus.PREPARING,
+                  'READY': OrderStatus.READY,
+                  'COMPLETED': OrderStatus.COMPLETED,
+                  'DELIVERED': OrderStatus.COMPLETED, // Map DELIVERED to COMPLETED
+                  'CANCELLED': OrderStatus.CANCELLED
+                };
+                return statusMap[backendStatus] || OrderStatus.PENDING;
+              };
+
+              return {
+                id: order.orderId || order.id,
+                orderNumber: order.orderId || order.orderNumber || order.id,
+                customerId: order.customerId || order.customer_id || 'unknown',
+                customer: {
+                  id: order.customerId || order.customer_id || 'unknown',
+                  name: order.customerName || 'Unknown Customer',
+                  phone: order.customerPhone || '',
+                  email: order.customerEmail || '',
+                },
+                items: order.items || order.orderItems || [],
+                totalAmount: order.totalAmount || order.total_amount || 0,
+                status: mapStatus(order.status),
+                paymentStatus: 'paid' as any, // Default since backend doesn't provide this yet
+                estimatedPrepTime: order.estimatedPrepTime,
+                actualPrepTime: order.actualPrepTime,
+                createdAt: order.orderTime || order.createdAt || new Date().toISOString(),
+                updatedAt: order.updatedAt || new Date().toISOString(),
+                completedAt: order.completedTime || order.completedAt,
+                specialInstructions: order.specialInstructions || order.special_instructions,
+                tableNumber: order.tableNumber || order.table_number?.toString(),
+                isUrgent: false,
+                priority: OrderPriority.NORMAL
+              };
+            });
 
             set({ 
               orders: transformedOrders,

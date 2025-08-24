@@ -82,8 +82,17 @@ export function OrderCard({
     return configs[priority];
   };
 
-  const statusConfig = getStatusConfig(order.status);
-  const priorityConfig = getPriorityConfig(order.priority);
+  const statusConfig = getStatusConfig(order.status) || {
+    color: 'text-gray-700 bg-gray-50 border-gray-200',
+    badge: 'bg-gray-100 text-gray-800',
+    icon: AlertTriangle,
+    label: '未知狀態'
+  };
+  const priorityConfig = getPriorityConfig(order.priority) || {
+    color: 'text-blue-600', 
+    badge: 'bg-blue-100 text-blue-600', 
+    label: '普通'
+  };
   const StatusIcon = statusConfig.icon;
 
   // Calculate time since order creation

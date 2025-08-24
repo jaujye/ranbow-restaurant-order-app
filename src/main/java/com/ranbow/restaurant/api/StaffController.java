@@ -290,8 +290,8 @@ public class StaffController {
     @GetMapping("/orders/pending")
     public ResponseEntity<?> getPendingOrders() {
         try {
-            List<Order> pendingOrders = orderService.getOrdersByStatus(OrderStatus.PENDING);
-            List<Order> confirmedOrders = orderService.getOrdersByStatus(OrderStatus.CONFIRMED);
+            List<Map<String, Object>> pendingOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.PENDING);
+            List<Map<String, Object>> confirmedOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.CONFIRMED);
             
             return ResponseEntity.ok(Map.of(
                 "pending", pendingOrders,
@@ -313,8 +313,8 @@ public class StaffController {
     @GetMapping("/orders/in-progress")
     public ResponseEntity<?> getInProgressOrders() {
         try {
-            List<Order> preparingOrders = orderService.getOrdersByStatus(OrderStatus.PREPARING);
-            List<Order> readyOrders = orderService.getOrdersByStatus(OrderStatus.READY);
+            List<Map<String, Object>> preparingOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.PREPARING);
+            List<Map<String, Object>> readyOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.READY);
             
             return ResponseEntity.ok(Map.of(
                 "preparing", preparingOrders,
@@ -336,8 +336,8 @@ public class StaffController {
     @GetMapping("/orders/completed")
     public ResponseEntity<?> getCompletedOrders() {
         try {
-            List<Order> deliveredOrders = orderService.getOrdersByStatus(OrderStatus.DELIVERED);
-            List<Order> completedOrders = orderService.getOrdersByStatus(OrderStatus.COMPLETED);
+            List<Map<String, Object>> deliveredOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.DELIVERED);
+            List<Map<String, Object>> completedOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.COMPLETED);
             
             return ResponseEntity.ok(Map.of(
                 "delivered", deliveredOrders,
