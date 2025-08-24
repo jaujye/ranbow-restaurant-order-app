@@ -77,7 +77,7 @@ const PERFORMANCE_COLORS = [
 ];
 
 // 自定義Tooltip
-const CustomTooltip: React.FC<any> = ({ active, payload, label, chartType, formatType }) => {
+const CustomTooltip: React.FC<any> = ({ active, payload, label, formatType }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
@@ -210,7 +210,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({
               tick={{ fontSize: 12 }}
               stroke="#9CA3AF"
             />
-            <Tooltip content={<CustomTooltip chartType="line" formatType={chartDataType} />} />
+            <Tooltip content={<CustomTooltip formatType={chartDataType} />} />
             {chartConfig.showComparison && <Legend />}
             <Line
               type="monotone"
@@ -248,7 +248,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({
               tick={{ fontSize: 12 }}
               stroke="#9CA3AF"
             />
-            <Tooltip content={<CustomTooltip chartType="bar" formatType={chartDataType} />} />
+            <Tooltip content={<CustomTooltip formatType={chartDataType} />} />
             {chartConfig.showComparison && <Legend />}
             <Bar
               dataKey="value"
@@ -272,7 +272,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({
               tick={{ fontSize: 12 }}
               stroke="#9CA3AF"
             />
-            <Tooltip content={<CustomTooltip chartType="area" formatType={chartDataType} />} />
+            <Tooltip content={<CustomTooltip formatType={chartDataType} />} />
             {chartConfig.showComparison && <Legend />}
             <Area
               type="monotone"
@@ -306,7 +306,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({
                 <Cell key={`cell-${index}`} fill={entry.fill} />
               ))}
             </Pie>
-            <Tooltip content={<CustomTooltip chartType="pie" formatType={chartDataType} />} />
+            <Tooltip content={<CustomTooltip formatType={chartDataType} />} />
             <Legend />
           </PieChart>
         );
@@ -332,12 +332,12 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({
               strokeWidth={2}
               animationDuration={chartConfig.animations ? 1000 : 0}
             />
-            <Tooltip content={<CustomTooltip chartType="radar" formatType={chartDataType} />} />
+            <Tooltip content={<CustomTooltip formatType={chartDataType} />} />
           </RadarChart>
         );
 
       default:
-        return null;
+        return <div>Unsupported chart type</div>;
     }
   };
 

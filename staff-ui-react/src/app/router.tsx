@@ -11,6 +11,8 @@ const OrderDetailPage = lazy(() => import('@/features/orders/pages/OrderDetailPa
 const KitchenPage = lazy(() => import('@/features/kitchen/pages/KitchenPage'));
 const KitchenDisplayPage = lazy(() => import('@/features/kitchen/pages/KitchenDisplayPage'));
 const StatsPage = lazy(() => import('@/features/stats/pages/StatsPage'));
+const PerformanceReportPage = lazy(() => import('@/features/statistics/pages/PerformanceReportPage'));
+const StatisticsDemoPage = lazy(() => import('@/features/statistics/pages/DemoPage'));
 const NotificationsPage = lazy(() => import('@/features/notifications/pages/NotificationsPage'));
 const ProfilePage = lazy(() => import('@/features/auth/pages/ProfilePage'));
 const NotFoundPage = lazy(() => import('@/shared/components/errors/NotFoundPage'));
@@ -43,6 +45,12 @@ export default function AppRouter() {
         
         {/* Statistics Routes */}
         <Route path="stats" element={<StatsPage />} />
+        
+        {/* Performance & Analytics Routes */}
+        <Route path="performance" element={<PerformanceReportPage />} />
+        <Route path="performance/personal" element={<PerformanceReportPage />} />
+        <Route path="performance/team" element={<PerformanceReportPage isTeamView={true} />} />
+        <Route path="statistics-demo" element={<StatisticsDemoPage />} />
         
         {/* Notifications Routes */}
         <Route path="notifications" element={<NotificationsPage />} />

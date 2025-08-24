@@ -269,7 +269,8 @@ export const useStatisticsStore = create<StatisticsStore>()(
       // 數據處理方法
       getFilteredDailyStats: () => {
         const { dailyStats, filters } = get();
-        const { startDate, endDate, staffIds } = filters.dateRange;
+        const { startDate, endDate } = filters.dateRange;
+        const { staffIds } = filters;
         
         return dailyStats.filter(stat => {
           const statDate = new Date(stat.date);
@@ -303,7 +304,6 @@ export const useStatisticsStore = create<StatisticsStore>()(
       },
       
       getChartData: (metric) => {
-        const { dailyStats, filters } = get();
         const filteredStats = get().getFilteredDailyStats();
         
         switch (metric) {

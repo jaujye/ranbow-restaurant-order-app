@@ -3,7 +3,7 @@
  * 統計數據篩選組件 - 日期範圍選擇、部門篩選、員工篩選
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { StatsFilters } from '../store/statisticsStore';
 import {
   Calendar,
@@ -14,7 +14,6 @@ import {
   RefreshCw,
   Download,
   Settings,
-  X,
   ChevronDown,
   Search,
   Clock,
