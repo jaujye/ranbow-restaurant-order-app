@@ -9,6 +9,7 @@ const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPag
 const OrdersPage = lazy(() => import('@/features/orders/pages/OrdersPage'));
 const OrderDetailPage = lazy(() => import('@/features/orders/pages/OrderDetailPage'));
 const KitchenPage = lazy(() => import('@/features/kitchen/pages/KitchenPage'));
+const KitchenDisplayPage = lazy(() => import('@/features/kitchen/pages/KitchenDisplayPage'));
 const StatsPage = lazy(() => import('@/features/stats/pages/StatsPage'));
 const NotificationsPage = lazy(() => import('@/features/notifications/pages/NotificationsPage'));
 const ProfilePage = lazy(() => import('@/features/auth/pages/ProfilePage'));
@@ -36,6 +37,9 @@ export default function AppRouter() {
         
         {/* Kitchen Management Routes */}
         <Route path="kitchen" element={<KitchenPage />} />
+        
+        {/* Kitchen Display Routes - 廚房大屏顯示 */}
+        <Route path="kitchen/display/:displayId?" element={<KitchenDisplayPage />} />
         
         {/* Statistics Routes */}
         <Route path="stats" element={<StatsPage />} />

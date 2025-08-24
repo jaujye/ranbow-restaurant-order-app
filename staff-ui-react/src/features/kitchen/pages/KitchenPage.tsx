@@ -1,14 +1,12 @@
 import React from 'react';
+import { KitchenWorkstationPage } from './KitchenWorkstationPage';
 
+/**
+ * 廚房管理頁面
+ * 整合所有廚房功能，包括訂單隊列、工作站管理、計時器等
+ */
 export function KitchenPage() {
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">廚房管理</h1>
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <p className="text-gray-600">廚房管理功能開發中...</p>
-      </div>
-    </div>
-  );
+  return <KitchenWorkstationPage />;
 }
 
 export default KitchenPage;
