@@ -19,7 +19,7 @@ import java.util.Optional;
  * Handles authentication, order management, kitchen operations, and staff statistics
  */
 @RestController
-@RequestMapping("/api/staff")
+@RequestMapping("/staff")
 @CrossOrigin(origins = "*")
 public class StaffController {
 
