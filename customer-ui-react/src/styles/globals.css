@@ -33,17 +33,39 @@
   --shadow-color: 0, 0, 0;
   --shadow-strength: 15%;
   
-  /* 深色模式變量 */
-  --bg-primary-dark: 18, 18, 20;
-  --bg-secondary-dark: 28, 28, 32;
-  --text-primary-dark: 255, 255, 255;
-  --text-secondary-dark: 174, 174, 178;
+  /* 主題系統色彩變量 - 由ThemeProvider動態設定 */
+  --color-primary: 168, 85, 247;
+  --color-secondary: 59, 130, 246;
+  --color-accent: 34, 197, 94;
+  --color-background: 255, 255, 255;
+  --color-surface: 248, 250, 252;
+  --color-text: 15, 23, 42;
+  --color-textSecondary: 100, 116, 139;
+  --color-border: 226, 232, 240;
+  --color-success: 34, 197, 94;
+  --color-warning: 251, 191, 36;
+  --color-error: 239, 68, 68;
+  --color-info: 59, 130, 246;
 }
 
 /* 深色模式變量 */
 .dark {
   --shadow-color: 255, 255, 255;
   --shadow-strength: 5%;
+  
+  /* 深色模式下的主題色彩會由ThemeProvider自動更新 */
+  --color-background: 15, 15, 17;
+  --color-surface: 24, 24, 27;
+  --color-text: 248, 250, 252;
+  --color-textSecondary: 148, 163, 184;
+  --color-border: 51, 65, 85;
+}
+
+/* 主題切換動畫 */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
 }
 
 /* 基礎樣式重置和設定 - 優化跨平台兼容性 */
