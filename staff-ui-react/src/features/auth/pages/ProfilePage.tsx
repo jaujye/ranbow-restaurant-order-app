@@ -257,12 +257,15 @@ export function ProfilePage() {
     navigate(-1);
   };
 
-  // 如果沒有當前員工，重定向到登入頁面
+  // 載入個人資料和處理重定向
   useEffect(() => {
     if (!isLoading && !currentStaff) {
       navigate('/login', { replace: true });
+    } else if (currentStaff && !staffProfile) {
+      // 如果有員工但沒有個人資料，載入個人資料
+      loadProfile(currentStaff.staffId);
     }
-  }, [isLoading, currentStaff, navigate]);
+  }, [isLoading, currentStaff, staffProfile, navigate, loadProfile]);
 
   if (isLoading || !currentStaff) {
     return (
@@ -371,53 +374,87 @@ export function ProfilePage() {
                     isLoading={isUpdating}
                   />
                 ) : (
-                  <StaffProfileCard
-                    className="border-0 shadow-none p-0"
-                    showActions={false}
-                    showStatistics={false}
-                  />
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">員工ID</label>
+                        <p className="text-sm text-gray-900">{currentStaff.staffId}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">姓名</label>
+                        <p className="text-sm text-gray-900">{currentStaff.name}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">職位</label>
+                        <p className="text-sm text-gray-900">{currentStaff.position}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">部門</label>
+                        <p className="text-sm text-gray-900">{currentStaff.department}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <p className="text-sm text-gray-900">{currentStaff.email}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">電話</label>
+                        <p className="text-sm text-gray-900">{currentStaff.phone}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">工作狀態</label>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        currentStaff.isOnDuty 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {currentStaff.isOnDuty ? '在職' : '離線'}
+                      </span>
+                    </div>
+                  </div>
                 )}
               </div>
 
               {/* 今日統計 */}
-              {staffProfile?.todayStats && (
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">今日表現</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <StatCard
-                      icon={Activity}
-                      title="處理訂單"
-                      value={staffProfile.todayStats.ordersProcessed}
-                      subtitle="今日累計"
-                      color="bg-blue-100 text-blue-600"
-                      trend={{ value: 12, isPositive: true }}
-                    />
-                    <StatCard
-                      icon={Clock}
-                      title="平均時間"
-                      value={`${Math.round(staffProfile.todayStats.averageProcessingTime)}分`}
-                      subtitle="每單處理"
-                      color="bg-green-100 text-green-600"
-                      trend={{ value: 8, isPositive: false }}
-                    />
-                    <StatCard
-                      icon={Award}
-                      title="效率指數"
-                      value={`${Math.round(staffProfile.todayStats.efficiency * 100)}%`}
-                      subtitle="工作效率"
-                      color="bg-purple-100 text-purple-600"
-                      trend={{ value: 5, isPositive: true }}
-                    />
-                    <StatCard
-                      icon={Calendar}
-                      title="工作時數"
-                      value={`${staffProfile.todayStats.totalWorkingHours}h`}
-                      subtitle="今日累計"
-                      color="bg-orange-100 text-orange-600"
-                    />
-                  </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">今日表現</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <StatCard
+                    icon={Activity}
+                    title="處理訂單"
+                    value={staffProfile?.todayStats?.ordersProcessed || currentStaff?.dailyOrdersProcessed || 0}
+                    subtitle="今日累計"
+                    color="bg-blue-100 text-blue-600"
+                    trend={{ value: 12, isPositive: true }}
+                  />
+                  <StatCard
+                    icon={Clock}
+                    title="平均時間"
+                    value={`${Math.round(staffProfile?.todayStats?.averageProcessingTime || 15)}分`}
+                    subtitle="每單處理"
+                    color="bg-green-100 text-green-600"
+                    trend={{ value: 8, isPositive: false }}
+                  />
+                  <StatCard
+                    icon={Award}
+                    title="效率指數"
+                    value={`${Math.round((staffProfile?.todayStats?.efficiency || currentStaff?.efficiencyRating || 0.85) * 100)}%`}
+                    subtitle="工作效率"
+                    color="bg-purple-100 text-purple-600"
+                    trend={{ value: 5, isPositive: true }}
+                  />
+                  <StatCard
+                    icon={Calendar}
+                    title="工作時數"
+                    value={`${staffProfile?.todayStats?.totalWorkingHours || 
+                           (currentStaff?.isOnDuty ? 
+                             Math.round((Date.now() - new Date(currentStaff.shiftStartTime || Date.now()).getTime()) / (1000 * 60 * 60)) : 0
+                           )}h`}
+                    subtitle="今日累計"
+                    color="bg-orange-100 text-orange-600"
+                  />
                 </div>
-              )}
+              </div>
             </div>
 
             {/* 側邊欄 */}

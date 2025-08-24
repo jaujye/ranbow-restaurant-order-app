@@ -211,23 +211,99 @@ export const useOrdersStore = create<OrdersStore>()(
         loadOrders: async (filters) => {
           set({ loading: true, error: null });
           try {
-            // This will be implemented with the API service
-            const response = await fetch('/api/staff/orders', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ filters, pagination: get().pagination })
-            });
-            
-            if (!response.ok) throw new Error('Failed to load orders');
-            
-            const data = await response.json();
+            const API_BASE_URL = 'http://localhost:8081';
+            let allOrders: any[] = [];
+
+            // If specific status filter is provided, fetch only that status
+            if (filters?.status && filters.status.length === 1) {
+              const status = filters.status[0];
+              let endpoint = '';
+              switch (status) {
+                case 'pending':
+                  endpoint = `${API_BASE_URL}/api/staff/orders/pending`;
+                  break;
+                case 'preparing':
+                  endpoint = `${API_BASE_URL}/api/staff/orders/in-progress`;
+                  break;
+                case 'completed':
+                case 'ready':
+                  endpoint = `${API_BASE_URL}/api/staff/orders/completed`;
+                  break;
+                default:
+                  endpoint = `${API_BASE_URL}/api/staff/orders/pending`;
+              }
+              
+              const response = await fetch(endpoint);
+              if (!response.ok) throw new Error(`Failed to load ${status} orders`);
+              const data = await response.json();
+              
+              if (status === 'preparing') {
+                // For in-progress endpoint, combine preparing and ready orders
+                allOrders = [...(data.preparing || []), ...(data.ready || [])];
+              } else if (status === 'completed') {
+                // For completed endpoint, combine delivered and completed orders
+                allOrders = [...(data.delivered || []), ...(data.completed || [])];
+              } else {
+                allOrders = data[status] || data.pending || [];
+              }
+            } else {
+              // Load all orders by fetching all endpoints
+              const [pendingRes, inProgressRes, completedRes] = await Promise.all([
+                fetch(`${API_BASE_URL}/api/staff/orders/pending`),
+                fetch(`${API_BASE_URL}/api/staff/orders/in-progress`),
+                fetch(`${API_BASE_URL}/api/staff/orders/completed`)
+              ]);
+
+              const [pendingData, inProgressData, completedData] = await Promise.all([
+                pendingRes.ok ? pendingRes.json() : { pending: [], confirmed: [] },
+                inProgressRes.ok ? inProgressRes.json() : { preparing: [], ready: [] },
+                completedRes.ok ? completedRes.json() : { delivered: [], completed: [] }
+              ]);
+
+              // Combine all orders
+              allOrders = [
+                ...(pendingData.pending || []),
+                ...(pendingData.confirmed || []),
+                ...(inProgressData.preparing || []),
+                ...(inProgressData.ready || []),
+                ...(completedData.delivered || []),
+                ...(completedData.completed || [])
+              ];
+            }
+
+            // Transform the data to match our Order interface
+            const transformedOrders = allOrders.map((order: any) => ({
+              id: order.orderId || order.id,
+              orderNumber: order.orderId || order.orderNumber || order.id,
+              customerId: order.customerId || order.customer_id || 'unknown',
+              customer: {
+                id: order.customerId || order.customer_id || 'unknown',
+                name: order.customerName || 'Unknown Customer',
+                phone: order.customerPhone || '',
+                email: order.customerEmail || '',
+              },
+              items: order.items || [],
+              totalAmount: order.totalAmount || order.total_amount || 0,
+              status: order.status as OrderStatus,
+              paymentStatus: 'paid' as any, // Default since backend doesn't provide this yet
+              estimatedPrepTime: order.estimatedPrepTime,
+              actualPrepTime: order.actualPrepTime,
+              createdAt: order.orderTime || order.createdAt || new Date().toISOString(),
+              updatedAt: order.updatedAt || new Date().toISOString(),
+              completedAt: order.completedTime || order.completedAt,
+              specialInstructions: order.specialInstructions || order.special_instructions,
+              tableNumber: order.tableNumber || order.table_number?.toString(),
+              isUrgent: false,
+              priority: 'normal' as OrderPriority
+            }));
+
             set({ 
-              orders: data.orders || [], 
-              pagination: data.pagination || get().pagination,
+              orders: transformedOrders,
               loading: false,
               lastUpdate: new Date().toISOString()
             });
           } catch (error) {
+            console.error('Error loading orders:', error);
             set({ 
               error: error instanceof Error ? error.message : 'Failed to load orders',
               loading: false 
@@ -242,10 +318,13 @@ export const useOrdersStore = create<OrdersStore>()(
         loadOrderDetails: async (orderId) => {
           set(state => ({ updating: { ...state.updating, [orderId]: true } }));
           try {
-            const response = await fetch(`/api/staff/orders/${orderId}`);
+            const API_BASE_URL = 'http://localhost:8081';
+            const response = await fetch(`${API_BASE_URL}/api/staff/orders/${orderId}/details`);
             if (!response.ok) throw new Error('Failed to load order details');
             
-            const order = await response.json();
+            const data = await response.json();
+            const order = data.order || data; // Handle different response formats
+            
             set(state => ({
               orders: state.orders.map(o => o.id === orderId ? order : o),
               selectedOrder: state.selectedOrder?.id === orderId ? order : state.selectedOrder,
@@ -273,7 +352,8 @@ export const useOrdersStore = create<OrdersStore>()(
           
           set(state => ({ updating: { ...state.updating, [orderId]: true } }));
           try {
-            const response = await fetch(`/api/staff/orders/${orderId}/status`, {
+            const API_BASE_URL = 'http://localhost:8081';
+            const response = await fetch(`${API_BASE_URL}/api/staff/orders/${orderId}/status`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ status })
@@ -281,7 +361,9 @@ export const useOrdersStore = create<OrdersStore>()(
             
             if (!response.ok) throw new Error('Failed to update order status');
             
-            const updatedOrder = await response.json();
+            const data = await response.json();
+            const updatedOrder = data.order || data; // Handle different response formats
+            
             set(state => ({
               orders: state.orders.map(o => o.id === orderId ? updatedOrder : o),
               selectedOrder: state.selectedOrder?.id === orderId ? updatedOrder : state.selectedOrder,

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Order, OrderStatus, OrderPriority, OrderFilters, OrderSearch } from '../store/ordersStore';
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://192.168.0.113:8087';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
 const API_ENDPOINTS = {
   orders: `${API_BASE_URL}/api/staff/orders`,
   orderDetails: (id: string) => `${API_BASE_URL}/api/staff/orders/${id}`,
