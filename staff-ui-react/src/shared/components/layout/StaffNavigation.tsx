@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
@@ -8,12 +8,10 @@ import {
   Bell, 
   User, 
   LogOut,
-  Users,
   Settings,
   Shield
 } from 'lucide-react';
 import { useStaffAuth, useStaffAuthActions } from '@/features/auth/store/authStore';
-import { QuickSwitchPanel } from '@/features/auth/components/QuickSwitchPanel';
 
 /**
  * 導航項目配置
@@ -49,6 +47,12 @@ const navigationItems = [
     icon: Bell,
     description: '系統通知',
     badge: true
+  },
+  {
+    name: '個人',
+    href: '/profile',
+    icon: User,
+    description: '個人資料'
   }
 ];
 
@@ -58,8 +62,6 @@ const navigationItems = [
 export function TopNavigationBar() {
   const { currentStaff, isManager } = useStaffAuth();
   const { logout } = useStaffAuthActions();
-  const [showQuickSwitch, setShowQuickSwitch] = useState(false);
-  const location = useLocation();
 
   const handleLogout = async () => {
     try {
@@ -101,28 +103,6 @@ export function TopNavigationBar() {
               </div>
             </div>
 
-            {/* 快速切換按鈕 */}
-            <div className="relative">
-              <button
-                onClick={() => setShowQuickSwitch(!showQuickSwitch)}
-                className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-colors backdrop-blur-sm"
-                title="快速切換員工"
-              >
-                <Users className="h-5 w-5" />
-              </button>
-
-              {/* 快速切換面板 */}
-              {showQuickSwitch && (
-                <div className="absolute right-0 mt-2 z-50">
-                  <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4">
-                    <QuickSwitchPanel 
-                      maxDisplay={5}
-                      onSwitchSuccess={() => setShowQuickSwitch(false)}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
 
             {/* 設置和登出 */}
             <div className="flex items-center space-x-2">
@@ -159,9 +139,9 @@ export function BottomNavigationBar() {
   const location = useLocation();
   
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 backdrop-blur-md px-4 py-2 shadow-lg">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 backdrop-blur-md px-2 py-2 shadow-lg">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-center space-x-8 lg:space-x-12">
+        <div className="flex justify-center space-x-2 sm:space-x-4 lg:space-x-8">
           {navigationItems.map((item) => {
             const isActive = location.pathname === item.href || 
                            (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
@@ -170,7 +150,7 @@ export function BottomNavigationBar() {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-lg transition-all duration-300 ${
+                className={`flex flex-col items-center space-y-1 px-1 sm:px-2 lg:px-3 py-2 rounded-lg transition-all duration-300 ${
                   isActive
                     ? 'text-white bg-white/20 backdrop-blur-sm border border-white/30 shadow-lg scale-105'
                     : 'text-white/80 hover:text-white hover:bg-white/10 hover:scale-102'
@@ -178,12 +158,12 @@ export function BottomNavigationBar() {
                 title={item.description}
               >
                 <div className="relative">
-                  <item.icon className="h-6 w-6" />
+                  <item.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                   {item.badge && (
-                    <span className="absolute -top-1 -right-1 h-3 w-3 bg-yellow-400 rounded-full animate-pulse border border-white"></span>
+                    <span className="absolute -top-1 -right-1 h-2 w-2 sm:h-3 sm:w-3 bg-yellow-400 rounded-full animate-pulse border border-white"></span>
                   )}
                 </div>
-                <span className="text-xs font-medium">{item.name}</span>
+                <span className="text-xs font-medium hidden sm:inline">{item.name}</span>
               </Link>
             );
           })}
