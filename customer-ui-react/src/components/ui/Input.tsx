@@ -12,6 +12,12 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   helperText?: string
   fullWidth?: boolean
   showPasswordToggle?: boolean
+  // Enhanced accessibility props
+  'aria-describedby'?: string
+  'aria-invalid'?: boolean
+  'aria-required'?: boolean
+  'aria-label'?: string
+  srOnlyLabel?: string // for screen reader only labels
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -29,6 +35,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       showPasswordToggle = false,
       type = 'text',
       id,
+      srOnlyLabel,
+      'aria-describedby': ariaDescribedby,
+      'aria-invalid': ariaInvalid,
+      'aria-required': ariaRequired,
+      'aria-label': ariaLabel,
       ...props
     },
     ref
@@ -38,6 +49,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     
     const inputType = showPasswordToggle ? (showPassword ? 'text' : 'password') : type
     const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`
+    const helperId = `${inputId}-helper`
+    const errorId = `${inputId}-error`
+    
+    // Build aria-describedby attribute
+    const describedByIds = []
+    if (helperText) describedByIds.push(helperId)
+    if (errorMessage && error) describedByIds.push(errorId)
+    if (ariaDescribedby) describedByIds.push(ariaDescribedby)
+    const describedBy = describedByIds.length > 0 ? describedByIds.join(' ') : undefined
     
     const baseClasses = 'input'
     const sizeClasses = variants.inputSize[size]
@@ -53,14 +73,25 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
     return (
       <div className={cn('relative', fullWidth && 'w-full')}>
-        {/* Label */}
+        {/* Screen reader only label */}
+        {srOnlyLabel && (
+          <label 
+            htmlFor={inputId}
+            className="sr-only"
+          >
+            {srOnlyLabel}
+            {props.required && ' (必填)'}
+          </label>
+        )}
+        
+        {/* Visible Label */}
         {label && (
           <label 
             htmlFor={inputId}
             className="block text-sm font-medium text-text-primary mb-2"
           >
             {label}
-            {props.required && <span className="text-error-500 ml-1">*</span>}
+            {props.required && <span className="text-error-500 ml-1" aria-label="必填">*</span>}
           </label>
         )}
         
@@ -69,7 +100,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {/* Left Icon */}
           {leftIcon && (
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-text-disabled">{leftIcon}</span>
+              <span className="text-text-disabled" aria-hidden="true">{leftIcon}</span>
             </div>
           )}
           
@@ -87,6 +118,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               paddingClasses,
               className
             )}
+            aria-describedby={describedBy}
+            aria-invalid={ariaInvalid ?? error}
+            aria-required={ariaRequired ?? props.required}
+            aria-label={ariaLabel || (srOnlyLabel && !label ? srOnlyLabel : undefined)}
             onFocus={(e) => {
               setIsFocused(true)
               props.onFocus?.(e)
@@ -104,9 +139,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               {showPasswordToggle && (
                 <button
                   type="button"
-                  className="text-text-disabled hover:text-text-primary focus:outline-none focus:text-text-primary transition-colors"
+                  className="text-text-disabled hover:text-text-primary focus:outline-none focus:text-text-primary focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 rounded transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
+                  aria-label={showPassword ? '隱藏密碼' : '顯示密碼'}
+                  aria-pressed={showPassword}
+                  tabIndex={0}
                 >
                   {showPassword ? (
                     <EyeSlashIcon className="h-5 w-5" />
@@ -116,7 +153,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 </button>
               )}
               {!showPasswordToggle && rightIcon && (
-                <span className="text-text-disabled">{rightIcon}</span>
+                <span className="text-text-disabled" aria-hidden="true">{rightIcon}</span>
               )}
             </div>
           )}
@@ -125,10 +162,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {/* Helper Text or Error Message */}
         {(helperText || errorMessage) && (
           <p 
+            id={error && errorMessage ? errorId : (helperText ? helperId : undefined)}
             className={cn(
               'mt-2 text-sm',
               error ? 'text-error-500' : 'text-text-disabled'
             )}
+            role={error ? 'alert' : undefined}
+            aria-live={error ? 'polite' : undefined}
           >
             {error ? errorMessage : helperText}
           </p>

@@ -3,6 +3,7 @@ import { useLocation, Outlet } from 'react-router-dom'
 import { cn } from '@/utils/cn'
 import Header from './Header'
 import BottomNav from './BottomNav'
+import { AccessibilityProvider } from './AccessibilityProvider'
 
 export interface LayoutProps {
   showBottomNav?: boolean
@@ -126,81 +127,105 @@ const Layout: React.FC<LayoutProps> = ({
   )
 
   return (
-    <div className={layoutClasses}>
-      {/* Background decoration for larger screens */}
-      {!isMobile && (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-primary-100/50 to-accent-100/50 rounded-full blur-3xl animate-pulse-glow" />
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-secondary-100/50 to-primary-100/50 rounded-full blur-3xl animate-pulse-glow" style={{ animationDelay: '1s' }} />
-        </div>
-      )}
-      
-      {/* Header - responsive behavior */}
-      {shouldShowHeader && (
-        <Header 
-          showBack={shouldShowBackButton}
-          className={cn(
-            'transition-all duration-base',
+    <AccessibilityProvider>
+      <div 
+        className={layoutClasses}
+        role="application"
+        aria-label="Ranbow Restaurant 點餐應用程式"
+      >
+        {/* Background decoration for larger screens */}
+        {!isMobile && (
+          <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-primary-100/50 to-accent-100/50 rounded-full blur-3xl animate-pulse-glow" />
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-secondary-100/50 to-primary-100/50 rounded-full blur-3xl animate-pulse-glow" style={{ animationDelay: '1s' }} />
+          </div>
+        )}
+        
+        {/* Header - responsive behavior */}
+        {shouldShowHeader && (
+          <Header 
+            showBack={shouldShowBackButton}
+            className={cn(
+              'transition-all duration-base',
+              {
+                // Mobile header styling
+                'px-4': isMobile,
+                // Tablet/Desktop header styling
+                'px-6': !isMobile,
+              }
+            )}
+          />
+        )}
+        
+        {/* Main Content Area */}
+        <main 
+          className={mainContentClasses}
+          id="main-content"
+          role="main"
+          aria-label="主要內容區域"
+          tabIndex={-1}
+        >
+          {/* Content wrapper for better responsive behavior */}
+          <div className={cn(
+            'content-wrapper w-full',
+            // Responsive spacing
             {
-              // Mobile header styling
-              'px-4': isMobile,
-              // Tablet/Desktop header styling
-              'px-6': !isMobile,
+              'py-4': isMobile,
+              'py-6': isTablet,
+              'py-8': isDesktop,
             }
-          )}
-        />
-      )}
-      
-      {/* Main Content Area */}
-      <main className={mainContentClasses}>
-        {/* Content wrapper for better responsive behavior */}
-        <div className={cn(
-          'content-wrapper w-full',
-          // Responsive spacing
-          {
-            'py-4': isMobile,
-            'py-6': isTablet,
-            'py-8': isDesktop,
-          }
-        )}>
-          <Outlet />
-        </div>
-      </main>
-      
-      {/* Bottom Navigation - mobile only by default */}
-      {shouldShowBottomNav && (
-        <BottomNav 
-          className={cn(
-            'transition-all duration-base',
-            {
-              // Hide on desktop unless explicitly shown
-              'lg:hidden': !isDesktop,
-              // Mobile styling
-              'px-2': isMobile,
-              // Tablet styling
-              'px-4': isTablet,
-            }
-          )}
-        />
-      )}
-      
-      {/* Desktop sidebar navigation (future enhancement) */}
-      {isDesktop && shouldShowBottomNav && (
-        <aside className="fixed left-0 top-header bottom-0 w-64 bg-white/95 backdrop-blur-lg border-r border-border-light shadow-medium transform -translate-x-full transition-transform duration-base hover:translate-x-0 z-fixed hidden">
-          <nav className="p-6">
-            <div className="text-sm font-medium text-text-secondary mb-4">
-              Navigation
-            </div>
-            {/* Desktop navigation items would go here */}
+          )}>
+            <Outlet />
+          </div>
+        </main>
+        
+        {/* Bottom Navigation - mobile only by default */}
+        {shouldShowBottomNav && (
+          <nav 
+            className={cn(
+              'transition-all duration-base',
+              {
+                // Hide on desktop unless explicitly shown
+                'lg:hidden': !isDesktop,
+                // Mobile styling
+                'px-2': isMobile,
+                // Tablet styling
+                'px-4': isTablet,
+              }
+            )}
+            role="navigation"
+            aria-label="主要導航"
+          >
+            <BottomNav />
           </nav>
-        </aside>
-      )}
-      
-      {/* Floating elements container */}
-      <div className="floating-elements-container fixed inset-0 pointer-events-none z-toast">
-        {/* Future: Toast notifications, FAB buttons, etc. */}
+        )}
+        
+        {/* Desktop sidebar navigation (future enhancement) */}
+        {isDesktop && shouldShowBottomNav && (
+          <aside 
+            className="fixed left-0 top-header bottom-0 w-64 bg-white/95 backdrop-blur-lg border-r border-border-light shadow-medium transform -translate-x-full transition-transform duration-base hover:translate-x-0 z-fixed hidden"
+            role="complementary"
+            aria-label="側邊欄導航"
+          >
+            <nav className="p-6" role="navigation" aria-label="桌面端導航">
+              <div className="text-sm font-medium text-text-secondary mb-4">
+                Navigation
+              </div>
+              {/* Desktop navigation items would go here */}
+            </nav>
+          </aside>
+        )}
+        
+        {/* Floating elements container */}
+        <div 
+          className="floating-elements-container fixed inset-0 pointer-events-none z-toast"
+          aria-live="polite"
+          aria-atomic="false"
+        >
+          {/* Future: Toast notifications, FAB buttons, etc. */}
+        </div>
       </div>
-    </div>
+    </AccessibilityProvider>
   )
 }
 

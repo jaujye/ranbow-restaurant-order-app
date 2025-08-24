@@ -165,6 +165,91 @@
     background: rgba(var(--rainbow-blue), 0.3);
     color: rgb(var(--rainbow-red));
   }
+  
+  /* 無障礙功能增強 */
+  
+  /* 為螢幕閱讀器隱藏內容 */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  
+  /* 跳過鏈接 - 鍵盤導航 */
+  .skip-link {
+    position: fixed;
+    top: -40px;
+    left: 16px;
+    z-index: 9999;
+    padding: 8px 16px;
+    background: rgb(var(--rainbow-blue));
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: top var(--transition-fast) var(--ease-smooth);
+  }
+  
+  .skip-link:focus {
+    top: 16px;
+  }
+  
+  /* 高對比度模式支援 */
+  @media (prefers-contrast: high) {
+    :root {
+      --shadow-strength: 25%;
+    }
+    
+    .btn {
+      border: 2px solid currentColor;
+    }
+    
+    .input {
+      border-width: 2px;
+    }
+  }
+  
+  /* 減少動畫設定 */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    
+    html {
+      scroll-behavior: auto;
+    }
+  }
+  
+  /* 聚焦指示器增強 - 確保在所有背景下可見 */
+  .focus-visible {
+    @apply focus:outline-none;
+  }
+  
+  .focus-visible:focus-visible {
+    outline: 2px solid rgb(var(--rainbow-blue));
+    outline-offset: 2px;
+    box-shadow: 
+      0 0 0 4px rgba(var(--rainbow-blue), 0.3),
+      inset 0 0 0 2px white;
+  }
+  
+  /* 深色模式下的聚焦指示器 */
+  .dark .focus-visible:focus-visible {
+    outline-color: rgb(var(--rainbow-yellow));
+    box-shadow: 
+      0 0 0 4px rgba(var(--rainbow-yellow), 0.3),
+      inset 0 0 0 2px rgb(var(--bg-primary-dark));
+  }
 }
 
 /* 組件層級樣式 - 現代化按鈕系統 */
@@ -237,7 +322,7 @@
     animation: gradient-shift 3s ease infinite;
   }
   
-  /* 輸入框樣式 - 現代化設計 */
+  /* 輸入框樣式 - 現代化設計與無障礙增強 */
   .input {
     @apply w-full px-4 py-3 border-2 border-border-light rounded-medium;
     @apply bg-white/80 text-text-primary placeholder-text-disabled;
@@ -245,6 +330,13 @@
     @apply transition-all duration-base;
     backdrop-filter: blur(10px);
     font-size: 16px; /* 防止iOS縮放 */
+    line-height: 1.5;
+    min-height: 48px; /* 確保觸控目標大小符合WCAG標準 */
+  }
+  
+  .input:focus-visible {
+    outline: 2px solid rgb(var(--rainbow-blue));
+    outline-offset: 2px;
   }
   
   .input-error {
@@ -252,9 +344,41 @@
     box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
   }
   
+  .input-error:focus-visible {
+    outline-color: rgb(244, 67, 54);
+  }
+  
   .input-success {
     @apply border-success-400 focus:ring-success-500/50 focus:border-success-500;
     box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+  }
+  
+  .input-success:focus-visible {
+    outline-color: rgb(76, 175, 80);
+  }
+  
+  /* 標籤樣式增強 */
+  .form-label {
+    @apply block text-sm font-medium text-text-primary mb-2;
+    @apply transition-colors duration-base;
+  }
+  
+  .form-label.required::after {
+    content: " *";
+    color: rgb(244, 67, 54);
+  }
+  
+  /* 高對比度模式下的表單元素 */
+  @media (prefers-contrast: high) {
+    .input {
+      border-width: 3px;
+      background-color: white;
+    }
+    
+    .btn {
+      border-width: 3px;
+      border-style: solid;
+    }
   }
   
   /* 卡片樣式 - 現代化玻璃態射設計 */

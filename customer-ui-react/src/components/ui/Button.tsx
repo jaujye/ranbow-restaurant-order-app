@@ -10,6 +10,12 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   rightIcon?: React.ReactNode
   fullWidth?: boolean
   rainbow?: boolean
+  // Enhanced accessibility props
+  'aria-label'?: string
+  'aria-describedby'?: string
+  'aria-expanded'?: boolean
+  'aria-pressed'?: boolean
+  tooltip?: string
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -26,6 +32,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       rainbow = false,
       children,
       disabled,
+      tooltip,
+      'aria-label': ariaLabel,
+      'aria-describedby': ariaDescribedby,
+      'aria-expanded': ariaExpanded,
+      'aria-pressed': ariaPressed,
       ...props
     },
     ref
@@ -49,6 +60,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         ref={ref}
         disabled={isDisabled}
+        aria-label={ariaLabel || (typeof children === 'string' ? children : undefined)}
+        aria-describedby={ariaDescribedby || (tooltip ? `${props.id || 'btn'}-tooltip` : undefined)}
+        aria-expanded={ariaExpanded}
+        aria-pressed={ariaPressed}
+        aria-busy={loading}
+        title={tooltip}
         {...props}
       >
         {loading && (
