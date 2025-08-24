@@ -67,14 +67,23 @@ export function LoginForm({
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors, isValid, isDirty },
+    watch,
     setError,
     clearErrors,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    mode: 'onBlur', // 在失焦時驗證
+    mode: 'onChange', // 實時驗證，改善用戶體驗
     reValidateMode: 'onChange', // 重新驗證時機
+    defaultValues: {
+      identifier: '',
+      password: '',
+    },
   });
+
+  // 監控表單字段值
+  const watchedValues = watch();
+  const hasValues = watchedValues.identifier?.length > 0 && watchedValues.password?.length > 0;
 
   /**
    * 處理表單提交
@@ -137,12 +146,13 @@ export function LoginForm({
               <User className="h-5 w-5 text-gray-400" />
             </div>
             <input
-              {...register('identifier')}
+              {...register('identifier', {
+                onChange: handleInputChange
+              })}
               id="identifier"
               type="text"
               autoComplete="username"
               autoFocus={autoFocus}
-              onChange={handleInputChange}
               placeholder="請輸入工號或Email"
               className={`
                 w-full pl-10 pr-4 py-3 border rounded-lg text-sm
@@ -172,11 +182,12 @@ export function LoginForm({
               <Lock className="h-5 w-5 text-gray-400" />
             </div>
             <input
-              {...register('password')}
+              {...register('password', {
+                onChange: handleInputChange
+              })}
               id="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
-              onChange={handleInputChange}
               placeholder="請輸入密碼"
               className={`
                 w-full pl-10 pr-12 py-3 border rounded-lg text-sm
@@ -224,10 +235,10 @@ export function LoginForm({
         {/* 登入按鈕 */}
         <Button
           type="submit"
-          disabled={!isValid || isSubmitting}
+          disabled={!hasValues || isSubmitting}
           className={`
             w-full py-3 px-4 rounded-lg font-medium text-white transition-all duration-200
-            ${isSubmitting || !isValid
+            ${isSubmitting || !hasValues
               ? 'bg-gray-400 cursor-not-allowed' 
               : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-lg hover:shadow-xl'
             }

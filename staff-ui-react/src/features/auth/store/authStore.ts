@@ -79,13 +79,17 @@ export const useStaffAuthStore = create<StaffAuthState>()(
           
           if (response.success && response.data) {
             // 設置認證狀態
+            const staff = response.data.staff;
             set({
-              currentStaff: response.data.staff,
+              currentStaff: staff,
               token: response.data.token,
               sessionId: response.data.sessionId,
               refreshToken: response.data.refreshToken,
               isLoading: false,
-              error: null
+              error: null,
+              isAuthenticated: true,
+              isManager: staff.position === 'MANAGER',
+              isSupervisor: staff.position === 'SUPERVISOR' || staff.position === 'MANAGER',
             });
 
             // 自動載入個人資料
@@ -137,7 +141,10 @@ export const useStaffAuthStore = create<StaffAuthState>()(
             sessionId: null,
             refreshToken: null,
             isLoading: false,
-            error: null
+            error: null,
+            isAuthenticated: false,
+            isManager: false,
+            isSupervisor: false,
           });
         }
       },
@@ -153,13 +160,17 @@ export const useStaffAuthStore = create<StaffAuthState>()(
           const response = await StaffAuthApi.refreshToken(refreshToken);
           
           if (response.success && response.data) {
+            const staff = response.data.staff;
             set({
-              currentStaff: response.data.staff,
+              currentStaff: staff,
               token: response.data.token,
               sessionId: response.data.sessionId,
               refreshToken: response.data.refreshToken,
               isLoading: false,
-              error: null
+              error: null,
+              isAuthenticated: true,
+              isManager: staff.position === 'MANAGER',
+              isSupervisor: staff.position === 'SUPERVISOR' || staff.position === 'MANAGER',
             });
             return true;
           } else {
@@ -171,7 +182,10 @@ export const useStaffAuthStore = create<StaffAuthState>()(
               sessionId: null,
               refreshToken: null,
               isLoading: false,
-              error: 'Authentication expired'
+              error: 'Authentication expired',
+              isAuthenticated: false,
+              isManager: false,
+              isSupervisor: false,
             });
             return false;
           }
@@ -185,7 +199,10 @@ export const useStaffAuthStore = create<StaffAuthState>()(
             sessionId: null,
             refreshToken: null,
             isLoading: false,
-            error: 'Authentication expired'
+            error: 'Authentication expired',
+            isAuthenticated: false,
+            isManager: false,
+            isSupervisor: false,
           });
           return false;
         }
@@ -332,21 +349,10 @@ export const useStaffAuthStore = create<StaffAuthState>()(
       // 清除錯誤
       clearError: () => set({ error: null }),
 
-      // Computed Properties
-      get isAuthenticated() {
-        const state = get();
-        return !!(state.token && state.currentStaff);
-      },
-
-      get isManager() {
-        const state = get();
-        return state.currentStaff?.position === 'MANAGER';
-      },
-
-      get isSupervisor() {
-        const state = get();
-        return state.currentStaff?.position === 'SUPERVISOR' || state.currentStaff?.position === 'MANAGER';
-      },
+      // Computed Properties - 使用直接屬性避免hydration錯誤
+      isAuthenticated: false,
+      isManager: false,
+      isSupervisor: false,
 
       // 權限檢查
       hasPermission: (permission: string) => {
@@ -369,9 +375,26 @@ export const useStaffAuthStore = create<StaffAuthState>()(
           return;
         }
         
+        if (state) {
+          // 重新計算computed properties
+          const isAuthenticated = !!(state.token && state.currentStaff);
+          const isManager = state.currentStaff?.position === 'MANAGER' || false;
+          const isSupervisor = state.currentStaff?.position === 'SUPERVISOR' || state.currentStaff?.position === 'MANAGER' || false;
+          
+          // 更新state中的computed properties
+          Object.assign(state, {
+            isAuthenticated,
+            isManager,
+            isSupervisor,
+            isLoading: false,
+            error: null,
+            staffProfile: null, // rehydration後重新載入
+          });
+        }
+        
         console.log('[StaffAuthStore] Rehydrated successfully', {
           hasState: !!state,
-          isAuthenticated: !!(state?.token && state?.currentStaff),
+          isAuthenticated: state?.isAuthenticated || false,
           staffId: state?.currentStaff?.staffId
         });
       },
