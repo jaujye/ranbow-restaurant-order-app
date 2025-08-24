@@ -372,7 +372,11 @@ export const useOrdersStore = create<OrdersStore>()(
             const response = await fetch(`${API_BASE_URL}/api/staff/orders/${orderId}/status`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status })
+              body: JSON.stringify({ 
+                status: status,
+                staffId: '21426ec6-dae4-4a82-b52a-a24f85434c2b', // Use actual staff ID from auth
+                notes: `狀態更新為: ${status}`
+              })
             });
             
             if (!response.ok) throw new Error('Failed to update order status');

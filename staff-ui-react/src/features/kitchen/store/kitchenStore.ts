@@ -205,75 +205,73 @@ export const useKitchenStore = create<KitchenState>()(
         try {
           set({ isLoading: true, error: null });
           
-          // TODO: 實現 API 呼叫
-          // const response = await kitchenApi.getOrders();
-          // set({ orders: response.data, lastUpdate: new Date() });
+          // 實現 API 呼叫獲取真實廚房隊列數據
+          const response = await fetch('http://localhost:8081/api/staff/kitchen/queue', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          });
           
-          // 模擬數據 (開發階段)
-          const mockOrders: KitchenOrder[] = [
-            {
-              id: 1,
-              orderNumber: 'ORD-001',
-              customerName: '張先生',
-              status: 'queued',
-              priority: 'normal',
-              estimatedTime: 15,
-              items: [
-                {
+          if (!response.ok) throw new Error('Failed to fetch kitchen queue');
+          
+          const data = await response.json();
+          
+          // 轉換後端數據格式為前端期望的格式
+          const orders: KitchenOrder[] = [];
+          
+          // 處理排隊中的訂單
+          if (data.queued) {
+            data.queued.forEach((kitchenOrder: any) => {
+              orders.push({
+                id: parseInt(kitchenOrder.kitchenOrderId?.replace(/\D/g, '') || '0'),
+                orderNumber: kitchenOrder.orderId || 'UNKNOWN',
+                customerName: '客戶', // 後端可能需要增加客戶信息
+                status: 'queued',
+                priority: 'normal',
+                estimatedTime: kitchenOrder.estimatedCookingMinutes || 15,
+                items: [{
                   id: 1,
                   menuItemId: 1,
-                  name: '彩虹漢堡',
-                  quantity: 1,
-                  workstation: 'grill',
-                  estimatedTime: 12,
-                  status: 'pending',
-                  preparationSteps: [
-                    { id: '1-1', description: '準備漢堡肉餅', completed: false, estimatedTime: 300 },
-                    { id: '1-2', description: '烤製麵包', completed: false, estimatedTime: 180 },
-                    { id: '1-3', description: '組裝漢堡', completed: false, estimatedTime: 120 },
-                  ],
-                },
-                {
-                  id: 2,
-                  menuItemId: 2,
-                  name: '彩虹薯條',
+                  name: '訂單項目',
                   quantity: 1,
                   workstation: 'hot',
-                  estimatedTime: 8,
+                  estimatedTime: kitchenOrder.estimatedCookingMinutes || 15,
                   status: 'pending',
-                },
-              ],
-              createdAt: new Date(Date.now() - 300000), // 5分鐘前
-              updatedAt: new Date(),
-            },
-            {
-              id: 2,
-              orderNumber: 'ORD-002',
-              customerName: '李小姐',
-              status: 'active',
-              priority: 'high',
-              estimatedTime: 20,
-              actualStartTime: new Date(Date.now() - 600000), // 10分鐘前開始
-              assignedWorkstation: 'hot',
-              assignedStaffId: 1,
-              assignedStaffName: '王師傅',
-              items: [
-                {
-                  id: 3,
-                  menuItemId: 3,
-                  name: '彩虹義大利麵',
-                  quantity: 2,
-                  workstation: 'hot',
-                  estimatedTime: 18,
-                  status: 'preparing',
-                },
-              ],
-              createdAt: new Date(Date.now() - 900000), // 15分鐘前
-              updatedAt: new Date(),
-            },
-          ];
+                }],
+                createdAt: new Date(kitchenOrder.createdAt || Date.now()),
+                updatedAt: new Date(kitchenOrder.updatedAt || Date.now()),
+              });
+            });
+          }
           
-          set({ orders: mockOrders, lastUpdate: new Date() });
+          // 處理製作中的訂單
+          if (data.active) {
+            data.active.forEach((kitchenOrder: any) => {
+              orders.push({
+                id: parseInt(kitchenOrder.kitchenOrderId?.replace(/\D/g, '') || '0'),
+                orderNumber: kitchenOrder.orderId || 'UNKNOWN',
+                customerName: '客戶',
+                status: 'active',
+                priority: 'normal',
+                estimatedTime: kitchenOrder.estimatedCookingMinutes || 15,
+                actualStartTime: kitchenOrder.startTime ? new Date(kitchenOrder.startTime) : new Date(),
+                assignedStaffId: kitchenOrder.assignedStaffId ? 1 : undefined,
+                assignedStaffName: kitchenOrder.assignedStaffId ? '廚師' : undefined,
+                items: [{
+                  id: 1,
+                  menuItemId: 1,
+                  name: '訂單項目',
+                  quantity: 1,
+                  workstation: 'hot',
+                  estimatedTime: kitchenOrder.estimatedCookingMinutes || 15,
+                  status: 'preparing',
+                }],
+                createdAt: new Date(kitchenOrder.createdAt || Date.now()),
+                updatedAt: new Date(kitchenOrder.updatedAt || Date.now()),
+              });
+            });
+          }
+          
+          set({ orders: orders, lastUpdate: new Date() });
         } catch (error) {
           set({ error: error instanceof Error ? error.message : '獲取訂單失敗' });
         } finally {

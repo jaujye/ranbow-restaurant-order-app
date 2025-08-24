@@ -287,7 +287,7 @@ public class StaffController {
      * Get pending orders for staff
      * GET /api/staff/orders/pending
      */
-    @GetMapping("/staff/orders/pending")
+    @GetMapping("/orders/pending")
     public ResponseEntity<?> getPendingOrders() {
         try {
             List<Map<String, Object>> pendingOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.PENDING);
@@ -310,7 +310,7 @@ public class StaffController {
      * Get orders currently being prepared
      * GET /api/staff/orders/in-progress
      */
-    @GetMapping("/staff/orders/in-progress")
+    @GetMapping("/orders/in-progress")
     public ResponseEntity<?> getInProgressOrders() {
         try {
             List<Map<String, Object>> preparingOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.PREPARING);
@@ -333,7 +333,7 @@ public class StaffController {
      * Get completed orders
      * GET /api/staff/orders/completed
      */
-    @GetMapping("/staff/orders/completed")
+    @GetMapping("/orders/completed")
     public ResponseEntity<?> getCompletedOrders() {
         try {
             List<Map<String, Object>> deliveredOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.DELIVERED);
@@ -356,7 +356,7 @@ public class StaffController {
      * Update order status
      * PUT /api/staff/orders/{orderId}/status
      */
-    @PutMapping("/staff/orders/{orderId}/status")
+    @PutMapping("/orders/{orderId}/status")
     public ResponseEntity<?> updateOrderStatus(@PathVariable String orderId, 
                                              @RequestBody OrderStatusUpdateRequest request) {
         try {
@@ -398,7 +398,7 @@ public class StaffController {
      * Get detailed order information including customer info
      * GET /api/staff/orders/{orderId}/details
      */
-    @GetMapping("/staff/orders/{orderId}/details")
+    @GetMapping("/orders/{orderId}/details")
     public ResponseEntity<?> getOrderDetails(@PathVariable String orderId) {
         try {
             Optional<Order> orderOpt = orderService.findOrderById(orderId);
@@ -434,7 +434,7 @@ public class StaffController {
      * Get kitchen preparation queue
      * GET /api/staff/kitchen/queue
      */
-    @GetMapping("/staff/kitchen/queue")
+    @GetMapping("/kitchen/queue")
     public ResponseEntity<?> getKitchenQueue() {
         try {
             List<KitchenOrder> queuedOrders = kitchenService.getKitchenQueue();
@@ -461,7 +461,7 @@ public class StaffController {
      * Start preparing an order
      * POST /api/staff/kitchen/start/{orderId}
      */
-    @PostMapping("/staff/kitchen/start/{orderId}")
+    @PostMapping("/kitchen/start/{orderId}")
     public ResponseEntity<?> startOrder(@PathVariable String orderId, 
                                       @RequestBody KitchenStartRequest request) {
         try {
@@ -493,7 +493,7 @@ public class StaffController {
      * Update cooking timer for an order
      * PUT /api/staff/kitchen/timer/{orderId}
      */
-    @PutMapping("/staff/kitchen/timer/{orderId}")
+    @PutMapping("/kitchen/timer/{orderId}")
     public ResponseEntity<?> updateTimer(@PathVariable String orderId, 
                                        @RequestBody KitchenTimerRequest request) {
         try {
@@ -523,7 +523,7 @@ public class StaffController {
      * Mark order as ready/complete
      * POST /api/staff/kitchen/complete/{orderId}
      */
-    @PostMapping("/staff/kitchen/complete/{orderId}")
+    @PostMapping("/kitchen/complete/{orderId}")
     public ResponseEntity<?> completeOrder(@PathVariable String orderId, 
                                          @RequestBody KitchenCompleteRequest request) {
         try {
