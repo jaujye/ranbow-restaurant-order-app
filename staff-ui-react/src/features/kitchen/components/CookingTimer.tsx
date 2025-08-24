@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../../shared/utils/cn';
 import { 
-  CookingTimer,
+  CookingTimer as CookingTimerType,
   useKitchenStore,
   useKitchenTimers,
   useKitchenSettings,
@@ -34,7 +34,7 @@ interface CookingTimerProps {
 
 // 計時器顯示組件屬性
 interface TimerDisplayProps {
-  timer: CookingTimer;
+  timer: CookingTimerType;
   size: 'small' | 'medium' | 'large';
   showControls: boolean;
   onStart: () => void;
@@ -56,7 +56,7 @@ const formatTime = (totalSeconds: number): { minutes: number; seconds: number; d
 };
 
 // 時間顏色根據狀態
-const getTimeColor = (timer: CookingTimer): string => {
+const getTimeColor = (timer: CookingTimerType): string => {
   if (timer.isOverdue) return 'text-red-600';
   if (timer.remainingTime <= timer.alertThreshold) return 'text-orange-600';
   if (timer.isPaused) return 'text-gray-500';
@@ -64,7 +64,7 @@ const getTimeColor = (timer: CookingTimer): string => {
 };
 
 // 進度條顏色
-const getProgressColor = (timer: CookingTimer): string => {
+const getProgressColor = (timer: CookingTimerType): string => {
   if (timer.isOverdue) return 'bg-red-500';
   if (timer.remainingTime <= timer.alertThreshold) return 'bg-orange-500';
   if (timer.isPaused) return 'bg-gray-400';
@@ -72,7 +72,7 @@ const getProgressColor = (timer: CookingTimer): string => {
 };
 
 // 獲取進度百分比
-const getProgress = (timer: CookingTimer): number => {
+const getProgress = (timer: CookingTimerType): number => {
   if (timer.estimatedDuration <= 0) return 0;
   const elapsed = timer.estimatedDuration - timer.remainingTime;
   return Math.min(Math.max((elapsed / timer.estimatedDuration) * 100, 0), 100);

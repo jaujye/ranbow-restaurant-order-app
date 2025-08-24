@@ -70,7 +70,7 @@ export function TopNavigationBar() {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* 左側 Logo 和標題 */}
@@ -159,7 +159,7 @@ export function BottomNavigationBar() {
   const location = useLocation();
   
   return (
-    <nav className="bg-white border-t border-gray-200 px-4 py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 px-4 py-2">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-center space-x-8 lg:space-x-12">
           {navigationItems.map((item) => {
@@ -198,12 +198,12 @@ export function BottomNavigationBar() {
  */
 export function StaffNavigation({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50">
       {/* 頂部導航 */}
       <TopNavigationBar />
       
-      {/* 主內容區域 */}
-      <main className="flex-1 overflow-y-auto">
+      {/* 主內容區域 - 添加上下padding以避免被固定導航遮擋 */}
+      <main className="pt-16 pb-20 min-h-screen overflow-y-auto">
         {children}
       </main>
       
