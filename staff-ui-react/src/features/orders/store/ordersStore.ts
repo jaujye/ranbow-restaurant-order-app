@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
+import { env } from '../../../config/env.config';
 
 // Types for Order Management
 export interface OrderItem {
@@ -211,7 +212,7 @@ export const useOrdersStore = create<OrdersStore>()(
         loadOrders: async (filters) => {
           set({ loading: true, error: null });
           try {
-            const API_BASE_URL = 'http://localhost:8081';
+            const API_BASE_URL = env.API_BASE_URL.replace('/api', '');
             let allOrders: any[] = [];
 
             // If specific status filter is provided, fetch only that status
@@ -334,7 +335,7 @@ export const useOrdersStore = create<OrdersStore>()(
         loadOrderDetails: async (orderId) => {
           set(state => ({ updating: { ...state.updating, [orderId]: true } }));
           try {
-            const API_BASE_URL = 'http://localhost:8081';
+            const API_BASE_URL = env.API_BASE_URL.replace('/api', '');
             const response = await fetch(`${API_BASE_URL}/api/staff/orders/${orderId}/details`);
             if (!response.ok) throw new Error('Failed to load order details');
             
@@ -368,7 +369,7 @@ export const useOrdersStore = create<OrdersStore>()(
           
           set(state => ({ updating: { ...state.updating, [orderId]: true } }));
           try {
-            const API_BASE_URL = 'http://localhost:8081';
+            const API_BASE_URL = env.API_BASE_URL.replace('/api', '');
             const response = await fetch(`${API_BASE_URL}/api/staff/orders/${orderId}/status`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },

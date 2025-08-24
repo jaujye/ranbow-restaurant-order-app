@@ -17,7 +17,7 @@ class HttpClient {
 
   constructor() {
     // 根據環境配置 API 基礎 URL
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api';
     
     this.client = axios.create({
       baseURL,

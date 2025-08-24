@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
+import { env } from '../../../config/env.config';
 
 // 廚房訂單狀態類型
 export type KitchenOrderStatus = 'queued' | 'active' | 'overdue' | 'completed';
@@ -206,7 +207,7 @@ export const useKitchenStore = create<KitchenState>()(
           set({ isLoading: true, error: null });
           
           // 實現 API 呼叫獲取真實廚房隊列數據
-          const response = await fetch('http://localhost:8081/api/staff/kitchen/queue', {
+          const response = await fetch(`${env.API_BASE_URL}/staff/kitchen/queue`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
           });

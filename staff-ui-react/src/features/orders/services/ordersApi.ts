@@ -2,17 +2,17 @@ import axios from 'axios';
 import { Order, OrderStatus, OrderPriority, OrderFilters, OrderSearch } from '../store/ordersStore';
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api';
 const API_ENDPOINTS = {
-  orders: `${API_BASE_URL}/api/staff/orders`,
-  orderDetails: (id: string) => `${API_BASE_URL}/api/staff/orders/${id}`,
-  orderStatus: (id: string) => `${API_BASE_URL}/api/staff/orders/${id}/status`,
-  orderPriority: (id: string) => `${API_BASE_URL}/api/staff/orders/${id}/priority`,
-  batchStatus: `${API_BASE_URL}/api/staff/orders/batch-status`,
-  orderStats: `${API_BASE_URL}/api/staff/orders/statistics`,
-  pendingOrders: `${API_BASE_URL}/api/staff/orders/pending`,
-  inProgressOrders: `${API_BASE_URL}/api/staff/orders/in-progress`,
-  completedOrders: `${API_BASE_URL}/api/staff/orders/completed`
+  orders: `${API_BASE_URL}/staff/orders`,
+  orderDetails: (id: string) => `${API_BASE_URL}/staff/orders/${id}`,
+  orderStatus: (id: string) => `${API_BASE_URL}/staff/orders/${id}/status`,
+  orderPriority: (id: string) => `${API_BASE_URL}/staff/orders/${id}/priority`,
+  batchStatus: `${API_BASE_URL}/staff/orders/batch-status`,
+  orderStats: `${API_BASE_URL}/staff/orders/statistics`,
+  pendingOrders: `${API_BASE_URL}/staff/orders/pending`,
+  inProgressOrders: `${API_BASE_URL}/staff/orders/in-progress`,
+  completedOrders: `${API_BASE_URL}/staff/orders/completed`
 };
 
 // Request/Response Types
@@ -386,7 +386,7 @@ export class OrdersApiService {
   // Health check for orders service
   static async healthCheck(): Promise<boolean> {
     try {
-      const response = await apiClient.get(`${API_BASE_URL}/api/health`);
+      const response = await apiClient.get(`${API_BASE_URL}/health`);
       return response.status === 200;
     } catch (error) {
       console.error('Orders service health check failed:', error);
