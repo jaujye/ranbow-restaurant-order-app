@@ -94,7 +94,9 @@
       "Bash(npx playwright test:*)",
       "Bash(git pull:*)",
       "Bash(git restore:*)",
-      "Bash(ren:*)"
+      "Bash(ren:*)",
+      "Bash(tasklist:*)",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": [],
