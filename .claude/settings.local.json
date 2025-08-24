@@ -92,7 +92,9 @@
       "Bash(git merge:*)",
       "Bash(git log:*)",
       "Bash(npx playwright test:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(git restore:*)",
+      "Bash(ren:*)"
     ],
     "deny": [],
     "ask": [],
