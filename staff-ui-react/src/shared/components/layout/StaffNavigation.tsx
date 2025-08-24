@@ -26,19 +26,19 @@ const navigationItems = [
     description: '工作台概覽'
   },
   {
-    name: '訂單狀態',
+    name: '訂單',
     href: '/orders',
     icon: ClipboardList,
     description: '訂單管理'
   },
   {
-    name: '廚房狀態',
+    name: '廚房',
     href: '/kitchen',
     icon: ChefHat,
     description: '廚房作業'
   },
   {
-    name: '統計報表',
+    name: '報表',
     href: '/stats',
     icon: BarChart3,
     description: '績效統計'

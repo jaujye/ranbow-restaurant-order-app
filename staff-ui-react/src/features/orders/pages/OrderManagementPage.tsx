@@ -3,7 +3,7 @@ import {
   Clock, Package, CheckCircle, AlertTriangle, TrendingUp, 
   Filter, Search, RefreshCw, Settings, Download, Bell
 } from 'lucide-react';
-import { OrderStatus, useOrdersStore, useOrdersData, useOrderActions, useOrderFilters } from '../store/ordersStore';
+import { OrderStatus, useOrdersStore, useOrdersData, useOrderActions, useOrderFilters, useOrderSelection } from '../store/ordersStore';
 import { cn } from '../../../shared/utils/cn';
 import OrderQueue from '../components/OrderQueue';
 import OrderFilters from '../components/OrderFilters';
@@ -16,13 +16,14 @@ export function OrderManagementPage() {
   const { 
     filters, 
     search, 
-    selectedOrder,
-    getTotalOrdersByStatus,
     setFilters,
     setSearch,
     clearFilters,
     clearSearch
   } = useOrderFilters();
+  
+  const { selectedOrder } = useOrderSelection();
+  const getTotalOrdersByStatus = useOrdersStore(state => state.getTotalOrdersByStatus);
 
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);

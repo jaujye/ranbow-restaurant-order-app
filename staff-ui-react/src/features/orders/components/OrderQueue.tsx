@@ -3,7 +3,7 @@ import {
   Grid, List, Kanban, RefreshCw, Filter, Search,
   AlertTriangle, Clock, TrendingUp, Eye, EyeOff
 } from 'lucide-react';
-import { Order, OrderStatus, useOrdersStore, useOrdersData, useOrderActions } from '../store/ordersStore';
+import { Order, OrderStatus, useOrdersStore, useOrdersData, useOrderActions, useOrderSelection, useOrderFilters } from '../store/ordersStore';
 import { cn } from '../../../shared/utils/cn';
 import OrderCard from './OrderCard';
 import OrderDetails from './OrderDetails';
@@ -37,16 +37,10 @@ export function OrderQueue({
     setSearch 
   } = useOrderActions();
   
-  const {
-    viewMode,
-    setViewMode,
-    filters,
-    search,
-    selectedOrder,
-    selectOrder,
-    updating,
-    getTotalOrdersByStatus
-  } = useOrdersStore();
+  const { viewMode, setViewMode, filters, search } = useOrderFilters();
+  const { selectedOrder, selectOrder } = useOrderSelection();
+  const updating = useOrdersStore(state => state.updating);
+  const getTotalOrdersByStatus = useOrdersStore(state => state.getTotalOrdersByStatus);
 
   const [showDetailsPanel, setShowDetailsPanel] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
