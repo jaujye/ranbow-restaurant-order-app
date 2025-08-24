@@ -87,14 +87,11 @@ export const useStaffAuthStore = create<StaffAuthState>()(
               refreshToken: response.data.refreshToken,
               isLoading: false,
               error: null,
-              isAuthenticated: true,
-              isManager: staff.position === 'MANAGER',
-              isSupervisor: staff.position === 'SUPERVISOR' || staff.position === 'MANAGER',
             });
 
             // 自動載入個人資料
             try {
-              const profile = await StaffAuthApi.getProfile(response.data.staff.staffId);
+              const profile = await StaffAuthApi.getProfile(staff.staffId);
               if (profile.success && profile.data) {
                 set({ staffProfile: profile.data });
               }
@@ -142,9 +139,6 @@ export const useStaffAuthStore = create<StaffAuthState>()(
             refreshToken: null,
             isLoading: false,
             error: null,
-            isAuthenticated: false,
-            isManager: false,
-            isSupervisor: false,
           });
         }
       },
@@ -168,9 +162,6 @@ export const useStaffAuthStore = create<StaffAuthState>()(
               refreshToken: response.data.refreshToken,
               isLoading: false,
               error: null,
-              isAuthenticated: true,
-              isManager: staff.position === 'MANAGER',
-              isSupervisor: staff.position === 'SUPERVISOR' || staff.position === 'MANAGER',
             });
             return true;
           } else {
@@ -183,9 +174,6 @@ export const useStaffAuthStore = create<StaffAuthState>()(
               refreshToken: null,
               isLoading: false,
               error: 'Authentication expired',
-              isAuthenticated: false,
-              isManager: false,
-              isSupervisor: false,
             });
             return false;
           }
@@ -200,9 +188,6 @@ export const useStaffAuthStore = create<StaffAuthState>()(
             refreshToken: null,
             isLoading: false,
             error: 'Authentication expired',
-            isAuthenticated: false,
-            isManager: false,
-            isSupervisor: false,
           });
           return false;
         }

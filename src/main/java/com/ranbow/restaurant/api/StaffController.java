@@ -37,6 +37,12 @@ public class StaffController {
     
     @Autowired
     private NotificationService notificationService;
+    
+    @Autowired
+    private JwtService jwtService;
+    
+    @Autowired
+    private SessionService sessionService;
 
     // ================================
     // STAFF AUTHENTICATION ENDPOINTS
@@ -63,10 +69,19 @@ public class StaffController {
                         staffService.startShift(staff.getStaffId());
                     }
                     
+                    // Generate session ID and JWT tokens
+                    String sessionId = sessionService.createSession(staff.getStaffId(), "Staff Portal", "127.0.0.1");
+                    String token = jwtService.generateToken(staff.getStaffId(), sessionId, "Staff Portal");
+                    String refreshToken = jwtService.generateToken(staff.getStaffId(), sessionId + "_refresh", "Staff Portal");
+                    
                     return ResponseEntity.ok(Map.of(
                         "success", true,
                         "message", "登入成功",
                         "staff", profile,
+                        "token", token,
+                        "refreshToken", refreshToken,
+                        "sessionId", sessionId,
+                        "expiresIn", 8 * 60 * 60, // 8 hours in seconds
                         "unreadNotifications", notificationService.countUnreadNotifications(staff.getStaffId())
                     ));
                 }
