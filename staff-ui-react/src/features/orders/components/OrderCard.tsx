@@ -149,7 +149,7 @@ export function OrderCard({
     return (
       <div 
         className={cn(
-          'p-3 border rounded-lg cursor-pointer transition-all duration-200',
+          'p-2 sm:p-3 border rounded-lg cursor-pointer transition-all duration-200',
           statusConfig.color,
           isSelected && 'ring-2 ring-blue-500 ring-offset-2',
           isUpdating && 'opacity-50 pointer-events-none',
@@ -158,15 +158,15 @@ export function OrderCard({
         onClick={() => onSelect?.(order)}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <StatusIcon className="w-4 h-4" />
-            <span className="font-medium text-sm">#{order.orderNumber}</span>
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <StatusIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="font-medium text-xs sm:text-sm">#{order.orderNumber}</span>
             {order.isUrgent && (
               <AlertTriangle className="w-3 h-3 text-red-500" />
             )}
           </div>
           <div className="text-right">
-            <div className="text-sm font-semibold">{formatCurrency(order.totalAmount)}</div>
+            <div className="text-xs sm:text-sm font-semibold">{formatCurrency(order.totalAmount)}</div>
             <div className="text-xs text-gray-500">{timeSinceCreation()}</div>
           </div>
         </div>
@@ -188,33 +188,33 @@ export function OrderCard({
     >
       {/* Header */}
       <div 
-        className="p-4 cursor-pointer" 
+        className="p-3 sm:p-4 cursor-pointer" 
         onClick={() => onSelect?.(order)}
       >
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center space-x-3">
-            <StatusIcon className={cn("w-5 h-5", statusConfig.color.split(' ')[0])} />
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">
+        <div className="flex items-start justify-between mb-2 sm:mb-3">
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+            <StatusIcon className={cn("w-4 h-4 sm:w-5 sm:h-5", statusConfig.color.split(' ')[0])} />
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm sm:text-lg font-semibold text-gray-900">
                 #{order.orderNumber}
               </h3>
-              <div className="flex items-center space-x-2 mt-1">
+              <div className="flex items-center space-x-1 sm:space-x-2 mt-1 flex-wrap gap-1">
                 <span className={cn(
-                  'px-2 py-1 text-xs font-medium rounded-full',
+                  'px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs font-medium rounded-full',
                   statusConfig.badge
                 )}>
                   {statusConfig.label}
                 </span>
                 {order.priority !== OrderPriority.NORMAL && (
                   <span className={cn(
-                    'px-2 py-1 text-xs font-medium rounded-full',
+                    'px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs font-medium rounded-full',
                     priorityConfig.badge
                   )}>
-                    優先級：{priorityConfig.label}
+                    <span className="hidden sm:inline">優先級：</span>{priorityConfig.label}
                   </span>
                 )}
                 {order.isUrgent && (
-                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 flex items-center space-x-1">
+                  <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 flex items-center space-x-1">
                     <AlertTriangle className="w-3 h-3" />
                     <span>緊急</span>
                   </span>
@@ -223,56 +223,56 @@ export function OrderCard({
             </div>
           </div>
           
-          <div className="text-right">
-            <div className="text-xl font-bold text-gray-900">
+          <div className="text-right flex-shrink-0 ml-2">
+            <div className="text-sm sm:text-xl font-bold text-gray-900">
               {formatCurrency(order.totalAmount)}
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-xs sm:text-sm text-gray-500">
               {timeSinceCreation()}
             </div>
           </div>
         </div>
 
         {/* Customer Info */}
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <User className="w-4 h-4" />
+        <div className="space-y-1 sm:space-y-2 mb-3 sm:mb-4">
+          <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+            <User className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="font-medium">{order.customer.name}</span>
             {order.customer.phone && (
               <>
-                <Phone className="w-4 h-4 ml-2" />
-                <span>{order.customer.phone}</span>
+                <Phone className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
+                <span className="truncate">{order.customer.phone}</span>
               </>
             )}
           </div>
           
           {order.tableNumber && (
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <MapPin className="w-4 h-4" />
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+              <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>桌號：{order.tableNumber}</span>
             </div>
           )}
           
           {order.estimatedPrepTime && order.status === OrderStatus.PREPARING && (
-            <div className="flex items-center space-x-2 text-sm text-orange-600">
-              <Clock className="w-4 h-4" />
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-orange-600">
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>預計完成時間：{order.estimatedPrepTime}分鐘</span>
             </div>
           )}
         </div>
 
         {/* Order Items Preview */}
-        <div className="mb-4">
-          <div className="text-sm font-medium text-gray-700 mb-2">
+        <div className="mb-3 sm:mb-4">
+          <div className="text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
             訂單內容 ({order.items.length}項)
           </div>
-          <div className="space-y-1">
+          <div className="space-y-0.5 sm:space-y-1">
             {order.items.slice(0, variant === 'detailed' ? undefined : 3).map((item, index) => (
-              <div key={index} className="flex justify-between text-sm">
-                <span className="text-gray-600">
+              <div key={index} className="flex justify-between text-xs sm:text-sm">
+                <span className="text-gray-600 flex-1 min-w-0 pr-2">
                   {item.name} x{item.quantity}
                 </span>
-                <span className="text-gray-900 font-medium">
+                <span className="text-gray-900 font-medium flex-shrink-0">
                   {formatCurrency(item.price * item.quantity)}
                 </span>
               </div>
@@ -286,17 +286,17 @@ export function OrderCard({
         </div>
 
         {order.specialInstructions && (
-          <div className="mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="mb-3 sm:mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
             <div className="text-xs font-medium text-yellow-800 mb-1">特殊要求：</div>
-            <div className="text-sm text-yellow-700">{order.specialInstructions}</div>
+            <div className="text-xs sm:text-sm text-yellow-700">{order.specialInstructions}</div>
           </div>
         )}
       </div>
 
       {/* Action Buttons */}
       {showActions && quickActions.length > 0 && (
-        <div className="border-t bg-gray-50 px-4 py-3 rounded-b-xl">
-          <div className="flex space-x-2">
+        <div className="border-t bg-gray-50 px-3 sm:px-4 py-2 sm:py-3 rounded-b-xl">
+          <div className="flex flex-wrap gap-2">
             {quickActions.map((action, index) => (
               <button
                 key={index}
@@ -306,7 +306,7 @@ export function OrderCard({
                 }}
                 disabled={isUpdating}
                 className={cn(
-                  'px-3 py-1.5 text-sm font-medium text-white rounded-lg transition-colors duration-200',
+                  'px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-white rounded-lg transition-colors duration-200 flex-shrink-0',
                   action.color,
                   isUpdating && 'opacity-50 cursor-not-allowed'
                 )}
@@ -327,7 +327,7 @@ export function OrderCard({
                 }}
                 disabled={isUpdating}
                 className={cn(
-                  'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors duration-200 border',
+                  'px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-colors duration-200 border flex-shrink-0',
                   order.isUrgent 
                     ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
                     : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'

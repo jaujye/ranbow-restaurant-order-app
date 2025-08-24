@@ -153,7 +153,7 @@ export function OrderManagementPage() {
   // Render tab navigation
   const renderTabs = () => (
     <div className="border-b border-gray-200">
-      <nav className="flex space-x-8 overflow-x-auto px-6 py-4">
+      <nav className="flex space-x-2 sm:space-x-4 md:space-x-8 overflow-x-auto px-3 sm:px-4 md:px-6 py-2 md:py-4">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = currentTab === tab.key;
@@ -163,18 +163,19 @@ export function OrderManagementPage() {
               key={tab.key}
               onClick={() => handleTabChange(tab.key)}
               className={cn(
-                'flex items-center space-x-2 px-4 py-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap',
+                'flex items-center space-x-1 md:space-x-2 px-2 sm:px-3 md:px-4 py-1.5 md:py-2 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap',
                 isActive
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               )}
             >
-              <Icon className={cn('w-5 h-5', isActive ? 'text-blue-600' : tab.color)} />
-              <span>{tab.label}</span>
+              <Icon className={cn('w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5', isActive ? 'text-blue-600' : tab.color)} />
+              <span className="hidden sm:inline md:inline">{tab.label}</span>
+              <span className="sm:hidden">{tab.label.slice(0, 2)}</span>
               
               {/* Count badge */}
               <span className={cn(
-                'ml-2 px-2 py-0.5 text-xs font-medium rounded-full',
+                'ml-1 px-1 sm:px-1.5 md:px-2 py-0.5 text-xs font-medium rounded-full',
                 isActive
                   ? 'bg-blue-100 text-blue-800'
                   : tab.priority && tab.count > 0
@@ -186,7 +187,7 @@ export function OrderManagementPage() {
               
               {/* Priority indicator */}
               {tab.priority && tab.count > 0 && (
-                <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-red-400 rounded-full animate-pulse"></div>
               )}
             </button>
           );
@@ -197,35 +198,35 @@ export function OrderManagementPage() {
 
   // Render toolbar
   const renderToolbar = () => (
-    <div className="bg-white border-b border-gray-200 p-6">
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+    <div className="bg-white border-b border-gray-200 p-3 sm:p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         {/* Search */}
-        <div className="flex-1 max-w-lg">
+        <div className="flex-1 w-full sm:max-w-lg">
           <OrderSearch
             search={search}
             onSearchChange={setSearch}
             onClear={clearSearch}
-            showAdvanced={true}
-            showHistory={true}
+            showAdvanced={false} // Hide advanced features on mobile
+            showHistory={false}  // Hide history on mobile
           />
         </div>
 
         {/* Actions */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 w-full sm:w-auto justify-between sm:justify-start">
           {/* Filters */}
           <button
             onClick={() => setShowFiltersPanel(!showFiltersPanel)}
             className={cn(
-              'flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg transition-colors',
+              'flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 border border-gray-300 rounded-lg transition-colors text-xs sm:text-sm',
               showFiltersPanel || Object.keys(filters).length > 0
                 ? 'bg-blue-50 text-blue-600 border-blue-300'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             )}
           >
-            <Filter className="w-4 h-4" />
-            <span>篩選</span>
+            <Filter className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">篩選</span>
             {Object.keys(filters).length > 0 && (
-              <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              <span className="bg-blue-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
                 {Object.keys(filters).length}
               </span>
             )}
@@ -234,11 +235,11 @@ export function OrderManagementPage() {
           {/* Export */}
           <button
             onClick={handleExportOrders}
-            className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xs sm:text-sm"
             title="匯出訂單"
           >
-            <Download className="w-4 h-4" />
-            <span>匯出</span>
+            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">匯出</span>
           </button>
 
           {/* Refresh */}
@@ -246,27 +247,27 @@ export function OrderManagementPage() {
             onClick={refreshOrders}
             disabled={loading}
             className={cn(
-              'flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors',
+              'flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xs sm:text-sm',
               loading && 'cursor-not-allowed opacity-50'
             )}
             title="重新整理"
           >
-            <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
-            <span>重新整理</span>
+            <RefreshCw className={cn('w-3 h-3 sm:w-4 sm:h-4', loading && 'animate-spin')} />
+            <span className="hidden sm:inline">重新整理</span>
           </button>
 
           {/* Settings */}
           <button
             onClick={() => setShowSettingsPanel(!showSettingsPanel)}
             className={cn(
-              'flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg transition-colors',
+              'flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 border border-gray-300 rounded-lg transition-colors text-xs sm:text-sm',
               showSettingsPanel
                 ? 'bg-gray-50 text-gray-900'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             )}
             title="設定"
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
           </button>
         </div>
       </div>
@@ -353,17 +354,17 @@ export function OrderManagementPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">訂單管理</h1>
-              <p className="mt-1 text-sm text-gray-600">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between py-3 md:py-6">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900">訂單管理</h1>
+              <p className="mt-1 text-xs sm:text-sm text-gray-600 truncate">
                 統一管理所有訂單狀態和處理流程
               </p>
             </div>
             
-            {/* Quick stats */}
-            <div className="hidden md:flex items-center space-x-6">
+            {/* Quick stats - Desktop */}
+            <div className="hidden lg:flex items-center space-x-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-yellow-600">
                   {orderStats[OrderStatus.PENDING] || 0}
@@ -381,6 +382,28 @@ export function OrderManagementPage() {
                   {orderStats[OrderStatus.READY] || 0}
                 </div>
                 <div className="text-xs text-gray-500">已完成</div>
+              </div>
+            </div>
+            
+            {/* Quick stats - Mobile */}
+            <div className="flex lg:hidden items-center space-x-3">
+              <div className="text-center">
+                <div className="text-sm font-bold text-yellow-600">
+                  {orderStats[OrderStatus.PENDING] || 0}
+                </div>
+                <div className="text-xs text-gray-500">待處理</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm font-bold text-orange-600">
+                  {orderStats[OrderStatus.PREPARING] || 0}
+                </div>
+                <div className="text-xs text-gray-500">製作中</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm font-bold text-green-600">
+                  {orderStats[OrderStatus.READY] || 0}
+                </div>
+                <div className="text-xs text-gray-500">完成</div>
               </div>
             </div>
           </div>
@@ -412,19 +435,19 @@ export function OrderManagementPage() {
       )}
 
       {/* Main content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4 lg:py-6">
         {/* Error state */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
             <div className="flex items-center">
-              <AlertTriangle className="w-5 h-5 text-red-500 mr-3" />
-              <div>
-                <div className="font-medium text-red-800">載入失敗</div>
-                <div className="text-sm text-red-600 mt-1">{error}</div>
+              <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 mr-2 sm:mr-3 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-red-800 text-sm sm:text-base">載入失敗</div>
+                <div className="text-xs sm:text-sm text-red-600 mt-1 truncate">{error}</div>
               </div>
               <button
                 onClick={refreshOrders}
-                className="ml-auto px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+                className="ml-2 sm:ml-auto px-2 sm:px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors text-xs sm:text-sm flex-shrink-0"
               >
                 重試
               </button>
@@ -443,12 +466,12 @@ export function OrderManagementPage() {
       </div>
 
       {/* Floating notifications */}
-      <div className="fixed bottom-4 right-4 z-50">
+      <div className="fixed bottom-3 sm:bottom-4 right-3 sm:right-4 z-50">
         {/* This would contain real-time notifications */}
         {orderStats[OrderStatus.PENDING] > 0 && (
-          <div className="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 mb-2">
-            <Bell className="w-4 h-4" />
-            <span className="text-sm font-medium">
+          <div className="bg-yellow-500 text-white px-3 sm:px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 mb-2 max-w-xs sm:max-w-none">
+            <Bell className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+            <span className="text-xs sm:text-sm font-medium">
               {orderStats[OrderStatus.PENDING]} 個新訂單待處理
             </span>
           </div>
