@@ -23,7 +23,7 @@ export enum NotificationPriority {
 }
 
 // Main notification data structure
-export interface Notification {
+export interface NotificationData {
   notificationId: string;
   recipientStaffId: string;
   senderStaffId?: string;
@@ -56,7 +56,7 @@ export interface MarkReadRequest {
 
 // API response types
 export interface NotificationsListResponse {
-  notifications: Notification[];
+  notifications: NotificationData[];
   unreadCount: number;
   totalCount: number;
 }
@@ -71,7 +71,7 @@ export interface MarkReadResponse {
 export interface NotificationUIState {
   loading: boolean;
   error: string | null;
-  selectedNotification: Notification | null;
+  selectedNotification: NotificationData | null;
   showReadNotifications: boolean;
   filterType: NotificationType | 'ALL';
   filterPriority: NotificationPriority | 'ALL';
@@ -129,7 +129,7 @@ export type NotificationAction =
 
 export interface NotificationActionHandler {
   action: NotificationAction;
-  handler: (notification: Notification) => void | Promise<void>;
+  handler: (notification: NotificationData) => void | Promise<void>;
   label: string;
   icon?: string;
   variant?: 'primary' | 'secondary' | 'danger' | 'success';
@@ -138,14 +138,14 @@ export interface NotificationActionHandler {
 // Grouping
 export interface NotificationGroup {
   date: string;
-  notifications: Notification[];
+  notifications: NotificationData[];
   unreadCount: number;
 }
 
 // Events
 export interface NotificationEvent {
   type: 'NEW_NOTIFICATION' | 'NOTIFICATION_READ' | 'NOTIFICATION_DELETED';
-  notification: Notification;
+  notification: NotificationData;
   timestamp: string;
 }
 
@@ -154,7 +154,7 @@ export interface WebSocketNotificationPayload {
   type: 'NOTIFICATION';
   data: {
     staffId: string;
-    notification: Notification;
+    notification: NotificationData;
     action: 'CREATE' | 'UPDATE' | 'DELETE';
   };
 }
@@ -189,7 +189,7 @@ export interface NotificationError {
 
 // Context interface
 export interface NotificationContext {
-  notifications: Notification[];
+  notifications: NotificationData[];
   unreadCount: number;
   loading: boolean;
   error: NotificationError | null;
@@ -208,22 +208,22 @@ export interface NotificationContext {
 
 // Component props
 export interface NotificationItemProps {
-  notification: Notification;
+  notification: NotificationData;
   config: NotificationDisplayConfig;
   actions: NotificationActionHandler[];
-  onAction: (action: NotificationAction, notification: Notification) => void;
+  onAction: (action: NotificationAction, notification: NotificationData) => void;
   selected?: boolean;
   compact?: boolean;
 }
 
 export interface NotificationListProps {
-  notifications: Notification[];
+  notifications: NotificationData[];
   loading?: boolean;
   error?: string | null;
   config: NotificationDisplayConfig;
   filters: NotificationFilters;
   onFilterChange: (filters: Partial<NotificationFilters>) => void;
-  onNotificationAction: (action: NotificationAction, notification: Notification) => void;
+  onNotificationAction: (action: NotificationAction, notification: NotificationData) => void;
   emptyMessage?: string;
   className?: string;
 }

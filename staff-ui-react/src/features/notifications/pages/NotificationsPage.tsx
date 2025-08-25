@@ -5,10 +5,10 @@ import NotificationItem from '../components/NotificationItem';
 import NotificationFilters from '../components/NotificationFilters';
 import { LoadingSpinner } from '../../../shared/components/ui/LoadingSpinner';
 import {
-  type Notification,
-  type NotificationAction,
-  type NotificationActionHandler,
-  type NotificationDisplayConfig,
+  NotificationData,
+  NotificationAction,
+  NotificationActionHandler,
+  NotificationDisplayConfig,
   NotificationType,
   NotificationPriority
 } from '../types/notifications.types';
@@ -36,7 +36,7 @@ export function NotificationsPage() {
   } = useNotifications(staffId);
 
   // Local state
-  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [selectedNotification, setSelectedNotification] = useState<NotificationData | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
   // Display configuration
@@ -50,7 +50,7 @@ export function NotificationsPage() {
   });
 
   // Handle notification actions
-  const handleNotificationAction = useCallback(async (action: NotificationAction, notification: Notification) => {
+  const handleNotificationAction = useCallback(async (action: NotificationAction, notification: NotificationData) => {
     try {
       switch (action) {
         case 'view':
@@ -131,7 +131,7 @@ export function NotificationsPage() {
         }
         groups[date].push(notification);
         return groups;
-      }, {} as Record<string, Notification[]>)
+      }, {} as Record<string, NotificationData[]>)
     : { all: notifications };
 
   // Handle refresh
@@ -174,7 +174,7 @@ export function NotificationsPage() {
           {/* Mark all read button */}
           {unreadCount > 0 && (
             <button
-              onClick={() => handleNotificationAction('markAllRead', {} as Notification)}
+              onClick={() => handleNotificationAction('markAllRead', {} as NotificationData)}
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
             >
               <span className="mr-2">✓</span>

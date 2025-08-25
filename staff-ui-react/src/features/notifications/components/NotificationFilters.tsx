@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  type NotificationFilters as NotificationFiltersType,
+  NotificationFilters as NotificationFiltersType,
   NotificationType,
   NotificationPriority,
   NOTIFICATION_TYPE_LABELS,

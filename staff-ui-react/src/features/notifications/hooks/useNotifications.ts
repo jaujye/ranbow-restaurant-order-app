@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  type Notification,
-  type NotificationFilters,
-  type NotificationSettings,
-  type NotificationStats,
-  type NotificationError,
+  NotificationData,
+  NotificationFilters,
+  NotificationSettings,
+  NotificationStats,
+  NotificationError,
   NotificationType,
   NotificationPriority
 } from '../types/notifications.types';
@@ -30,7 +30,7 @@ const DEFAULT_FILTERS: NotificationFilters = {
 
 export function useNotifications(staffId: string) {
   // State
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<NotificationError | null>(null);
@@ -45,7 +45,7 @@ export function useNotifications(staffId: string) {
   });
 
   // Calculate stats from notifications
-  const calculateStats = useCallback((notifications: Notification[]): NotificationStats => {
+  const calculateStats = useCallback((notifications: NotificationData[]): NotificationStats => {
     const stats: NotificationStats = {
       total: notifications.length,
       unread: notifications.filter(n => !n.isRead).length,
@@ -73,7 +73,7 @@ export function useNotifications(staffId: string) {
   }, []);
 
   // Filter notifications based on current filters
-  const getFilteredNotifications = useCallback((notifications: Notification[]): Notification[] => {
+  const getFilteredNotifications = useCallback((notifications: NotificationData[]): NotificationData[] => {
     return notifications.filter(notification => {
       // Type filter
       if (filters.type && filters.type !== 'ALL' && notification.type !== filters.type) {
@@ -237,7 +237,7 @@ export function useNotifications(staffId: string) {
   }, [fetchNotifications]);
 
   // Play notification sound
-  const playNotificationSound = useCallback((notification: Notification) => {
+  const playNotificationSound = useCallback((notification: NotificationData) => {
     if (!settings.enableSound) return;
 
     try {
@@ -270,7 +270,7 @@ export function useNotifications(staffId: string) {
   }, [settings.enableSound, settings.soundVolume]);
 
   // Trigger vibration
-  const triggerVibration = useCallback((notification: Notification) => {
+  const triggerVibration = useCallback((notification: NotificationData) => {
     if (!settings.enableVibration || !('vibrate' in navigator)) return;
 
     let pattern = [100]; // Default short vibration
@@ -292,7 +292,7 @@ export function useNotifications(staffId: string) {
   }, [settings.enableVibration]);
 
   // Show desktop notification
-  const showDesktopNotification = useCallback(async (notification: Notification) => {
+  const showDesktopNotification = useCallback(async (notification: NotificationData) => {
     if (!settings.enableDesktopNotifications) return;
 
     try {
@@ -330,7 +330,7 @@ export function useNotifications(staffId: string) {
   }, [settings.enableDesktopNotifications, markAsRead]);
 
   // Process new notification (with sound, vibration, desktop notification)
-  const processNewNotification = useCallback((notification: Notification) => {
+  const processNewNotification = useCallback((notification: NotificationData) => {
     // Add to notifications list
     setNotifications(prev => [notification, ...prev]);
     setUnreadCount(prev => prev + 1);

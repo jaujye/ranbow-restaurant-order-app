@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-  type Notification,
-  type NotificationDisplayConfig,
-  type NotificationActionHandler,
-  type NotificationAction,
+  NotificationData,
+  NotificationDisplayConfig,
+  NotificationActionHandler,
+  NotificationAction,
   NOTIFICATION_TYPE_LABELS,
   NOTIFICATION_PRIORITY_LABELS,
   NOTIFICATION_TYPE_COLORS,
@@ -13,10 +13,10 @@ import {
 } from '../types/notifications.types';
 
 export interface NotificationItemProps {
-  notification: Notification;
+  notification: NotificationData;
   config: NotificationDisplayConfig;
   actions: NotificationActionHandler[];
-  onAction: (action: NotificationAction, notification: Notification) => void;
+  onAction: (action: NotificationAction, notification: NotificationData) => void;
   selected?: boolean;
   compact?: boolean;
 }

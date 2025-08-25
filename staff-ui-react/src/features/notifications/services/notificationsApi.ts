@@ -2,11 +2,11 @@ import axios from 'axios';
 import {
   NotificationType,
   NotificationPriority,
-  type Notification,
-  type GetNotificationsRequest,
-  type NotificationsListResponse,
-  type MarkReadRequest,
-  type MarkReadResponse
+  NotificationData,
+  GetNotificationsRequest,
+  NotificationsListResponse,
+  MarkReadRequest,
+  MarkReadResponse
 } from '../types/notifications.types';
 
 // API Configuration
@@ -88,7 +88,7 @@ export class NotificationsApiService {
   }
 
   // Get only unread notifications
-  static async getUnreadNotifications(staffId: string): Promise<Notification[]> {
+  static async getUnreadNotifications(staffId: string): Promise<NotificationData[]> {
     try {
       const response = await this.getNotifications(staffId, { unreadOnly: true });
       return response.notifications;
@@ -146,7 +146,7 @@ export class NotificationsApiService {
   static async getNotificationsByType(
     staffId: string, 
     type: NotificationType
-  ): Promise<Notification[]> {
+  ): Promise<NotificationData[]> {
     try {
       const response = await this.getNotifications(staffId);
       return response.notifications.filter(notification => notification.type === type);
@@ -160,7 +160,7 @@ export class NotificationsApiService {
   static async getNotificationsByPriority(
     staffId: string, 
     priority: NotificationPriority
-  ): Promise<Notification[]> {
+  ): Promise<NotificationData[]> {
     try {
       const response = await this.getNotifications(staffId);
       return response.notifications.filter(notification => notification.priority === priority);
@@ -171,7 +171,7 @@ export class NotificationsApiService {
   }
 
   // Get urgent notifications only
-  static async getUrgentNotifications(staffId: string): Promise<Notification[]> {
+  static async getUrgentNotifications(staffId: string): Promise<NotificationData[]> {
     try {
       return await this.getNotificationsByPriority(staffId, NotificationPriority.URGENT);
     } catch (error) {
@@ -184,7 +184,7 @@ export class NotificationsApiService {
   static async getRecentNotifications(
     staffId: string, 
     hoursBack: number = 24
-  ): Promise<Notification[]> {
+  ): Promise<NotificationData[]> {
     try {
       const response = await this.getNotifications(staffId);
       const cutoffTime = new Date(Date.now() - hoursBack * 60 * 60 * 1000);
@@ -203,7 +203,7 @@ export class NotificationsApiService {
   static async getOrderNotifications(
     staffId: string, 
     orderId: string
-  ): Promise<Notification[]> {
+  ): Promise<NotificationData[]> {
     try {
       const response = await this.getNotifications(staffId);
       return response.notifications.filter(
