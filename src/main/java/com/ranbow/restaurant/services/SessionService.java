@@ -225,7 +225,8 @@ public class SessionService {
      * @return 活躍用戶數量
      */
     public long getActiveUserCount() {
-        return redisTemplate.opsForSet().size("active:users");
+        Long size = redisTemplate.opsForSet().size("active:users");
+        return size != null ? size : 0L;
     }
 
     /**

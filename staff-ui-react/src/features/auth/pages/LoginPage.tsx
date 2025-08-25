@@ -168,31 +168,6 @@ export function LoginPage({ redirectTo = '/dashboard' }: LoginPageProps) {
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
-        {/* 頂部導航 */}
-        <header className="p-4 sm:p-6">
-          <div className="flex items-center justify-between max-w-6xl mx-auto">
-            <Button
-              variant="ghost"
-              onClick={handleGoBack}
-              className="flex items-center text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              返回主頁
-            </Button>
-            
-            <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Shield className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  彩虹餐廳
-                </h1>
-                <p className="text-xs text-gray-500">員工作業系統</p>
-              </div>
-            </div>
-          </div>
-        </header>
 
         {/* 主要內容 */}
         <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
@@ -205,7 +180,7 @@ export function LoginPage({ redirectTo = '/dashboard' }: LoginPageProps) {
                   <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
                     歡迎使用
                     <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                      員工作業系統
+                      彩虹餐廳員工作業系統
                     </span>
                   </h2>
                   <p className="text-lg text-gray-600 leading-relaxed">
@@ -241,8 +216,6 @@ export function LoginPage({ redirectTo = '/dashboard' }: LoginPageProps) {
                   />
                 </div>
 
-                {/* 系統統計 */}
-                <SystemStatsCard />
               </div>
 
               {/* 右側 - 登入表單 */}
@@ -268,7 +241,7 @@ export function LoginPage({ redirectTo = '/dashboard' }: LoginPageProps) {
               <p className="text-sm text-gray-500">
                 © 2024 彩虹餐廳. 保留所有權利.
               </p>
-              <div className="flex items-center space-x-4 text-sm text-gray-500">
+              <div className="flex items-center space-x-5 text-sm text-gray-500">
                 <a href="#" className="hover:text-gray-700 transition-colors">
                   使用條款
                 </a>
@@ -282,7 +255,7 @@ export function LoginPage({ redirectTo = '/dashboard' }: LoginPageProps) {
             </div>
             
             {/* 版本資訊 */}
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="mt-4 border-t border-gray-200">
               <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0">
                 <p className="text-xs text-gray-400">
                   員工作業系統 v2.0.0 • React + TypeScript

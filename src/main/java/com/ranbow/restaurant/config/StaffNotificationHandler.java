@@ -226,7 +226,7 @@ public class StaffNotificationHandler implements WebSocketHandler {
 
     private String extractStaffId(WebSocketSession session) {
         // Try to get staff ID from query parameters
-        String query = session.getUri().getQuery();
+        String query = session.getUri() != null ? session.getUri().getQuery() : null;
         if (query != null) {
             String[] params = query.split("&");
             for (String param : params) {
