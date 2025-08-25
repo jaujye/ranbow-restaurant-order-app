@@ -270,7 +270,7 @@ export function OrderQueue({
   const renderToolbar = () => (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
       <div className="flex items-center space-x-4">
-        <h2 className="text-2xl font-bold text-gray-900">訂單隊列</h2>
+        <h1 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900">訂單隊列</h1>
         <button
           onClick={refreshOrders}
           disabled={loading}
