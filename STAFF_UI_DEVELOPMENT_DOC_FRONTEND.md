@@ -1882,6 +1882,169 @@ const teamMetrics = [
 ]
 ```
 
+---
+
+#### **🔧 Dashboard實戰開發經驗 (重要)**
+
+##### **API整合最佳實踐**
+
+**數據結構兼容處理**
+```typescript
+// ⚠️ 關鍵問題：currentStaff數據結構變化
+// 實際結構：{staff: {staffId: "..."}, displayName: "...", ...}
+// 但代碼可能期望：{staffId: "...", name: "...", ...}
+
+// ✅ 兼容性解決方案
+const getStaffId = (currentStaff: any) => 
+  currentStaff?.staff?.staffId || currentStaff?.staffId;
+
+const getStaffName = (currentStaff: any) => 
+  currentStaff?.staff?.name || currentStaff?.name || currentStaff?.displayName;
+```
+
+**Null安全的數值處理**
+```typescript
+// ⚠️ 常見錯誤：toFixed()作用在undefined上
+// 錯誤代碼：dashboardData.team.avgEfficiency.toFixed(1)
+// 
+// ✅ 正確處理
+const safeToFixed = (value: number | undefined, digits: number = 1) =>
+  (value || 0).toFixed(digits);
+
+// 使用範例
+{(dashboardData.team?.avgEfficiency || 0).toFixed(1)}%
+```
+
+**API調用策略**
+```typescript
+// ✅ 推薦的數據載入模式
+useEffect(() => {
+  // 立即載入Dashboard數據（需要staffId）
+  const staffId = getStaffId(currentStaff);
+  if (staffId) {
+    loadDashboardData();
+  }
+}, [currentStaff?.staff?.staffId, currentStaff?.staffId]);
+
+useEffect(() => {
+  // 立即載入Overview數據（不需要staffId）
+  loadOverviewData();
+}, []);
+
+useEffect(() => {
+  // 設置輪詢更新
+  const overviewInterval = setInterval(loadOverviewData, 15000);  // 15秒
+  const dashboardInterval = setInterval(loadDashboardData, 120000); // 2分鐘
+  
+  return () => {
+    clearInterval(overviewInterval);
+    clearInterval(dashboardInterval);
+  };
+}, [currentStaff?.staff?.staffId, currentStaff?.staffId]);
+```
+
+##### **常見錯誤與解決方案**
+
+**❌ 錯誤1：toFixed TypeError**
+```typescript
+// 問題：TypeError: Cannot read properties of undefined (reading 'toFixed')
+// 原因：API返回的數值字段為undefined
+
+// 解決方案：
+{(dashboardData.team?.avgEfficiency || 0).toFixed(1)}%
+```
+
+**❌ 錯誤2：數據結構不匹配**
+```typescript
+// 問題：無法獲取staffId導致API調用失敗
+// 原因：currentStaff結構變化
+
+// 解決方案：兼容性處理
+const staffId = currentStaff?.staff?.staffId || currentStaff?.staffId;
+if (!staffId) return; // 早期退出
+```
+
+**❌ 錯誤3：Promise.all競爭錯誤**
+```typescript
+// 問題：複雜的Promise.all導致React渲染異常
+// 錯誤代碼：
+Promise.all([loadDashboardData(), loadOverviewData()])
+
+// 解決方案：分離useEffect
+useEffect(() => loadDashboardData(), [staffId]);
+useEffect(() => loadOverviewData(), []);
+```
+
+**❌ 錯誤4：未處理的邊界情況**
+```typescript
+// 問題：未登入用戶訪問Dashboard崩潰
+// 解決方案：添加錯誤邊界
+if (!currentStaff) {
+  return <LoginPrompt />;
+}
+```
+
+##### **性能優化建議**
+
+**輪詢策略優化**
+```typescript
+// ✅ 分級更新策略
+const POLLING_INTERVALS = {
+  OVERVIEW: 15000,      // 15秒 - 輕量級數據，頻繁更新
+  DASHBOARD: 120000,    // 2分鐘 - 完整數據，較少更新
+  NOTIFICATIONS: 30000  // 30秒 - 通知數據，中等頻率
+};
+```
+
+**錯誤處理最佳實踐**
+```typescript
+// ✅ 漸進式錯誤處理
+const loadDataSafely = async (apiCall: () => Promise<any>) => {
+  try {
+    await apiCall();
+  } catch (error) {
+    console.error('API調用失敗，但不影響其他功能:', error);
+    // 不拋出錯誤，讓其他API繼續運行
+  }
+};
+```
+
+##### **響應式設計實現**
+
+**網格佈局策略**
+```css
+/* 統計卡片響應式網格 */
+.dashboard-stats {
+  @apply grid gap-6;
+  @apply grid-cols-1;        /* 手機：單列 */
+  @apply md:grid-cols-2;     /* 平板：雙列 */
+  @apply lg:grid-cols-4;     /* 桌面：四列 */
+}
+
+/* 團隊統計響應式網格 */
+.team-stats {
+  @apply grid gap-4;
+  @apply grid-cols-2;        /* 手機：2x2 */
+  @apply lg:grid-cols-4;     /* 桌面：1x4 */
+}
+```
+
+**卡片內容響應式**
+```css
+/* 統計數值響應式字體 */
+.stat-value {
+  @apply text-xl font-semibold;
+  @apply sm:text-2xl;        /* 大屏幕更大字體 */
+}
+
+/* 副標題響應式顯示 */
+.stat-subtitle {
+  @apply text-xs;
+  @apply sm:text-sm;         /* 大屏幕更易讀 */
+  @apply truncate;           /* 防止溢出 */
+}
+```
+
 ### 3.2 員工認證模組
 
 #### **登入頁面要求**
