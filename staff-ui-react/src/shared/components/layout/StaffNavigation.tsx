@@ -37,7 +37,7 @@ const navigationItems = [
   },
   {
     name: '報表',
-    href: '/stats',
+    href: '/statistics-demo',
     icon: BarChart3,
     description: '績效統計'
   },
