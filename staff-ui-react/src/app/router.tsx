@@ -13,6 +13,7 @@ const KitchenDisplayPage = lazy(() => import('@/features/kitchen/pages/KitchenDi
 const StatsPage = lazy(() => import('@/features/stats/pages/StatsPage'));
 const PerformanceReportPage = lazy(() => import('@/features/statistics/pages/PerformanceReportPage'));
 const StatisticsDemoPage = lazy(() => import('@/features/statistics/pages/DemoPage'));
+const StatsTestPage = lazy(() => import('@/features/statistics/pages/StatsTestPage'));
 const NotificationsPage = lazy(() => import('@/features/notifications/pages/NotificationsPage'));
 const ProfilePage = lazy(() => import('@/features/auth/pages/ProfilePage'));
 const NotFoundPage = lazy(() => import('@/shared/components/errors/NotFoundPage'));
@@ -51,6 +52,7 @@ export default function AppRouter() {
         <Route path="performance/personal" element={<PerformanceReportPage />} />
         <Route path="performance/team" element={<PerformanceReportPage isTeamView={true} />} />
         <Route path="statistics-demo" element={<StatisticsDemoPage />} />
+        <Route path="statistics-test" element={<StatsTestPage />} />
         
         {/* Notifications Routes */}
         <Route path="notifications" element={<NotificationsPage />} />

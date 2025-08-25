@@ -1,17 +1,21 @@
 /**
- * Statistics API Service
+ * Statistics API Service - 完全對齊後端StaffController API
  * 統計數據API服務層 - 與Spring Boot後端整合
  */
 
 import axios, { AxiosResponse } from 'axios';
-import { DailyStats, WeeklyStats, MonthlyStats, StaffPerformance, TeamStats, PerformanceMetrics } from '../store/statisticsStore';
+import { DailyStats, WeeklyStats, MonthlyStats, TeamStats, LeaderboardEntry } from '../store/statisticsStore';
 
-// API基礎配置
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8087/api';
+// API基礎配置 - 對齊環境變量配置
+const ENV_CONFIG = {
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api',
+  API_TIMEOUT: parseInt(import.meta.env.VITE_API_TIMEOUT || '10000'),
+  WS_BASE_URL: import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8081/ws',
+};
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
+  baseURL: ENV_CONFIG.API_BASE_URL,
+  timeout: ENV_CONFIG.API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -48,54 +52,37 @@ api.interceptors.response.use(
   }
 );
 
-// API響應類型定義
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
-  error?: string;
-}
+// API端點常量 - 對齊後端StaffController
+export const STATS_API_ENDPOINTS = {
+  // 個人統計
+  STATS_DAILY: (staffId: string) => `/staff/${staffId}/stats/daily`,
+  STATS_WEEKLY: (staffId: string) => `/staff/${staffId}/stats/weekly`,
+  STATS_MONTHLY: (staffId: string) => `/staff/${staffId}/stats/monthly`,
+  
+  // 團隊統計
+  TEAM_STATS: '/staff/team/stats',
+  LEADERBOARD: '/staff/leaderboard',
+} as const;
 
-interface StaffStatsResponse {
-  dailyStats: DailyStats;
-  weeklyStats: WeeklyStats;
-  monthlyStats: MonthlyStats;
-}
-
-interface LeaderboardResponse {
-  leaderboard: StaffPerformance[];
-  totalStaff: number;
-  averagePerformance: number;
-}
-
-interface PerformanceReportResponse {
-  metrics: PerformanceMetrics;
-  chartData: {
-    hourly: Array<{ hour: number; orders: number; efficiency: number }>;
-    daily: Array<{ date: string; orders: number; revenue: number }>;
-    weekly: Array<{ week: string; performance: number; trend: number }>;
-  };
-}
-
-// 統計數據API服務類
+// 統計數據API服務類 - 對齊後端StaffController
 export class StatisticsApiService {
   /**
    * 獲取員工每日統計數據
+   * 對應後端: GET /api/staff/{staffId}/stats/daily?date={date}
    */
   static async getDailyStats(
     staffId: string, 
-    startDate: string, 
-    endDate: string
-  ): Promise<DailyStats[]> {
+    date?: string
+  ): Promise<DailyStats> {
     try {
-      const response: AxiosResponse<ApiResponse<DailyStats[]>> = await api.get(
-        `/staff/${staffId}/stats/daily`,
+      const response: AxiosResponse<DailyStats> = await api.get(
+        STATS_API_ENDPOINTS.STATS_DAILY(staffId),
         {
-          params: { startDate, endDate }
+          params: date ? { date } : {}
         }
       );
       
-      return response.data.data || [];
+      return response.data;
     } catch (error) {
       console.error('獲取每日統計失敗:', error);
       throw new Error('無法獲取每日統計數據');
@@ -104,21 +91,21 @@ export class StatisticsApiService {
 
   /**
    * 獲取員工每週統計數據
+   * 對應後端: GET /api/staff/{staffId}/stats/weekly?weekStart={weekStart}
    */
   static async getWeeklyStats(
     staffId: string, 
-    startDate: string, 
-    endDate: string
-  ): Promise<WeeklyStats[]> {
+    weekStart?: string
+  ): Promise<WeeklyStats> {
     try {
-      const response: AxiosResponse<ApiResponse<WeeklyStats[]>> = await api.get(
-        `/staff/${staffId}/stats/weekly`,
+      const response: AxiosResponse<WeeklyStats> = await api.get(
+        STATS_API_ENDPOINTS.STATS_WEEKLY(staffId),
         {
-          params: { startDate, endDate }
+          params: weekStart ? { weekStart } : {}
         }
       );
       
-      return response.data.data || [];
+      return response.data;
     } catch (error) {
       console.error('獲取每週統計失敗:', error);
       throw new Error('無法獲取每週統計數據');
@@ -127,21 +114,21 @@ export class StatisticsApiService {
 
   /**
    * 獲取員工每月統計數據
+   * 對應後端: GET /api/staff/{staffId}/stats/monthly?monthStart={monthStart}
    */
   static async getMonthlyStats(
     staffId: string, 
-    year: number, 
-    month?: number
-  ): Promise<MonthlyStats[]> {
+    monthStart?: string
+  ): Promise<MonthlyStats> {
     try {
-      const response: AxiosResponse<ApiResponse<MonthlyStats[]>> = await api.get(
-        `/staff/${staffId}/stats/monthly`,
+      const response: AxiosResponse<MonthlyStats> = await api.get(
+        STATS_API_ENDPOINTS.STATS_MONTHLY(staffId),
         {
-          params: { year, month }
+          params: monthStart ? { monthStart } : {}
         }
       );
       
-      return response.data.data || [];
+      return response.data;
     } catch (error) {
       console.error('獲取每月統計失敗:', error);
       throw new Error('無法獲取每月統計數據');
@@ -149,38 +136,16 @@ export class StatisticsApiService {
   }
 
   /**
-   * 獲取個人綜合統計報告
-   */
-  static async getPersonalStatsReport(staffId: string): Promise<StaffStatsResponse> {
-    try {
-      const response: AxiosResponse<ApiResponse<StaffStatsResponse>> = await api.get(
-        `/staff/${staffId}/stats/report`
-      );
-      
-      return response.data.data;
-    } catch (error) {
-      console.error('獲取個人統計報告失敗:', error);
-      throw new Error('無法獲取個人統計報告');
-    }
-  }
-
-  /**
    * 獲取團隊統計數據
+   * 對應後端: GET /api/staff/team/stats
    */
-  static async getTeamStats(
-    department?: string, 
-    startDate?: string, 
-    endDate?: string
-  ): Promise<TeamStats> {
+  static async getTeamStats(): Promise<TeamStats> {
     try {
-      const response: AxiosResponse<ApiResponse<TeamStats>> = await api.get(
-        '/staff/team/stats',
-        {
-          params: { department, startDate, endDate }
-        }
+      const response: AxiosResponse<TeamStats> = await api.get(
+        STATS_API_ENDPOINTS.TEAM_STATS
       );
       
-      return response.data.data;
+      return response.data;
     } catch (error) {
       console.error('獲取團隊統計失敗:', error);
       throw new Error('無法獲取團隊統計數據');
@@ -189,213 +154,24 @@ export class StatisticsApiService {
 
   /**
    * 獲取員工排行榜
+   * 對應後端: GET /api/staff/leaderboard?period={period}&limit={limit}
    */
   static async getLeaderboard(
-    period: 'daily' | 'weekly' | 'monthly' = 'daily',
-    department?: string,
+    period: 'DAILY' | 'WEEKLY' | 'MONTHLY' = 'DAILY',
     limit: number = 10
-  ): Promise<LeaderboardResponse> {
+  ): Promise<{ period: string; leaderboard: LeaderboardEntry[]; totalEntries: number }> {
     try {
-      const response: AxiosResponse<ApiResponse<LeaderboardResponse>> = await api.get(
-        '/staff/leaderboard',
+      const response: AxiosResponse<{ period: string; leaderboard: LeaderboardEntry[]; totalEntries: number }> = await api.get(
+        STATS_API_ENDPOINTS.LEADERBOARD,
         {
-          params: { period, department, limit }
+          params: { period, limit }
         }
       );
-      
-      return response.data.data;
-    } catch (error) {
-      console.error('獲取排行榜失敗:', error);
-      throw new Error('無法獲取員工排行榜');
-    }
-  }
-
-  /**
-   * 獲取績效指標
-   */
-  static async getPerformanceMetrics(
-    staffId?: string,
-    startDate?: string,
-    endDate?: string
-  ): Promise<PerformanceMetrics> {
-    try {
-      const endpoint = staffId 
-        ? `/staff/${staffId}/performance/metrics`
-        : '/staff/performance/metrics';
-        
-      const response: AxiosResponse<ApiResponse<PerformanceMetrics>> = await api.get(
-        endpoint,
-        {
-          params: { startDate, endDate }
-        }
-      );
-      
-      return response.data.data;
-    } catch (error) {
-      console.error('獲取績效指標失敗:', error);
-      throw new Error('無法獲取績效指標');
-    }
-  }
-
-  /**
-   * 獲取績效報告
-   */
-  static async getPerformanceReport(
-    staffId: string,
-    period: 'daily' | 'weekly' | 'monthly' = 'weekly'
-  ): Promise<PerformanceReportResponse> {
-    try {
-      const response: AxiosResponse<ApiResponse<PerformanceReportResponse>> = await api.get(
-        `/staff/${staffId}/performance/report`,
-        {
-          params: { period }
-        }
-      );
-      
-      return response.data.data;
-    } catch (error) {
-      console.error('獲取績效報告失敗:', error);
-      throw new Error('無法獲取績效報告');
-    }
-  }
-
-  /**
-   * 獲取部門統計對比
-   */
-  static async getDepartmentComparison(
-    startDate: string,
-    endDate: string
-  ): Promise<Array<{
-    department: string;
-    totalOrders: number;
-    totalRevenue: number;
-    averageEfficiency: number;
-    staffCount: number;
-  }>> {
-    try {
-      const response = await api.get('/staff/departments/comparison', {
-        params: { startDate, endDate }
-      });
-      
-      return response.data.data || [];
-    } catch (error) {
-      console.error('獲取部門對比失敗:', error);
-      throw new Error('無法獲取部門統計對比');
-    }
-  }
-
-  /**
-   * 匯出統計報告
-   */
-  static async exportStatistics(
-    format: 'csv' | 'pdf' | 'excel',
-    config: {
-      staffId?: string;
-      startDate: string;
-      endDate: string;
-      includeCharts?: boolean;
-      includeRawData?: boolean;
-      metrics?: string[];
-    }
-  ): Promise<Blob> {
-    try {
-      const response = await api.post('/staff/stats/export', config, {
-        params: { format },
-        responseType: 'blob',
-      });
       
       return response.data;
     } catch (error) {
-      console.error('匯出統計報告失敗:', error);
-      throw new Error('無法匯出統計報告');
-    }
-  }
-
-  /**
-   * 更新績效目標
-   */
-  static async updatePerformanceGoals(
-    staffId: string,
-    goals: {
-      dailyOrdersTarget: number;
-      averageProcessingTimeTarget: number;
-      completionRateTarget: number;
-      customerRatingTarget: number;
-    }
-  ): Promise<boolean> {
-    try {
-      const response = await api.put(`/staff/${staffId}/performance/goals`, goals);
-      return response.data.success;
-    } catch (error) {
-      console.error('更新績效目標失敗:', error);
-      throw new Error('無法更新績效目標');
-    }
-  }
-
-  /**
-   * 獲取即時統計數據（WebSocket支援）
-   */
-  static async getRealTimeStats(staffId: string): Promise<{
-    currentOrders: number;
-    todayOrders: number;
-    currentEfficiency: number;
-    status: 'active' | 'break' | 'offline';
-  }> {
-    try {
-      const response = await api.get(`/staff/${staffId}/stats/realtime`);
-      return response.data.data;
-    } catch (error) {
-      console.error('獲取即時統計失敗:', error);
-      throw new Error('無法獲取即時統計數據');
-    }
-  }
-
-  /**
-   * 提交績效評估
-   */
-  static async submitPerformanceReview(
-    staffId: string,
-    review: {
-      period: string;
-      selfRating: number;
-      strengths: string[];
-      improvements: string[];
-      goals: string[];
-      comments: string;
-    }
-  ): Promise<boolean> {
-    try {
-      const response = await api.post(`/staff/${staffId}/performance/review`, review);
-      return response.data.success;
-    } catch (error) {
-      console.error('提交績效評估失敗:', error);
-      throw new Error('無法提交績效評估');
-    }
-  }
-
-  /**
-   * 獲取歷史績效趨勢
-   */
-  static async getPerformanceTrends(
-    staffId: string,
-    months: number = 6
-  ): Promise<Array<{
-    month: string;
-    efficiency: number;
-    orders: number;
-    revenue: number;
-    rating: number;
-    trend: 'up' | 'down' | 'stable';
-  }>> {
-    try {
-      const response = await api.get(`/staff/${staffId}/performance/trends`, {
-        params: { months }
-      });
-      
-      return response.data.data || [];
-    } catch (error) {
-      console.error('獲取績效趨勢失敗:', error);
-      throw new Error('無法獲取績效趨勢');
+      console.error('獲取排行榜失敗:', error);
+      throw new Error('無法獲取員工排行榜');
     }
   }
 }
@@ -410,8 +186,6 @@ export const statisticsApi = {
   getMonthlyStats: StatisticsApiService.getMonthlyStats,
   getTeamStats: StatisticsApiService.getTeamStats,
   getLeaderboard: StatisticsApiService.getLeaderboard,
-  getPerformanceMetrics: StatisticsApiService.getPerformanceMetrics,
-  exportStatistics: StatisticsApiService.exportStatistics,
 };
 
 // 輔助函數 - 錯誤處理
@@ -420,63 +194,169 @@ export const handleApiError = (error: any): string => {
     return error.response.data.error;
   }
   
-  if (error.response?.status === 404) {
-    return '找不到請求的資源';
+  if (error.response?.data?.message) {
+    return error.response.data.message;
   }
   
-  if (error.response?.status === 403) {
-    return '沒有權限執行此操作';
+  if (error.message) {
+    return error.message;
   }
   
-  if (error.response?.status >= 500) {
-    return '服務器內部錯誤，請稍後再試';
-  }
-  
-  if (error.code === 'NETWORK_ERROR') {
-    return '網絡連接失敗，請檢查網絡設置';
-  }
-  
-  return error.message || '未知錯誤';
+  return '發生未知錯誤，請稍後再試';
 };
 
-// 輔助函數 - 數據格式化
+// 數據格式化工具 - 與後端API響應格式匹配
 export const formatStatsData = {
-  /**
-   * 格式化數字顯示
-   */
-  formatNumber: (num: number, decimals: number = 0): string => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(decimals) + 'M';
+  // 格式化數字
+  formatNumber: (value: number): string => {
+    if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(1)}M`;
     }
-    if (num >= 1000) {
-      return (num / 1000).toFixed(decimals) + 'K';
+    if (value >= 1000) {
+      return `${(value / 1000).toFixed(1)}K`;
     }
-    return num.toFixed(decimals);
+    return value.toString();
   },
 
-  /**
-   * 格式化百分比
-   */
-  formatPercentage: (value: number, decimals: number = 1): string => {
-    return `${(value * 100).toFixed(decimals)}%`;
+  // 格式化貨幣
+  formatCurrency: (value: number): string => {
+    return new Intl.NumberFormat('zh-TW', {
+      style: 'currency',
+      currency: 'TWD',
+      minimumFractionDigits: 0,
+    }).format(value);
   },
 
-  /**
-   * 格式化時間（分鐘）
-   */
+  // 格式化百分比
+  formatPercentage: (value: number): string => {
+    return `${(value * 100).toFixed(1)}%`;
+  },
+
+  // 格式化時間（分鐘）
   formatTime: (minutes: number): string => {
-    if (minutes >= 60) {
-      const hours = Math.floor(minutes / 60);
-      const mins = minutes % 60;
-      return `${hours}h ${mins}m`;
+    if (minutes < 60) {
+      return `${Math.round(minutes)}分鐘`;
     }
-    return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = Math.round(minutes % 60);
+    return `${hours}小時${remainingMinutes > 0 ? remainingMinutes + '分鐘' : ''}`;
   },
 
-  /**
-   * 格式化貨幣
-   */
-  formatCurrency: (amount: number): string => {
-    return `NT$${amount.toLocaleString()}`;
+  // 格式化評分
+  formatRating: (rating: number): string => {
+    return `${rating.toFixed(1)}/5.0`;
   },
+
+  // 格式化日期
+  formatDate: (date: string, format: 'short' | 'long' = 'short'): string => {
+    const d = new Date(date);
+    if (format === 'short') {
+      return d.toLocaleDateString('zh-TW');
+    }
+    return d.toLocaleDateString('zh-TW', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long',
+    });
+  },
+
+  // 計算趨勢
+  calculateTrend: (current: number, previous: number): 'up' | 'down' | 'stable' => {
+    if (previous === 0) return 'stable';
+    const changePercent = ((current - previous) / previous) * 100;
+    if (changePercent > 5) return 'up';
+    if (changePercent < -5) return 'down';
+    return 'stable';
+  },
+
+  // 格式化變化百分比
+  formatChangePercent: (current: number, previous: number): string => {
+    if (previous === 0) return '0%';
+    const changePercent = ((current - previous) / previous) * 100;
+    const sign = changePercent > 0 ? '+' : '';
+    return `${sign}${changePercent.toFixed(1)}%`;
+  },
+
+  // 從後端DailyStats響應中提取UI需要的數據
+  extractDailyStatsForUI: (apiResponse: DailyStats): {
+    totalOrders: number;
+    completedOrders: number;
+    completionRate: number;
+    averageProcessingTime: number;
+    totalRevenue: number;
+    efficiencyScore: number;
+    hoursWorked: number;
+    customerRating: number;
+  } => {
+    if (!apiResponse.hasData) {
+      return {
+        totalOrders: 0,
+        completedOrders: 0,
+        completionRate: 0,
+        averageProcessingTime: 0,
+        totalRevenue: 0,
+        efficiencyScore: 0,
+        hoursWorked: 0,
+        customerRating: 0,
+      };
+    }
+
+    const stats = apiResponse.statistics;
+    return {
+      totalOrders: stats.ordersProcessed,
+      completedOrders: stats.ordersCompleted,
+      completionRate: stats.ordersCompleted / stats.ordersProcessed,
+      averageProcessingTime: stats.averageProcessingTime,
+      totalRevenue: stats.totalRevenue,
+      efficiencyScore: stats.efficiencyScore,
+      hoursWorked: stats.hoursWorked,
+      customerRating: stats.customerRating,
+    };
+  },
+
+  // 從後端TeamStats響應中提取UI需要的數據
+  extractTeamStatsForUI: (apiResponse: TeamStats): {
+    totalStaff: number;
+    activeStaff: number;
+    todayOrdersProcessed: number;
+    todayAverageProcessingTime: number;
+    todayEfficiencyScore: number;
+    todayRevenue: number;
+    topPerformers: Array<{
+      staffId: string;
+      name: string;
+      ordersProcessed: number;
+      efficiencyScore: number;
+    }>;
+    departmentStats: {
+      [department: string]: {
+        staffCount: number;
+        ordersProcessed: number;
+        averageTime: number;
+      };
+    };
+  } => {
+    return {
+      totalStaff: apiResponse.totalStaff,
+      activeStaff: apiResponse.activeStaff,
+      todayOrdersProcessed: apiResponse.todayOrdersProcessed,
+      todayAverageProcessingTime: apiResponse.todayAverageProcessingTime,
+      todayEfficiencyScore: apiResponse.todayEfficiencyScore,
+      todayRevenue: apiResponse.todayRevenue,
+      topPerformers: apiResponse.topPerformers,
+      departmentStats: apiResponse.departmentStats,
+    };
+  },
+};
+
+// 測試API連接性的函數
+export const testApiConnection = async (): Promise<boolean> => {
+  try {
+    const response = await api.get('/staff/test-connection');
+    return response.status === 200;
+  } catch (error) {
+    console.warn('API連接測試失敗:', error);
+    return false;
+  }
 };

@@ -2383,6 +2383,546 @@ type MessageType =
 | 系統消息 | Toast | 5秒 | ✗ | ✗ |
 | 錯誤提示 | Modal | 需確認 | ✓ | ✓ |
 
+### 3.8 統計報表模組 📊
+
+#### **統計報表模組 UI 設計規範**
+
+**📊 現狀分析**
+- **後端API**: ✅ 完整實現（daily/weekly/monthly/team stats/leaderboard）
+- **前端架構**: ✅ 統計模組已建立，基礎組件已實現  
+- **設計語言**: ✅ DailyStatsCard已採用與orders模組一致的設計規範
+
+#### **API接口調用策略**
+
+**統計報表相關API端點**
+```typescript
+// API端點配置 (services/statisticsApi.ts)
+export const STATS_API_ENDPOINTS = {
+  // 個人統計
+  STATS_DAILY: (staffId: string) => `${ENV_CONFIG.API_BASE_URL}/staff/${staffId}/stats/daily`,
+  STATS_WEEKLY: (staffId: string) => `${ENV_CONFIG.API_BASE_URL}/staff/${staffId}/stats/weekly`,
+  STATS_MONTHLY: (staffId: string) => `${ENV_CONFIG.API_BASE_URL}/staff/${staffId}/stats/monthly`,
+  
+  // 團隊統計
+  TEAM_STATS: `${ENV_CONFIG.API_BASE_URL}/staff/team/stats`,
+  LEADERBOARD: `${ENV_CONFIG.API_BASE_URL}/staff/leaderboard`,
+} as const;
+
+// API調用服務實現
+interface StatsApiService {
+  // 個人統計
+  getDailyStats(staffId: string, date?: string): Promise<DailyStats>;
+  getWeeklyStats(staffId: string, weekStart?: string): Promise<WeeklyStats>;
+  getMonthlyStats(staffId: string, monthStart?: string): Promise<MonthlyStats>;
+  
+  // 團隊統計  
+  getTeamStats(): Promise<TeamStats>;
+  getLeaderboard(period?: 'DAILY' | 'WEEKLY' | 'MONTHLY', limit?: number): Promise<LeaderboardEntry[]>;
+}
+```
+
+**統計數據類型定義**
+```typescript
+// 統計數據接口 (與後端API對應)
+interface DailyStats {
+  date: string;
+  staffId: string;
+  statisticsId: string;
+  period: 'DAILY';
+  ordersProcessed: number;
+  ordersCompleted: number;
+  ordersCancelled: number;
+  averageProcessingTime: number;
+  efficiencyScore: number;
+  totalRevenue: number;
+  hoursWorked: number;
+  overtimeHours: number;
+  customerRating: number;
+  periodStart: string;
+  periodEnd: string;
+  
+  // UI計算字段
+  completionRate: number;
+  previousDayOrders: number;
+  previousDayRevenue: number;
+  ordersTrend: 'up' | 'down' | 'stable';
+  revenueTrend: 'up' | 'down' | 'stable';
+}
+
+interface TeamStats {
+  totalStaff: number;
+  activeStaff: number;
+  todayOrdersProcessed: number;
+  todayAverageProcessingTime: number;
+  todayEfficiencyScore: number;
+  todayRevenue: number;
+  topPerformers: StaffPerformance[];
+  departmentStats: Record<string, DepartmentStats>;
+}
+
+interface LeaderboardEntry {
+  rank: number;
+  staffId: string;
+  name: string;
+  department: 'KITCHEN' | 'SERVICE' | 'CASHIER';
+  ordersProcessed: number;
+  efficiencyScore: number;
+  averageTime: number;
+}
+```
+
+#### **響應式設計統一化**
+
+**參考orders模組的響應式模式：**
+
+**1. 統計卡片響應式佈局**
+```css
+/* 統計卡片網格系統 */
+.stats-grid {
+  @apply grid gap-4;
+  /* 手機版: 1列佈局 */
+  @apply grid-cols-1;
+  /* 平板版: 2列佈局 */
+  @apply md:grid-cols-2;
+  /* 桌面版: 4列佈局 */
+  @apply lg:grid-cols-4;
+}
+
+/* 手機版統計卡片特殊處理 */
+@media (max-width: 768px) {
+  .stats-card {
+    @apply p-3;  /* 較小內距 */
+    .stat-value {
+      @apply text-xl;  /* 較小字體 */
+    }
+    .stat-label {
+      @apply text-xs;  /* 較小標籤 */
+    }
+  }
+}
+```
+
+**2. 圖表響應式配置**
+```typescript
+// PerformanceChart響應式配置
+const getChartConfig = (screenSize: 'mobile' | 'tablet' | 'desktop') => ({
+  mobile: {
+    height: 200,
+    showLegend: false,
+    tickCount: 3,
+    fontSize: 10,
+    enablePan: true,
+    enableZoom: false,
+  },
+  tablet: {
+    height: 250,
+    showLegend: true,
+    tickCount: 5,
+    fontSize: 12,
+    enablePan: true,
+    enableZoom: true,
+  },
+  desktop: {
+    height: 300,
+    showLegend: true,
+    tickCount: 8,
+    fontSize: 14,
+    enablePan: false,
+    enableZoom: true,
+  }
+});
+```
+
+#### **設計語言對齊orders模組**
+
+**配色系統統一規範**
+```typescript
+// 統計項目配色映射 (與orders模組保持一致)
+export const STATS_COLOR_SCHEME = {
+  // 主要統計 - 藍色系 (與orders主色調一致)
+  primary: {
+    orders: 'text-blue-600 bg-blue-50 border-blue-200',
+    badge: 'bg-blue-100 text-blue-800',
+    icon: 'text-blue-600',
+  },
+  
+  // 成功指標 - 綠色系 (完成率、效率提升)
+  success: {
+    completion: 'text-green-600 bg-green-50 border-green-200',
+    badge: 'bg-green-100 text-green-800',
+    icon: 'text-green-600',
+  },
+  
+  // 收入數據 - 橙色系 (營收、利潤)
+  revenue: {
+    money: 'text-orange-600 bg-orange-50 border-orange-200',
+    badge: 'bg-orange-100 text-orange-800',
+    icon: 'text-orange-600',
+  },
+  
+  // 時間效率 - 紫色系 (處理時間、工時)
+  time: {
+    efficiency: 'text-purple-600 bg-purple-50 border-purple-200',
+    badge: 'bg-purple-100 text-purple-800',
+    icon: 'text-purple-600',
+  },
+  
+  // 警告指標 - 紅色系 (下降趨勢、超時)
+  warning: {
+    decline: 'text-red-600 bg-red-50 border-red-200',
+    badge: 'bg-red-100 text-red-800',
+    icon: 'text-red-600',
+  }
+} as const;
+```
+
+**統一卡片設計語言**
+```typescript
+// 統計卡片統一設計 (對齊OrderCard設計)
+interface StatsCard {
+  className: "bg-white border rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border-l-4";
+  padding: "p-3 sm:p-4";
+  
+  header: {
+    layout: "flex items-center justify-between mb-2 sm:mb-3";
+    icon: "w-4 h-4 sm:w-5 sm:h-5";
+    badge: "px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs font-medium rounded-full";
+  };
+  
+  content: {
+    value: "text-sm sm:text-xl font-bold";
+    label: "text-xs sm:text-sm text-gray-600";
+    trend: "flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium";
+  };
+}
+```
+
+#### **組件設計實現細節**
+
+**1. DailyStatsCard 手機版優化**
+```typescript
+const DailyStatsCard: React.FC<DailyStatsCardProps> = ({ variant = 'default' }) => {
+  const isMobile = useBreakpoint('md'); // < 768px
+  
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+      {/* 手機版: 緊湊標題 */}
+      <div className={`p-${isMobile ? '3' : '6'} pb-4 border-b border-gray-100`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg">
+              <Activity className={`w-${isMobile ? '4' : '5'} h-${isMobile ? '4' : '5'}`} />
+            </div>
+            <div>
+              <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold text-gray-900`}>
+                今日統計
+              </h3>
+              <p className="text-xs text-gray-500">
+                {formatDate(stats.date, isMobile)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 統計網格: 手機版2x2, 桌面版1x4 */}
+      <div className="p-4">
+        <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}`}>
+          <StatItem
+            label="訂單"
+            value={stats.totalOrders}
+            icon={<ShoppingBag className={`w-${isMobile ? '4' : '5'} h-${isMobile ? '4' : '5'}`} />}
+            color="blue"
+            compact={isMobile}
+          />
+          {/* 其他統計項目... */}
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+**2. PerformanceChart 圖表適配**
+```typescript
+const PerformanceChart: React.FC = () => {
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
+  
+  const chartConfig = useMemo(() => ({
+    height: isMobile ? 200 : 300,
+    margin: isMobile ? { top: 10, right: 10, bottom: 20, left: 30 } 
+                     : { top: 20, right: 30, bottom: 40, left: 50 },
+    
+    // 手機版: 橫向滑動支援
+    enablePan: isMobile,
+    panBoundaries: isMobile ? { minX: -100, maxX: 100 } : undefined,
+    
+    // 簡化數據點顯示
+    showTooltip: !isMobile,
+    showLegend: !isMobile,
+    dataPointCount: isMobile ? 7 : 14, // 手機版顯示7天，桌面版14天
+  }), [isMobile, width]);
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-100">
+      {/* 圖表標題 */}
+      <div className="p-4 border-b border-gray-100">
+        <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold`}>
+          績效趨勢
+        </h3>
+      </div>
+      
+      {/* 響應式圖表容器 */}
+      <div className={`p-${isMobile ? '2' : '4'}`}>
+        {isMobile ? (
+          // 手機版: 可滑動圖表
+          <div className="overflow-x-auto">
+            <div style={{ minWidth: '400px' }}>
+              <ResponsiveLineChart config={chartConfig} data={chartData} />
+            </div>
+          </div>
+        ) : (
+          // 桌面版: 自適應圖表
+          <ResponsiveLineChart config={chartConfig} data={chartData} />
+        )}
+      </div>
+    </div>
+  );
+};
+```
+
+**3. TeamLeaderboard 表格設計**
+```typescript
+// 參考OrderQueue的表格設計模式
+const TeamLeaderboard: React.FC = () => {
+  const isMobile = useBreakpoint('md');
+  
+  return (
+    <div className="bg-white rounded-xl border border-gray-100">
+      <div className="p-4 border-b border-gray-100">
+        <h3 className="text-lg font-semibold">團隊排行榜</h3>
+      </div>
+      
+      {isMobile ? (
+        // 手機版: 卡片列表 (參考OrderCard compact模式)
+        <div className="p-2 space-y-2">
+          {leaderboard.map((entry, index) => (
+            <div key={entry.staffId} 
+                 className="p-3 border rounded-lg bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                    index === 0 ? 'bg-yellow-100 text-yellow-800' :
+                    index === 1 ? 'bg-gray-100 text-gray-800' :
+                    index === 2 ? 'bg-orange-100 text-orange-800' :
+                    'bg-blue-100 text-blue-800'
+                  }`}>
+                    {entry.rank}
+                  </div>
+                  <div>
+                    <div className="font-medium text-sm">{entry.name}</div>
+                    <div className="text-xs text-gray-500">{entry.department}</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-semibold text-sm">{entry.ordersProcessed}單</div>
+                  <div className="text-xs text-gray-500">{entry.efficiencyScore}%</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        // 桌面版: 表格顯示
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr className="text-left">
+                <th className="p-3 font-medium text-gray-600">排名</th>
+                <th className="p-3 font-medium text-gray-600">員工</th>
+                <th className="p-3 font-medium text-gray-600">部門</th>
+                <th className="p-3 font-medium text-gray-600">處理訂單</th>
+                <th className="p-3 font-medium text-gray-600">效率分數</th>
+                <th className="p-3 font-medium text-gray-600">平均時間</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {leaderboard.map((entry) => (
+                <tr key={entry.staffId} className="hover:bg-gray-50">
+                  <td className="p-3">{entry.rank}</td>
+                  <td className="p-3 font-medium">{entry.name}</td>
+                  <td className="p-3">{entry.department}</td>
+                  <td className="p-3">{entry.ordersProcessed}</td>
+                  <td className="p-3">{entry.efficiencyScore}%</td>
+                  <td className="p-3">{entry.averageTime}分鐘</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
+```
+
+#### **視圖模式切換設計**
+
+**參考OrderQueue的視圖控制模式**
+```typescript
+// 統計報表頁面視圖控制
+const PerformanceReportPage: React.FC = () => {
+  const [viewMode, setViewMode] = useState<'overview' | 'detailed' | 'chart'>('overview');
+  
+  // 視圖切換控制 (參考OrderQueue設計)
+  const renderViewControls = () => (
+    <div className="flex items-center space-x-2">
+      <div className="flex bg-gray-100 rounded-lg p-1">
+        <button
+          onClick={() => setViewMode('overview')}
+          className={cn(
+            'p-2 rounded-md transition-colors',
+            viewMode === 'overview' 
+              ? 'bg-white text-gray-900 shadow-sm' 
+              : 'text-gray-600 hover:text-gray-900'
+          )}
+          title="概覽視圖"
+        >
+          <Grid className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => setViewMode('detailed')}
+          className={cn(
+            'p-2 rounded-md transition-colors',
+            viewMode === 'detailed' 
+              ? 'bg-white text-gray-900 shadow-sm' 
+              : 'text-gray-600 hover:text-gray-900'
+          )}
+          title="詳細視圖"
+        >
+          <List className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => setViewMode('chart')}
+          className={cn(
+            'p-2 rounded-md transition-colors',
+            viewMode === 'chart' 
+              ? 'bg-white text-gray-900 shadow-sm' 
+              : 'text-gray-600 hover:text-gray-900'
+          )}
+          title="圖表視圖"
+        >
+          <BarChart3 className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* 工具列 (參考OrderQueue工具列設計) */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center space-x-4">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900">績效統計</h1>
+          <button
+            onClick={refreshStats}
+            disabled={loading}
+            className={cn(
+              'p-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors',
+              loading && 'animate-spin'
+            )}
+            title="重新整理"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex items-center space-x-4">
+          {/* 時間篩選器 */}
+          <StatsFilters />
+          
+          {/* 視圖切換 */}
+          {renderViewControls()}
+          
+          {/* 導出功能 */}
+          <button
+            onClick={exportStats}
+            className="p-2 border border-gray-300 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+            title="導出報表"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* 根據視圖模式渲染內容 */}
+      {viewMode === 'overview' && <OverviewView />}
+      {viewMode === 'detailed' && <DetailedView />}
+      {viewMode === 'chart' && <ChartView />}
+    </div>
+  );
+};
+```
+
+#### **實時更新整合**
+
+**WebSocket統計數據推送**
+```typescript
+// 統計數據WebSocket整合
+const useStatsWebSocket = (staffId: string) => {
+  const updateStats = useStatisticsStore(state => state.updateStats);
+  
+  useWebSocket(`${ENV_CONFIG.WS_BASE_URL}/staff/${staffId}/stats`, {
+    onMessage: (event) => {
+      const message = JSON.parse(event.data);
+      
+      switch (message.type) {
+        case 'STATS_UPDATE':
+          // 實時更新統計數據
+          updateStats(message.data);
+          break;
+          
+        case 'LEADERBOARD_UPDATE':
+          // 更新排行榜
+          updateLeaderboard(message.data);
+          break;
+          
+        case 'TEAM_STATS_UPDATE':
+          // 更新團隊統計
+          updateTeamStats(message.data);
+          break;
+      }
+    }
+  });
+};
+```
+
+#### **導出功能設計**
+
+```typescript
+// 統計報表導出功能
+const useStatsExport = () => {
+  const exportToPDF = async (statsData: StatsData, type: 'daily' | 'weekly' | 'monthly') => {
+    // PDF導出邏輯
+    const doc = new jsPDF();
+    doc.text(`${type.toUpperCase()} 績效報告`, 20, 20);
+    // ... PDF內容生成
+    doc.save(`performance-report-${type}-${Date.now()}.pdf`);
+  };
+
+  const exportToExcel = async (statsData: StatsData) => {
+    // Excel導出邏輯
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(statsData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Stats');
+    XLSX.writeFile(workbook, `stats-export-${Date.now()}.xlsx`);
+  };
+
+  return { exportToPDF, exportToExcel };
+};
+```
+
 ## 4. 性能與優化要求
 
 ### 4.1 性能指標

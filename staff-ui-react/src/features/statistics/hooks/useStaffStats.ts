@@ -26,9 +26,9 @@ interface UseStaffStatsReturn {
   
   // 操作方法
   refreshStats: () => Promise<void>;
-  loadDailyStats: (startDate: string, endDate: string) => Promise<void>;
-  loadWeeklyStats: (startDate: string, endDate: string) => Promise<void>;
-  loadMonthlyStats: (year: number, month?: number) => Promise<void>;
+  loadDailyStats: (date?: string) => Promise<void>;
+  loadWeeklyStats: (weekStart?: string) => Promise<void>;
+  loadMonthlyStats: (monthStart?: string) => Promise<void>;
   
   // 數據分析
   getStatsComparison: () => {
@@ -69,16 +69,16 @@ export const useStaffStats = ({
 
   const [refreshTimer, setRefreshTimer] = useState<NodeJS.Timeout | null>(null);
 
-  // 載入每日統計數據
-  const loadDailyStats = useCallback(async (startDate: string, endDate: string) => {
+  // 載入每日統計數據 - 更新為使用新API格式
+  const loadDailyStats = useCallback(async (date?: string) => {
     if (!staffId) return;
     
     setLoading(true);
     setError(null);
     
     try {
-      const data = await StatisticsApiService.getDailyStats(staffId, startDate, endDate);
-      setDailyStats(data);
+      const data = await StatisticsApiService.getDailyStats(staffId, date);
+      setDailyStats([data]); // 將單個結果包裝成數組
     } catch (err) {
       const errorMessage = handleApiError(err);
       setError(errorMessage);
@@ -88,16 +88,16 @@ export const useStaffStats = ({
     }
   }, [staffId, setLoading, setError, setDailyStats]);
 
-  // 載入每週統計數據
-  const loadWeeklyStats = useCallback(async (startDate: string, endDate: string) => {
+  // 載入每週統計數據 - 更新為使用新API格式
+  const loadWeeklyStats = useCallback(async (weekStart?: string) => {
     if (!staffId) return;
     
     setLoading(true);
     setError(null);
     
     try {
-      const data = await StatisticsApiService.getWeeklyStats(staffId, startDate, endDate);
-      setWeeklyStats(data);
+      const data = await StatisticsApiService.getWeeklyStats(staffId, weekStart);
+      setWeeklyStats([data]); // 將單個結果包裝成數組
     } catch (err) {
       const errorMessage = handleApiError(err);
       setError(errorMessage);
@@ -107,16 +107,16 @@ export const useStaffStats = ({
     }
   }, [staffId, setLoading, setError, setWeeklyStats]);
 
-  // 載入每月統計數據
-  const loadMonthlyStats = useCallback(async (year: number, month?: number) => {
+  // 載入每月統計數據 - 更新為使用新API格式
+  const loadMonthlyStats = useCallback(async (monthStart?: string) => {
     if (!staffId) return;
     
     setLoading(true);
     setError(null);
     
     try {
-      const data = await StatisticsApiService.getMonthlyStats(staffId, year, month);
-      setMonthlyStats(data);
+      const data = await StatisticsApiService.getMonthlyStats(staffId, monthStart);
+      setMonthlyStats([data]); // 將單個結果包裝成數組
     } catch (err) {
       const errorMessage = handleApiError(err);
       setError(errorMessage);
@@ -129,16 +129,21 @@ export const useStaffStats = ({
   // 刷新所有統計數據
   const refreshStats = useCallback(async () => {
     const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const todayDate = now.toISOString().split('T')[0];
     
-    const startDate = thirtyDaysAgo.toISOString().split('T')[0];
-    const endDate = now.toISOString().split('T')[0];
+    // 計算週開始日期（週日開始）
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    const weekStart = startOfWeek.toISOString().split('T')[0];
+    
+    // 計算月開始日期
+    const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
     
     // 並行載入所有數據
     await Promise.allSettled([
-      loadDailyStats(startDate, endDate),
-      loadWeeklyStats(startDate, endDate),
-      loadMonthlyStats(now.getFullYear(), now.getMonth() + 1),
+      loadDailyStats(todayDate),
+      loadWeeklyStats(weekStart),
+      loadMonthlyStats(monthStart),
     ]);
     
     setLastUpdated(new Date().toISOString());
@@ -185,9 +190,11 @@ export const useStaffStats = ({
       return change > 0 ? 'up' : 'down';
     };
 
-    const dailyChange = today ? calculateChange(today.totalOrders, today.previousDayOrders) : 0;
-    const weeklyChange = thisWeek ? calculateChange(thisWeek.totalOrders, thisWeek.previousWeekComparison) : 0;
-    const monthlyChange = thisMonth ? thisMonth.previousMonthComparison : 0;
+    const dailyChange = today?.hasData && today.previousDayOrders 
+      ? calculateChange(today.statistics.ordersProcessed, today.previousDayOrders) : 0;
+    const weeklyChange = thisWeek?.hasData && thisWeek.previousWeekComparison 
+      ? calculateChange(thisWeek.statistics.ordersProcessed, thisWeek.previousWeekComparison) : 0;
+    const monthlyChange = thisMonth?.previousMonthComparison || 0;
 
     return {
       dailyChange,
@@ -195,7 +202,7 @@ export const useStaffStats = ({
       monthlyChange,
       trends: {
         orders: getTrend(dailyChange),
-        revenue: today ? today.revenueTrend : 'stable' as const,
+        revenue: today?.revenueTrend || 'stable' as const,
         efficiency: getTrend(dailyChange), // 簡化處理，實際可能需要更複雜的邏輯
       },
     };

@@ -225,7 +225,7 @@ const DailyStatsCard: React.FC<DailyStatsCardProps> = ({
           {/* 訂單總數 */}
           <StatItem
             label="訂單總數"
-            value={stats.totalOrders}
+            value={stats.hasData ? stats.statistics.ordersProcessed : 0}
             previousValue={showComparison ? stats.previousDayOrders : undefined}
             trend={stats.ordersTrend}
             icon={<ShoppingBag className="w-5 h-5" />}
@@ -235,8 +235,8 @@ const DailyStatsCard: React.FC<DailyStatsCardProps> = ({
           {/* 完成率 */}
           <StatItem
             label="完成率"
-            value={stats.completionRate}
-            trend={stats.completionRate >= 0.85 ? 'up' : 'down'}
+            value={stats.hasData ? stats.statistics.completionRate : 0}
+            trend={stats.hasData && stats.statistics.completionRate >= 0.85 ? 'up' : 'down'}
             icon={<CheckCircle className="w-5 h-5" />}
             format="percentage"
             color="green"
@@ -245,8 +245,8 @@ const DailyStatsCard: React.FC<DailyStatsCardProps> = ({
           {/* 平均處理時間 */}
           <StatItem
             label="平均處理時間"
-            value={stats.averageProcessingTime}
-            trend={stats.averageProcessingTime <= 15 ? 'up' : 'down'}
+            value={stats.hasData ? stats.statistics.averageProcessingTimeMinutes : 0}
+            trend={stats.hasData && stats.statistics.averageProcessingTimeMinutes <= 15 ? 'up' : 'down'}
             icon={<Clock className="w-5 h-5" />}
             format="time"
             color="purple"
@@ -255,7 +255,7 @@ const DailyStatsCard: React.FC<DailyStatsCardProps> = ({
           {/* 營收總額 */}
           <StatItem
             label="營收總額"
-            value={stats.totalRevenue}
+            value={stats.hasData ? stats.statistics.totalRevenue : 0}
             previousValue={showComparison ? stats.previousDayRevenue : undefined}
             trend={stats.revenueTrend}
             icon={<DollarSign className="w-5 h-5" />}
@@ -275,13 +275,16 @@ const DailyStatsCard: React.FC<DailyStatsCardProps> = ({
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">每小時訂單</span>
                     <span className="font-medium">
-                      {Math.round(stats.totalOrders / 8)} 單/時
+                      {stats.hasData ? Math.round(stats.statistics.ordersProcessed / 8) : 0} 單/時
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">平均單價</span>
                     <span className="font-medium">
-                      {formatStatsData.formatCurrency(stats.totalRevenue / stats.totalOrders)}
+                      {stats.hasData && stats.statistics.ordersProcessed > 0 
+                        ? formatStatsData.formatCurrency(stats.statistics.totalRevenue / stats.statistics.ordersProcessed)
+                        : formatStatsData.formatCurrency(0)
+                      }
                     </span>
                   </div>
                 </div>
@@ -301,7 +304,10 @@ const DailyStatsCard: React.FC<DailyStatsCardProps> = ({
                        stats.ordersTrend === 'down' ? <TrendingDown className="w-3 h-3" /> :
                        <Minus className="w-3 h-3" />}
                       <span>
-                        {Math.abs(((stats.totalOrders - stats.previousDayOrders) / stats.previousDayOrders) * 100).toFixed(1)}%
+                        {stats.previousDayOrders && stats.hasData
+                          ? Math.abs(((stats.statistics.ordersProcessed - stats.previousDayOrders) / stats.previousDayOrders) * 100).toFixed(1)
+                          : '0.0'
+                        }%
                       </span>
                     </span>
                   </div>
@@ -315,7 +321,10 @@ const DailyStatsCard: React.FC<DailyStatsCardProps> = ({
                        stats.revenueTrend === 'down' ? <TrendingDown className="w-3 h-3" /> :
                        <Minus className="w-3 h-3" />}
                       <span>
-                        {Math.abs(((stats.totalRevenue - stats.previousDayRevenue) / stats.previousDayRevenue) * 100).toFixed(1)}%
+                        {stats.previousDayRevenue && stats.hasData
+                          ? Math.abs(((stats.statistics.totalRevenue - stats.previousDayRevenue) / stats.previousDayRevenue) * 100).toFixed(1)
+                          : '0.0'
+                        }%
                       </span>
                     </span>
                   </div>
@@ -329,17 +338,21 @@ const DailyStatsCard: React.FC<DailyStatsCardProps> = ({
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">整體評分</span>
                     <span className="font-medium text-purple-600">
-                      {stats.completionRate >= 0.9 ? 'A+' :
-                       stats.completionRate >= 0.8 ? 'A' :
-                       stats.completionRate >= 0.7 ? 'B' : 'C'}
+                      {stats.hasData 
+                        ? (stats.statistics.completionRate >= 0.9 ? 'A+' :
+                           stats.statistics.completionRate >= 0.8 ? 'A' :
+                           stats.statistics.completionRate >= 0.7 ? 'B' : 'C')
+                        : 'N/A'}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">效率等級</span>
                     <span className="font-medium text-purple-600">
-                      {stats.averageProcessingTime <= 10 ? '優秀' :
-                       stats.averageProcessingTime <= 15 ? '良好' :
-                       stats.averageProcessingTime <= 20 ? '普通' : '需改善'}
+                      {stats.hasData 
+                        ? (stats.statistics.averageProcessingTimeMinutes <= 10 ? '優秀' :
+                           stats.statistics.averageProcessingTimeMinutes <= 15 ? '良好' :
+                           stats.statistics.averageProcessingTimeMinutes <= 20 ? '普通' : '需改善')
+                        : 'N/A'}
                     </span>
                   </div>
                 </div>

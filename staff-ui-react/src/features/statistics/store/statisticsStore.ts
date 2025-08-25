@@ -6,46 +6,110 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-// 統計數據類型定義
+// 統計數據類型定義 - 與後端StaffController API響應對齊
 export interface DailyStats {
-  id: string;
   date: string;
-  totalOrders: number;
-  completedOrders: number;
-  completionRate: number;
-  averageProcessingTime: number; // 分鐘
-  totalRevenue: number;
-  previousDayOrders: number;
-  previousDayRevenue: number;
-  ordersTrend: 'up' | 'down' | 'stable';
-  revenueTrend: 'up' | 'down' | 'stable';
+  statistics: {
+    staffId: string;
+    statisticsId: string;
+    period: 'DAILY';
+    ordersProcessed: number;
+    ordersCompleted: number;
+    ordersCancelled: number;
+    averageProcessingTime: number; // 分鐘
+    efficiencyScore: number;
+    totalRevenue: number;
+    hoursWorked: number;
+    overtimeHours: number;
+    customerRating: number;
+    periodStart: string;
+    periodEnd: string;
+  };
+  hasData: boolean;
+  
+  // UI計算字段
+  completionRate?: number;
+  previousDayOrders?: number;
+  previousDayRevenue?: number;
+  ordersTrend?: 'up' | 'down' | 'stable';
+  revenueTrend?: 'up' | 'down' | 'stable';
 }
 
 export interface WeeklyStats {
-  id: string;
-  weekStart: string;
-  weekEnd: string;
-  totalOrders: number;
-  totalRevenue: number;
-  averageOrderValue: number;
-  peakDay: string;
-  peakHour: number;
-  previousWeekComparison: number; // 百分比變化
+  statistics: {
+    staffId: string;
+    statisticsId: string;
+    period: 'WEEKLY';
+    ordersProcessed: number;
+    ordersCompleted: number;
+    ordersCancelled: number;
+    averageProcessingTime: number;
+    efficiencyScore: number;
+    totalRevenue: number;
+    hoursWorked: number;
+    overtimeHours: number;
+    customerRating: number;
+    periodStart: string;
+    periodEnd: string;
+  };
+  hasData: boolean;
 }
 
 export interface MonthlyStats {
-  id: string;
-  month: string;
-  year: number;
-  totalOrders: number;
-  totalRevenue: number;
-  averageOrderValue: number;
-  totalCustomers: number;
-  repeatCustomers: number;
-  newCustomers: number;
-  previousMonthComparison: number;
+  statistics: {
+    staffId: string;
+    statisticsId: string;
+    period: 'MONTHLY';
+    ordersProcessed: number;
+    ordersCompleted: number;
+    ordersCancelled: number;
+    averageProcessingTime: number;
+    efficiencyScore: number;
+    totalRevenue: number;
+    hoursWorked: number;
+    overtimeHours: number;
+    customerRating: number;
+    periodStart: string;
+    periodEnd: string;
+  };
+  hasData: boolean;
 }
 
+// 排行榜條目 - 對應後端 /staff/leaderboard API
+export interface LeaderboardEntry {
+  rank: number;
+  staffId: string;
+  name: string;
+  department: 'KITCHEN' | 'SERVICE' | 'CASHIER';
+  ordersProcessed: number;
+  efficiencyScore: number;
+  averageTime: number;
+}
+
+// 團隊統計 - 對應後端 /staff/team/stats API
+export interface TeamStats {
+  totalStaff: number;
+  activeStaff: number;
+  todayOrdersProcessed: number;
+  todayAverageProcessingTime: number;
+  todayEfficiencyScore: number;
+  todayRevenue: number;
+  topPerformers: Array<{
+    staffId: string;
+    name: string;
+    ordersProcessed: number;
+    efficiencyScore: number;
+  }>;
+  departmentStats: {
+    [department: string]: {
+      staffCount: number;
+      ordersProcessed: number;
+      averageTime: number;
+    };
+  };
+}
+
+// 保留舊的StaffPerformance接口以向後兼容
 export interface StaffPerformance {
   staffId: string;
   staffName: string;
@@ -57,19 +121,6 @@ export interface StaffPerformance {
   efficiency: number; // 效率分數 0-100
   rank: number;
   badge?: 'top_performer' | 'most_improved' | 'speed_demon' | 'quality_star';
-}
-
-export interface TeamStats {
-  totalStaff: number;
-  activeStaff: number;
-  totalOrdersProcessed: number;
-  averageTeamEfficiency: number;
-  topPerformer: StaffPerformance;
-  departmentBreakdown: {
-    kitchen: number;
-    service: number;
-    management: number;
-  };
 }
 
 export interface PerformanceMetrics {
