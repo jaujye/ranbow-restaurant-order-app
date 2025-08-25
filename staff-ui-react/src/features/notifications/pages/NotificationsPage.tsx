@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../hooks/useNotifications';
 import NotificationItem from '../components/NotificationItem';
 import NotificationFilters from '../components/NotificationFilters';
-import LoadingSpinner from '../../../shared/components/ui/LoadingSpinner';
+import { LoadingSpinner } from '../../../shared/components/ui/LoadingSpinner';
 import {
   Notification,
   NotificationAction,

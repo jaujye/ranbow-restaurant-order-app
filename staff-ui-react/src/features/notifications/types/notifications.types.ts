@@ -1,4 +1,6 @@
-// Notification Types and Enums (defined here to avoid circular imports)
+// Notification system types - centralized type definitions
+
+// Notification type enumeration
 export enum NotificationType {
   NEW_ORDER = 'NEW_ORDER',
   ORDER_STATUS_CHANGE = 'ORDER_STATUS_CHANGE',
@@ -11,6 +13,7 @@ export enum NotificationType {
   EMERGENCY = 'EMERGENCY'
 }
 
+// Notification priority levels
 export enum NotificationPriority {
   LOW = 'LOW',
   NORMAL = 'NORMAL', 
@@ -19,7 +22,7 @@ export enum NotificationPriority {
   EMERGENCY = 'EMERGENCY'
 }
 
-// Notification Interface
+// Main notification data structure
 export interface Notification {
   notificationId: string;
   recipientStaffId: string;
@@ -30,7 +33,7 @@ export interface Notification {
   message: string;
   relatedOrderId?: string;
   isRead?: boolean;
-  read?: boolean; // API compatibility
+  read?: boolean;
   sentAt: string;
   readAt?: string;
   expiresAt?: string;
@@ -40,21 +43,22 @@ export interface Notification {
   minutesSinceSent?: number;
 }
 
-// API Request/Response Types
+// API request types
 export interface GetNotificationsRequest {
   unreadOnly?: boolean;
   limit?: number;
   offset?: number;
 }
 
+export interface MarkReadRequest {
+  notificationId?: string;
+}
+
+// API response types
 export interface NotificationsListResponse {
   notifications: Notification[];
   unreadCount: number;
   totalCount: number;
-}
-
-export interface MarkReadRequest {
-  notificationId?: string;
 }
 
 export interface MarkReadResponse {
@@ -63,7 +67,7 @@ export interface MarkReadResponse {
   markedCount?: number;
 }
 
-// Additional UI-specific types
+// UI-specific types
 export interface NotificationUIState {
   loading: boolean;
   error: string | null;
@@ -88,10 +92,10 @@ export interface NotificationStats {
   unread: number;
   byType: Record<NotificationType, number>;
   byPriority: Record<NotificationPriority, number>;
-  recentCount: number; // Last 24 hours
+  recentCount: number;
 }
 
-// Notification display configuration
+// Display configuration
 export interface NotificationDisplayConfig {
   showTimestamp: boolean;
   showSender: boolean;
@@ -101,7 +105,7 @@ export interface NotificationDisplayConfig {
   groupByDate: boolean;
 }
 
-// Sound and visual settings
+// Settings
 export interface NotificationSettings {
   enableSound: boolean;
   enableDesktopNotifications: boolean;
@@ -109,10 +113,10 @@ export interface NotificationSettings {
   soundVolume: number;
   autoMarkReadOnView: boolean;
   showOnlyUnread: boolean;
-  refreshInterval: number; // in seconds
+  refreshInterval: number;
 }
 
-// Notification action types
+// Action types
 export type NotificationAction = 
   | 'view'
   | 'markRead'
@@ -131,21 +135,21 @@ export interface NotificationActionHandler {
   variant?: 'primary' | 'secondary' | 'danger' | 'success';
 }
 
-// Notification grouping
+// Grouping
 export interface NotificationGroup {
   date: string;
   notifications: Notification[];
   unreadCount: number;
 }
 
-// Real-time notification event
+// Events
 export interface NotificationEvent {
   type: 'NEW_NOTIFICATION' | 'NOTIFICATION_READ' | 'NOTIFICATION_DELETED';
   notification: Notification;
   timestamp: string;
 }
 
-// WebSocket notification payload
+// WebSocket
 export interface WebSocketNotificationPayload {
   type: 'NOTIFICATION';
   data: {
@@ -155,17 +159,17 @@ export interface WebSocketNotificationPayload {
   };
 }
 
-// Toast notification configuration
+// Toast configuration
 export interface ToastNotificationConfig {
   duration: number;
   position: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
   showClose: boolean;
-  persistent: boolean; // For urgent notifications
+  persistent: boolean;
   sound: boolean;
   vibration: boolean;
 }
 
-// Notification badge configuration
+// Badge configuration
 export interface NotificationBadgeConfig {
   showCount: boolean;
   maxCount: number;
@@ -175,7 +179,7 @@ export interface NotificationBadgeConfig {
   animate: boolean;
 }
 
-// Error handling for notifications
+// Error handling
 export interface NotificationError {
   code: string;
   message: string;
@@ -183,7 +187,7 @@ export interface NotificationError {
   recoverable: boolean;
 }
 
-// Notification context data
+// Context interface
 export interface NotificationContext {
   notifications: Notification[];
   unreadCount: number;
@@ -193,7 +197,6 @@ export interface NotificationContext {
   filters: NotificationFilters;
   stats: NotificationStats;
   
-  // Actions
   fetchNotifications: () => Promise<void>;
   markAsRead: (notificationId: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
@@ -203,7 +206,7 @@ export interface NotificationContext {
   refresh: () => Promise<void>;
 }
 
-// Component prop types
+// Component props
 export interface NotificationItemProps {
   notification: Notification;
   config: NotificationDisplayConfig;
@@ -235,7 +238,7 @@ export interface NotificationCenterProps {
   className?: string;
 }
 
-// Utility types
+// Label type mappings
 export type NotificationTypeLabel = {
   [K in NotificationType]: string;
 };
@@ -252,7 +255,7 @@ export type NotificationPriorityColor = {
   [K in NotificationPriority]: string;
 };
 
-// Constants for UI
+// Constants
 export const NOTIFICATION_TYPE_LABELS: NotificationTypeLabel = {
   [NotificationType.NEW_ORDER]: '新訂單',
   [NotificationType.ORDER_STATUS_CHANGE]: '訂單狀態更新',
