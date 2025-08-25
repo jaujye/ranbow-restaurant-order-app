@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Notification,
-  NotificationFilters,
-  NotificationSettings,
-  NotificationStats,
-  NotificationError,
+  type Notification,
+  type NotificationFilters,
+  type NotificationSettings,
+  type NotificationStats,
+  type NotificationError,
   NotificationType,
   NotificationPriority
 } from '../types/notifications.types';

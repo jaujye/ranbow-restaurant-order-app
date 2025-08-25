@@ -2,11 +2,11 @@ import axios from 'axios';
 import {
   NotificationType,
   NotificationPriority,
-  Notification,
-  GetNotificationsRequest,
-  NotificationsListResponse,
-  MarkReadRequest,
-  MarkReadResponse
+  type Notification,
+  type GetNotificationsRequest,
+  type NotificationsListResponse,
+  type MarkReadRequest,
+  type MarkReadResponse
 } from '../types/notifications.types';
 
 // API Configuration

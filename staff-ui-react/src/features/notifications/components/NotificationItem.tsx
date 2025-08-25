@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-  Notification,
-  NotificationDisplayConfig,
-  NotificationActionHandler,
-  NotificationAction,
+  type Notification,
+  type NotificationDisplayConfig,
+  type NotificationActionHandler,
+  type NotificationAction,
   NOTIFICATION_TYPE_LABELS,
   NOTIFICATION_PRIORITY_LABELS,
   NOTIFICATION_TYPE_COLORS,

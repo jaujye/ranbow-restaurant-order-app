@@ -5,10 +5,10 @@ import NotificationItem from '../components/NotificationItem';
 import NotificationFilters from '../components/NotificationFilters';
 import { LoadingSpinner } from '../../../shared/components/ui/LoadingSpinner';
 import {
-  Notification,
-  NotificationAction,
-  NotificationActionHandler,
-  NotificationDisplayConfig,
+  type Notification,
+  type NotificationAction,
+  type NotificationActionHandler,
+  type NotificationDisplayConfig,
   NotificationType,
   NotificationPriority
 } from '../types/notifications.types';
