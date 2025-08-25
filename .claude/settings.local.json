@@ -97,7 +97,8 @@
       "Bash(ren:*)",
       "Bash(tasklist:*)",
       "Bash(powershell:*)",
-      "mcp__chrome-devtools__get_document"
+      "mcp__chrome-devtools__get_document",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": [],
