@@ -330,6 +330,16 @@ export class StaffAuthApi {
    * @returns 員工個人資料
    */
   static async getProfile(staffId: string): Promise<ApiResponse<StaffProfile>> {
+    // 檢查 staffId 是否有效
+    if (!staffId || staffId === 'undefined' || staffId === 'null') {
+      console.error('Invalid staffId provided to getProfile:', staffId);
+      return {
+        success: false,
+        error: '無效的員工ID',
+        data: null
+      };
+    }
+
     const response = await httpClient.get<{
       success: boolean;
       profile: StaffProfile;

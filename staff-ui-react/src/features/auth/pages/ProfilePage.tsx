@@ -21,6 +21,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner';
 import { StaffProfileCard } from '../components/StaffProfileCard';
 import { QuickSwitchPanel } from '../components/QuickSwitchPanel';
+import { DebugStaffData } from '../components/DebugStaffData';
 import { useStaffAuth, useStaffAuthActions } from '../store/authStore';
 import type { Staff } from '@/shared/types/api';
 
@@ -261,11 +262,18 @@ export function ProfilePage() {
   useEffect(() => {
     if (!isLoading && !currentStaff) {
       navigate('/login', { replace: true });
-    } else if (currentStaff && !staffProfile) {
-      // 如果有員工但沒有個人資料，載入個人資料
+    } else if (currentStaff && currentStaff.staffId && !staffProfile) {
+      // 如果有員工且 staffId 存在，但沒有個人資料，載入個人資料
+      console.log('Loading profile for staffId:', currentStaff.staffId);
       loadProfile(currentStaff.staffId);
+    } else if (currentStaff && !currentStaff.staffId) {
+      // 如果員工存在但 staffId 不存在，這是數據錯誤
+      console.error('Current staff missing staffId:', currentStaff);
+      // 清除錯誤的員工數據並重定向到登錄頁
+      logout();
+      navigate('/login', { replace: true });
     }
-  }, [isLoading, currentStaff, staffProfile, navigate, loadProfile]);
+  }, [isLoading, currentStaff, staffProfile, navigate, loadProfile, logout]);
 
   if (isLoading || !currentStaff) {
     return (
@@ -501,6 +509,9 @@ export function ProfilePage() {
           </div>
         )}
       </main>
+      
+      {/* 臨時調試組件 */}
+      <DebugStaffData />
     </div>
   );
 }

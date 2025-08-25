@@ -260,9 +260,20 @@ export const useStaffAuthStore = create<StaffAuthState>()(
 
       // 載入員工個人資料
       loadProfile: async (staffId: string) => {
+        // 檢查 staffId 是否有效
+        if (!staffId || staffId === 'undefined' || staffId === 'null') {
+          console.error('Invalid staffId provided to loadProfile:', staffId);
+          set({
+            isLoading: false,
+            error: '無效的員工ID'
+          });
+          return null;
+        }
+
         set({ isLoading: true });
         
         try {
+          console.log('Loading profile for staffId:', staffId);
           const response = await StaffAuthApi.getProfile(staffId);
           
           if (response.success && response.data) {
@@ -280,6 +291,7 @@ export const useStaffAuthStore = create<StaffAuthState>()(
           }
         } catch (error: any) {
           const errorMessage = error.response?.data?.message || error.message || '載入個人資料失敗';
+          console.error('Error loading profile for staffId:', staffId, error);
           set({
             isLoading: false,
             error: errorMessage
