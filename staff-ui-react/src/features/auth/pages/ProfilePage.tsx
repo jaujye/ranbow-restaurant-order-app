@@ -82,38 +82,38 @@ function EditForm({ staff, onSave, onCancel, isLoading }: EditFormProps) {
     formData.phone !== staff.phone;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">姓名</label>
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">姓名</label>
         <input
           type="text"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           disabled={isLoading}
           required
         />
       </div>
       
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Email</label>
         <input
           type="email"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           disabled={isLoading}
           required
         />
       </div>
       
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">電話</label>
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">電話</label>
         <input
           type="tel"
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           disabled={isLoading}
           required
         />
@@ -123,17 +123,18 @@ function EditForm({ staff, onSave, onCancel, isLoading }: EditFormProps) {
         <Button
           type="submit"
           disabled={!hasChanges || isLoading}
-          className="flex-1"
+          className="flex-1 text-sm"
         >
           {isLoading ? (
             <>
               <LoadingSpinner size="sm" />
-              <span className="ml-2">儲存中...</span>
+              <span className="ml-1 sm:ml-2">儲存中...</span>
             </>
           ) : (
             <>
-              <Save className="h-4 w-4 mr-2" />
-              儲存變更
+              <Save className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+              <span className="hidden sm:inline">儲存變更</span>
+              <span className="sm:hidden">儲存</span>
             </>
           )}
         </Button>
@@ -142,9 +143,11 @@ function EditForm({ staff, onSave, onCancel, isLoading }: EditFormProps) {
           variant="secondary"
           onClick={onCancel}
           disabled={isLoading}
+          className="text-sm"
         >
-          <X className="h-4 w-4 mr-2" />
-          取消
+          <X className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+          <span className="hidden sm:inline">取消</span>
+          <span className="sm:hidden">×</span>
         </Button>
       </div>
     </form>
@@ -168,21 +171,21 @@ interface StatCardProps {
 
 function StatCard({ icon: Icon, title, value, subtitle, color, trend }: StatCardProps) {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-2 rounded-full ${color}`}>
-          <Icon className="h-6 w-6" />
+    <div className="bg-white p-3 sm:p-4 lg:p-6 rounded-lg shadow-sm border border-gray-200">
+      <div className="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
+        <div className={`p-1.5 sm:p-2 rounded-full ${color}`}>
+          <Icon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
         </div>
         {trend && (
-          <span className={`text-sm font-medium ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+          <span className={`text-xs sm:text-sm font-medium ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
             {trend.isPositive ? '+' : ''}{trend.value}%
           </span>
         )}
       </div>
       <div>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-sm text-gray-600">{title}</p>
-        <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
+        <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{value}</p>
+        <p className="text-xs sm:text-sm text-gray-600">{title}</p>
+        <p className="text-xs text-gray-500 mt-0.5 sm:mt-1">{subtitle}</p>
       </div>
     </div>
   );
@@ -315,13 +318,13 @@ export function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 頂部導航 */}
+      {/* 頂部導航 - 手機版優化 */}
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             <div className="flex items-center space-x-2 md:space-x-4">
               <div>
-                <h1 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900">個人資料</h1>
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">個人資料</h1>
               </div>
             </div>
 
@@ -330,18 +333,20 @@ export function ProfilePage() {
                 variant="secondary"
                 size="sm"
                 onClick={() => window.location.reload()}
+                className="px-2 sm:px-3"
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
+                <RefreshCw className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">重新整理</span>
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* 分頁導航 */}
+      {/* 分頁導航 - 手機版優化 */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8" aria-label="Tabs">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <nav className="flex space-x-4 sm:space-x-6 lg:space-x-8 overflow-x-auto" aria-label="Tabs">
             {Object.entries(tabConfig).map(([key, config]) => {
               const tab = key as ProfileTab;
               const Icon = config.icon;
@@ -352,15 +357,16 @@ export function ProfilePage() {
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`
-                    flex items-center py-4 px-1 border-b-2 font-medium text-sm
+                    flex items-center py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap
                     ${isActive
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }
                   `}
                 >
-                  <Icon className="h-4 w-4 mr-2" />
-                  {config.label}
+                  <Icon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden xs:inline sm:inline">{config.label}</span>
+                  <span className="xs:hidden">{config.label.slice(0, 2)}</span>
                 </button>
               );
             })}
@@ -368,24 +374,25 @@ export function ProfilePage() {
         </div>
       </div>
 
-      {/* 主要內容 */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* 主要內容 - 手機版優化 */}
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* 個人概覽 */}
         {activeTab === ProfileTab.OVERVIEW && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            <div className="lg:col-span-2 space-y-4 sm:space-y-6 lg:space-y-8">
               {/* 個人資訊卡片 */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">基本資訊</h2>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-5 lg:p-6">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900">基本資訊</h2>
                   {!isEditing && (
                     <Button
                       variant="secondary"
                       size="sm"
                       onClick={() => setIsEditing(true)}
+                      className="px-2 sm:px-3"
                     >
-                      <Edit3 className="h-4 w-4 mr-2" />
-                      編輯
+                      <Edit3 className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">編輯</span>
                     </Button>
                   )}
                 </div>
@@ -398,36 +405,36 @@ export function ProfilePage() {
                     isLoading={isUpdating}
                   />
                 ) : (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">員工ID</label>
-                        <p className="text-sm text-gray-900">{currentStaff.staffId}</p>
+                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-0.5 sm:mb-1">員工ID</label>
+                        <p className="text-sm sm:text-base text-gray-900">{currentStaff.staffId}</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">姓名</label>
-                        <p className="text-sm text-gray-900">{currentStaff.name}</p>
+                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-0.5 sm:mb-1">姓名</label>
+                        <p className="text-sm sm:text-base text-gray-900">{currentStaff.name}</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">職位</label>
-                        <p className="text-sm text-gray-900">{currentStaff.position}</p>
+                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-0.5 sm:mb-1">職位</label>
+                        <p className="text-sm sm:text-base text-gray-900">{currentStaff.position}</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">部門</label>
-                        <p className="text-sm text-gray-900">{currentStaff.department}</p>
+                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-0.5 sm:mb-1">部門</label>
+                        <p className="text-sm sm:text-base text-gray-900">{currentStaff.department}</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <p className="text-sm text-gray-900">{currentStaff.email}</p>
+                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-0.5 sm:mb-1">Email</label>
+                        <p className="text-sm sm:text-base text-gray-900">{currentStaff.email}</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">電話</label>
-                        <p className="text-sm text-gray-900">{currentStaff.phone}</p>
+                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-0.5 sm:mb-1">電話</label>
+                        <p className="text-sm sm:text-base text-gray-900">{currentStaff.phone}</p>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">工作狀態</label>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-0.5 sm:mb-1">工作狀態</label>
+                      <span className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         currentStaff.isOnDuty 
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-gray-100 text-gray-800'
@@ -439,10 +446,10 @@ export function ProfilePage() {
                 )}
               </div>
 
-              {/* 今日統計 */}
+              {/* 今日統計 - 手機版優化 */}
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">今日表現</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">今日表現</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   <StatCard
                     icon={Activity}
                     title="處理訂單"
@@ -482,18 +489,18 @@ export function ProfilePage() {
           </div>
         )}
 
-        {/* 帳戶設定 */}
+        {/* 帳戶設定 - 手機版優化 */}
         {activeTab === ProfileTab.SETTINGS && (
-          <div className="space-y-8">
-            <div className="text-center py-12">
-              <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">帳戶設定</h3>
-              <p className="text-gray-600">系統設定功能正在開發中...</p>
+          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+            <div className="text-center py-8 sm:py-10 lg:py-12">
+              <Settings className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">帳戶設定</h3>
+              <p className="text-sm sm:text-base text-gray-600">系統設定功能正在開發中...</p>
             </div>
           </div>
         )}
 
-        {/* 快速切換 */}
+        {/* 快速切換 - 手機版優化 */}
         {activeTab === ProfileTab.SWITCH && (
           <div className="max-w-2xl mx-auto">
             <QuickSwitchPanel
