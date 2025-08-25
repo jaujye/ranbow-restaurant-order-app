@@ -80,11 +80,16 @@ export function RecentNotifications() {
   const [error, setError] = useState<string | null>(null);
 
   const loadNotifications = async () => {
-    if (!currentStaff?.staffId) return;
+    const staffId = currentStaff?.staff?.staffId || currentStaff?.staffId;
+    
+    if (!staffId) {
+      console.log('❌ No staffId found for notifications:', currentStaff);
+      return;
+    }
 
     try {
-      console.log('📬 Loading notifications for staffId:', currentStaff.staffId);
-      const response = await axios.get(`${API_BASE_URL}/staff/notifications/${currentStaff.staffId}?limit=5`);
+      console.log('📬 Loading notifications for staffId:', staffId);
+      const response = await axios.get(`${API_BASE_URL}/staff/notifications/${staffId}?limit=5`);
       
       console.log('✅ Notifications loaded:', response.data);
       
@@ -101,15 +106,16 @@ export function RecentNotifications() {
 
   useEffect(() => {
     loadNotifications();
-  }, [currentStaff?.staffId]);
+  }, [currentStaff?.staff?.staffId, currentStaff?.staffId]);
 
   // 每30秒更新一次通知
   useEffect(() => {
-    if (!currentStaff?.staffId) return;
+    const staffId = currentStaff?.staff?.staffId || currentStaff?.staffId;
+    if (!staffId) return;
     
     const interval = setInterval(loadNotifications, 30000);
     return () => clearInterval(interval);
-  }, [currentStaff?.staffId]);
+  }, [currentStaff?.staff?.staffId, currentStaff?.staffId]);
 
   if (loading) {
     return (

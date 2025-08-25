@@ -50,7 +50,7 @@ export function DashboardStats() {
   const { currentStaff } = useStaffAuth();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [overview, setOverview] = useState<RealTimeOverview | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // 改為false，只有在實際加載時才設置為true
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   
@@ -62,16 +62,19 @@ export function DashboardStats() {
   const loadDashboardData = async () => {
     console.log('🔍 LoadDashboardData called with currentStaff:', currentStaff);
     
-    if (!currentStaff?.staffId) {
-      console.log('❌ No currentStaff or staffId, skipping data load');
+    const staffId = currentStaff?.staff?.staffId || currentStaff?.staffId;
+    
+    if (!staffId) {
+      console.log('❌ No staffId found in currentStaff:', currentStaff);
       setLoading(false);
       return;
     }
 
     try {
-      console.log('📡 Loading dashboard data for staffId:', currentStaff.staffId);
+      console.log('📡 Loading dashboard data for staffId:', staffId);
+      setLoading(true);
       setError(null);
-      const data = await DashboardApi.getDashboardData(currentStaff.staffId);
+      const data = await DashboardApi.getDashboardData(staffId);
       console.log('✅ Dashboard data loaded successfully:', data);
       setDashboardData(data);
       setLastUpdated(new Date());
@@ -100,8 +103,10 @@ export function DashboardStats() {
    * 初始化數據載入 - 登入後立即載入所有數據
    */
   useEffect(() => {
-    if (currentStaff?.staffId) {
-      console.log('🚀 初始化加載: 立即載入所有儀表板數據');
+    const staffId = currentStaff?.staff?.staffId || currentStaff?.staffId;
+    
+    if (staffId) {
+      console.log('🚀 初始化加載: 立即載入所有儀表板數據, staffId:', staffId);
       // 立即並行載入所有數據
       Promise.all([
         loadDashboardData(),
@@ -129,7 +134,7 @@ export function DashboardStats() {
         clearInterval(dashboardInterval);
       };
     }
-  }, [currentStaff?.staffId]);
+  }, [currentStaff?.staff?.staffId, currentStaff?.staffId]);
 
   if (loading) {
     return (

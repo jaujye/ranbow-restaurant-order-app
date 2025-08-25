@@ -14,13 +14,15 @@ import { RecentNotifications } from '../components/RecentNotifications';
  */
 export function DashboardPage() {
   const { currentStaff } = useStaffAuth();
+  
+  console.log('🎯 DashboardPage rendered with currentStaff:', currentStaff);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">工作台</h1>
         <p className="text-gray-600">
-          歡迎回來，{currentStaff?.name}！今日為您提供即時的營運數據。
+          歡迎回來，{currentStaff?.staff?.name || currentStaff?.name || currentStaff?.displayName}！今日為您提供即時的營運數據。
         </p>
       </div>
 
