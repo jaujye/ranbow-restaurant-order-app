@@ -130,26 +130,22 @@ export function DashboardStats() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+        <div className="flex items-center justify-center text-center">
+          <div>
+            <svg className="h-12 w-12 text-yellow-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">載入數據時發生錯誤</h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{error}</p>
-            </div>
-            <div className="mt-4">
-              <button
-                onClick={loadDashboardData}
-                className="bg-red-600 text-white px-4 py-2 text-sm rounded-lg hover:bg-red-700 transition-colors"
-              >
-                重試
-              </button>
-            </div>
+            <h3 className="text-lg font-medium text-yellow-800 mb-2">目前沒有資料</h3>
+            <p className="text-sm text-yellow-700 mb-4">
+              系統暫時無法載入統計數據，請稍後再試
+            </p>
+            <button
+              onClick={loadDashboardData}
+              className="bg-yellow-600 text-white px-4 py-2 text-sm rounded-lg hover:bg-yellow-700 transition-colors"
+            >
+              重新載入
+            </button>
           </div>
         </div>
       </div>
@@ -177,42 +173,42 @@ export function DashboardStats() {
           value={currentOrders?.total || 0}
           subtitle={`待確認：${currentOrders?.pending || 0} | 準備中：${currentOrders?.preparing || 0}`}
           icon={<ShoppingCart className="h-6 w-6 text-blue-600" />}
-          color="bg-blue-100"
+          color="bg-blue-100 text-blue-600"
           trend={{
-            value: `+${currentOrders?.confirmed || 0}`,
+            value: `已確認：${currentOrders?.confirmed || 0}`,
             isPositive: (currentOrders?.confirmed || 0) > 0
           }}
         />
 
-        {/* 廚房狀態 */}
+        {/* 廚房隊列 */}
         <StatCard
           title="廚房隊列"
           value={currentKitchen?.activeQueues || 0}
-          subtitle={`總項目：${currentKitchen?.totalItems || 0}`}
+          subtitle={`隊列長度：${currentKitchen?.totalItems || 0} | 準備中：${currentOrders?.preparing || 0}`}
           icon={<ChefHat className="h-6 w-6 text-orange-600" />}
-          color="bg-orange-100"
+          color="bg-orange-100 text-orange-600"
         />
 
-        {/* 今日統計 */}
+        {/* 今日處理 */}
         <StatCard
           title="今日處理"
           value={dashboardData?.todayStats?.ordersProcessed || 0}
-          subtitle={`平均處理時間：${dashboardData?.todayStats?.averageProcessingTime || 0}分鐘`}
+          subtitle={`平均處理：${dashboardData?.todayStats?.averageProcessingTime || 0}分鐘 | 效率：${dashboardData?.todayStats?.efficiencyRating || 0}%`}
           icon={<TrendingUp className="h-6 w-6 text-green-600" />}
-          color="bg-green-100"
+          color="bg-green-100 text-green-600"
           trend={dashboardData?.todayStats?.efficiencyRating ? {
-            value: `${dashboardData.todayStats.efficiencyRating}%`,
+            value: `效率：${dashboardData.todayStats.efficiencyRating}%`,
             isPositive: dashboardData.todayStats.efficiencyRating >= 80
           } : undefined}
         />
 
-        {/* 通知 */}
+        {/* 待處理通知 */}
         <StatCard
           title="待處理通知"
           value={dashboardData?.notifications?.unread || 0}
-          subtitle="需要處理的通知"
+          subtitle="需要您處理的系統通知"
           icon={<Bell className="h-6 w-6 text-purple-600" />}
-          color="bg-purple-100"
+          color="bg-purple-100 text-purple-600"
         />
       </div>
 

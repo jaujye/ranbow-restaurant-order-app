@@ -5,8 +5,8 @@
 ## 📋 **文檔概述**
 
 - **項目名稱**: Ranbow Restaurant Staff UI System  
-- **版本**: 2.0.0 🚀 **重大架構優化版本**
-- **更新日期**: 2025-01-23
+- **版本**: 2.1.0 🎨 **完整UI/UX設計整合版本**
+- **更新日期**: 2025-01-25
 - **最新更新內容**:
   - ✅ **v1.1**: 根據現有Java Spring後端結構重新設計前端目錄規範
   - ✅ **v1.1**: 更新API接口定義以對應實際的StaffController實現
@@ -19,6 +19,11 @@
   - 🚀 **v2.0 NEW**: **狀態管理最佳實踐** - Zustand + React Query + TypeScript嚴格類型
   - 🚀 **v2.0 NEW**: **錯誤處理與性能優化** - ErrorBoundary、樂觀更新、請求去重
   - 🚀 **v2.0 NEW**: **生產級前端工程師實施指南** - 完整的代碼範例和最佳實踐
+  - 🎨 **v2.1 NEW**: **完整UI/UX設計實施規範** - 整合彩虹主題漸變配色系統
+  - 🎨 **v2.1 NEW**: **導航系統設計規範** - 雙導航欄架構（頂部+底部）詳細設計
+  - 🎨 **v2.1 NEW**: **核心模組UI設計** - 儀表板、訂單管理、廚房工作站、個人中心完整設計規範
+  - 🎨 **v2.1 NEW**: **Tailwind CSS配色系統** - 完整的自定義色彩配置與工作站色彩映射
+  - 🎨 **v2.1 NEW**: **組件樣式實現細節** - 實際程式碼中的樣式類別與設計模式
 - **目標**: 建立高效、直觀的員工端操作界面，支援訂單管理、廚房工作流程、即時通訊
 - **技術棧**: React + TypeScript + Tailwind CSS (前端) | Spring Boot + PostgreSQL + Redis + WebSocket (後端)
 
@@ -1690,24 +1695,67 @@ export class ErrorBoundary extends React.Component<
 
 ## 2. UI/UX設計實施規範
 
-### 2.1 彩虹主題色彩系統
+### 2.1 彩虹主題色彩系統 🌈
 
-#### **主色調定義（高飽和度）**
-| 色彩用途 | HEX值 | RGB | HSL | 使用場景 |
-|---------|-------|-----|-----|---------|
-| 主色-橙紅 | #FF6B35 | 255,107,53 | 16°,100%,60% | 主要按鈕、重要標識 |
-| 主色-深 | #E64A1A | 230,74,26 | 14°,82%,50% | 按鈕按下、active狀態 |
-| 次色-綠 | #2E8B57 | 46,139,87 | 146°,50%,36% | 成功狀態、完成標記 |
-| 強調-金 | #FFD700 | 255,215,0 | 51°,100%,50% | 星級、重要提示 |
+#### **核心配色方案 - 漸變主題**
 
-#### **狀態色彩（高對比度）**
-| 狀態 | 文字色 | 背景色 | 邊框色 | 對比度 |
-|-----|--------|--------|--------|--------|
-| 緊急 | #FFFFFF | #FF3B30 | #CC0000 | 7.2:1 |
-| 處理中 | #FFFFFF | #FF9500 | #E68600 | 6.8:1 |
-| 完成 | #FFFFFF | #34C759 | #2CA846 | 5.9:1 |
-| 待處理 | #FFFFFF | #007AFF | #0051CC | 6.5:1 |
-| 已取消 | #333333 | #E5E5EA | #C7C7CC | 8.1:1 |
+**導航欄漸變配色**
+```css
+/* 頂部導航欄 - 暖色系漸變 */
+background: linear-gradient(to right, 
+  from-orange-500,    /* #f97316 */
+  via-red-500,        /* #ef4444 */
+  to-pink-500         /* #ec4899 */
+);
+
+/* 底部導航欄 - 冷色系漸變 */
+background: linear-gradient(to right,
+  from-indigo-600,    /* #4f46e5 */
+  via-purple-600,     /* #9333ea */  
+  to-pink-600         /* #db2777 */
+);
+```
+
+**工作站色彩映射**
+| 工作站類型 | 漸變配色 | 圖標 | 使用場景 |
+|-----------|---------|------|---------|
+| 冷盤站 | `from-blue-500 to-cyan-500` | 🥗 | 冷盤工作站識別 |
+| 熱食站 | `from-red-500 to-orange-500` | 🍳 | 熱食工作站識別 |
+| 燒烤站 | `from-orange-500 to-yellow-500` | 🔥 | 燒烤工作站識別 |
+| 備料站 | `from-green-500 to-emerald-500` | 🔪 | 備料工作站識別 |
+| 甜點站 | `from-purple-500 to-pink-500` | 🍰 | 甜點工作站識別 |
+| 飲品站 | `from-cyan-500 to-blue-500` | 🥤 | 飲品工作站識別 |
+
+#### **Tailwind CSS 自定義色彩配置**
+```javascript
+// tailwind.config.js - 完整色彩系統
+colors: {
+  primary: {
+    50: '#f0f9ff',   // 最淺
+    500: '#0ea5e9',  // 標準
+    900: '#0c4a6e',  // 最深
+  },
+  accent: {
+    50: '#fef7ff',   // 最淺紫
+    700: '#a855f7',  // 標準紫
+    900: '#7c2d94',  // 深紫
+  },
+  // 功能色彩
+  success: { /* 綠色系 */ },
+  warning: { /* 黃色系 */ },
+  danger:  { /* 紅色系 */ },
+}
+```
+
+#### **訂單狀態色彩規範（實際實現）**
+| 狀態 | 文字色 | 背景色 | 邊框色 | 狀態類名 |
+|-----|--------|--------|--------|---------|
+| 待處理 | text-yellow-700 | bg-yellow-50 | border-yellow-200 | status-pending |
+| 已確認 | text-blue-700 | bg-blue-50 | border-blue-200 | status-confirmed |
+| 製作中 | text-orange-700 | bg-orange-50 | border-orange-200 | status-preparing |
+| 已完成 | text-green-700 | bg-green-50 | border-green-200 | status-ready |
+| 已交付 | text-gray-700 | bg-gray-50 | border-gray-200 | status-completed |
+| 已取消 | text-red-700 | bg-red-50 | border-red-200 | status-cancelled |
 
 ### 2.2 字體與文字規範
 
@@ -1728,7 +1776,56 @@ export class ErrorBoundary extends React.Component<
 - **金額**: 18px, font-weight: 600, font-variant-numeric: tabular-nums
 - **狀態標籤**: 14px, font-weight: 600, text-transform: uppercase
 
-### 2.3 互動元素規範
+### 2.3 導航系統設計規範 🧭
+
+#### **雙導航欄架構**
+
+**頂部導航欄 (TopNavigationBar)**
+```typescript
+// 位置：固定在頂部 (fixed top-0)
+// 高度：64px (h-16)
+// 背景：暖色系漸變
+// Z-index：z-50
+
+interface TopNavBar {
+  左側區域: {
+    logo: "Shield圖標 + 彩虹餐廳文字",
+    subtitle: "員工作業系統"
+  },
+  右側區域: {
+    userInfo: "姓名 + 職位",
+    avatar: "首字母頭像",
+    actions: ["設置按鈕", "登出按鈕"]
+  }
+}
+```
+
+**底部導航欄 (BottomNavigationBar)**
+```typescript
+// 位置：固定在底部 (fixed bottom-0)
+// 高度：自適應 (py-2)
+// 背景：冷色系漸變
+// Z-index：z-50
+
+const navigationItems = [
+  { name: '首頁', icon: Home, href: '/dashboard' },
+  { name: '訂單', icon: ClipboardList, href: '/orders' },
+  { name: '廚房', icon: ChefHat, href: '/kitchen' },
+  { name: '報表', icon: BarChart3, href: '/stats' },
+  { name: '通知', icon: Bell, href: '/notifications', badge: true },
+  { name: '個人', icon: User, href: '/profile' }
+]
+
+// 選中狀態樣式
+activeStyles: {
+  background: "bg-white/20",
+  border: "border-white/30",
+  transform: "scale-105",
+  shadow: "shadow-lg"
+}
+```
+
+### 2.4 互動元素規範
 
 #### **觸控目標尺寸**
 | 元素類型 | 最小尺寸 | 推薦尺寸 | 間距要求 |
@@ -1750,7 +1847,42 @@ export class ErrorBoundary extends React.Component<
 
 ## 3. 核心功能模組開發
 
-### 3.1 員工認證模組
+### 3.1 儀表板模組 📊
+
+#### **儀表板統計卡片設計**
+```typescript
+// DashboardStats 組件設計規範
+interface StatCard {
+  // 卡片樣式
+  container: "bg-white rounded-lg shadow-sm border border-gray-200 p-6",
+  
+  // 圖標配色
+  iconColors: {
+    待處理訂單: "bg-blue-100 text-blue-600",
+    廚房隊列: "bg-orange-100 text-orange-600",
+    今日處理: "bg-green-100 text-green-600",
+    待處理通知: "bg-purple-100 text-purple-600"
+  },
+  
+  // 數據顯示
+  value: "text-2xl font-semibold text-gray-900",
+  subtitle: "text-sm text-gray-500",
+  trend: "text-sm text-green-600 或 text-red-600"
+}
+```
+
+**團隊狀態顯示區**
+```typescript
+// 網格佈局：grid-cols-2 lg:grid-cols-4
+const teamMetrics = [
+  { label: "在職員工", color: "text-blue-600" },
+  { label: "今日訂單", color: "text-green-600" },
+  { label: "平均效率", color: "text-orange-600" },
+  { label: "總員工數", color: "text-purple-600" }
+]
+```
+
+### 3.2 員工認證模組
 
 #### **登入頁面要求**
 - 支援工號/Email + 密碼登入
@@ -1784,7 +1916,59 @@ interface StaffMember {
 }
 ```
 
-### 3.2 訂單管理模組
+### 3.3 訂單管理模組 📋
+
+#### **訂單卡片UI設計規範**
+
+**卡片容器樣式**
+```css
+/* 基礎卡片樣式 */
+.order-card {
+  @apply bg-white border rounded-xl shadow-sm hover:shadow-md;
+  @apply transition-all duration-200;
+  @apply border-l-4; /* 左側狀態條 */
+}
+
+/* 狀態條配色 - 使用左邊框顏色 */
+.order-pending { border-left-color: theme('colors.yellow.500'); }
+.order-confirmed { border-left-color: theme('colors.blue.500'); }
+.order-preparing { border-left-color: theme('colors.orange.500'); }
+.order-ready { border-left-color: theme('colors.green.500'); }
+.order-completed { border-left-color: theme('colors.gray.500'); }
+.order-cancelled { border-left-color: theme('colors.red.500'); }
+```
+
+**卡片內容結構**
+```typescript
+interface OrderCardLayout {
+  header: {
+    orderNumber: "text-sm sm:text-lg font-semibold",
+    statusBadge: "px-2 py-1 rounded-full text-xs font-medium",
+    priorityBadge: "bg-red-100 text-red-800 (緊急)",
+    amount: "text-sm sm:text-xl font-bold text-gray-900"
+  },
+  
+  customerInfo: {
+    icon: "User/Phone/MapPin w-3 h-3",
+    text: "text-xs sm:text-sm text-gray-600"
+  },
+  
+  itemsPreview: {
+    maxDisplay: 3, // 最多顯示3項
+    overflow: "text-xs text-gray-500 (還有N項商品...)"
+  },
+  
+  actionButtons: {
+    style: "px-3 py-1.5 text-xs sm:text-sm rounded-lg",
+    colors: {
+      確認: "bg-blue-600 hover:bg-blue-700",
+      開始製作: "bg-orange-600 hover:bg-orange-700",
+      完成: "bg-green-600 hover:bg-green-700",
+      取消: "bg-red-600 hover:bg-red-700"
+    }
+  }
+}
+```
 
 #### **訂單列表功能**
 - 分類顯示：全部/待處理/進行中/已完成/已取消
@@ -1818,7 +2002,79 @@ interface OrderCardDisplay {
 }
 ```
 
-### 3.3 廚房工作台模組
+### 3.4 廚房工作站模組 👨‍🍳
+
+#### **工作站卡片UI設計**
+
+**工作站視覺系統**
+```typescript
+// WorkstationCard 設計規範
+interface WorkstationCardDesign {
+  // 容器樣式
+  container: {
+    base: "bg-white rounded-lg shadow-sm border-2",
+    hover: "hover:shadow-md transform hover:scale-[1.02]",
+    selected: "border-blue-500 ring-2 ring-blue-200",
+    inactive: "opacity-60 bg-gray-50",
+    overdue: "border-red-300 bg-red-50"
+  },
+  
+  // 工作站圖標系統
+  iconSystem: {
+    container: "p-2 rounded-lg bg-gradient-to-r",
+    emoji: "text-2xl",
+    statusIndicator: "w-3 h-3 rounded-full"
+  },
+  
+  // 訂單概覽網格
+  orderGrid: {
+    layout: "grid grid-cols-3 gap-2",
+    card: {
+      排隊: "bg-blue-50 text-blue-700",
+      製作中: "bg-yellow-50 text-yellow-700",
+      逾時: "bg-red-50 text-red-700"
+    }
+  }
+}
+```
+
+**工作站總覽儀表板**
+```typescript
+// 總覽統計卡片
+const overviewCards = [
+  { 
+    icon: Activity,
+    label: "活躍工作站",
+    color: "bg-blue-50 text-blue-600"
+  },
+  {
+    icon: Clock,
+    label: "總訂單數",
+    color: "bg-green-50 text-green-600"
+  },
+  {
+    icon: Users,
+    label: "製作中",
+    color: "bg-yellow-50 text-yellow-600"
+  },
+  {
+    icon: AlertCircle,
+    label: "逾時警告",
+    color: "bg-red-50 text-red-600"
+  }
+]
+```
+
+**工作站狀態指示器**
+```css
+/* 工作站運行狀態 */
+.workstation-active { background-color: #22c55e; } /* 綠色 */
+.workstation-inactive { background-color: #ef4444; } /* 紅色 */
+.workstation-overloaded { 
+  background-color: #f59e0b; 
+  animation: pulse 2s infinite;
+}
+```
 
 #### **廚房隊列顯示**
 - 區分顯示：正在製作/等待製作/即將完成
@@ -1849,7 +2105,77 @@ interface CookingTimer {
 }
 ```
 
-### 3.4 即時通訊模組
+### 3.5 個人中心模組 👤
+
+#### **個人資料卡片設計**
+
+**卡片結構設計**
+```typescript
+interface StaffProfileCardDesign {
+  // 容器結構
+  container: "bg-white rounded-lg shadow-sm border border-gray-200",
+  
+  // 頭部標題欄
+  header: {
+    icon: "User h-5 w-5 text-blue-600",
+    title: "text-sm font-medium text-gray-900",
+    refreshBtn: "RefreshCw h-3 w-3 animate-spin"
+  },
+  
+  // 個人資訊區
+  profileSection: {
+    avatar: "h-16 w-16 rounded-full ring-2 ring-gray-200",
+    onlineIndicator: "h-4 w-4 bg-green-500 rounded-full",
+    name: "text-lg font-semibold text-gray-900",
+    positionBadge: "inline-flex px-2 py-1 rounded-full text-xs"
+  },
+  
+  // 統計數據網格
+  statsGrid: {
+    layout: "grid grid-cols-2 gap-3",
+    card: {
+      處理訂單: "bg-blue-50 text-blue-600",
+      平均時間: "bg-green-50 text-green-600",
+      營業額: "bg-purple-50 text-purple-600",
+      效率指數: "bg-orange-50 text-orange-600"
+    }
+  }
+}
+```
+
+**職位色彩系統**
+```typescript
+const positionColors: Record<StaffPosition, string> = {
+  MANAGER: 'bg-purple-100 text-purple-800 border-purple-200',
+  SUPERVISOR: 'bg-blue-100 text-blue-800 border-blue-200',
+  COOK: 'bg-green-100 text-green-800 border-green-200',
+  SERVER: 'bg-orange-100 text-orange-800 border-orange-200',
+  CASHIER: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  CLEANER: 'bg-gray-100 text-gray-800 border-gray-200',
+}
+```
+
+**功能按鈕組**
+```css
+/* 操作按鈕樣式 */
+.profile-actions {
+  @apply flex flex-col space-y-2;
+}
+
+.btn-edit {
+  @apply flex-1 border border-gray-300 hover:bg-gray-50;
+}
+
+.btn-settings {
+  @apply flex-1 border border-gray-300 hover:bg-gray-50;
+}
+
+.btn-logout {
+  @apply text-red-600 border-red-300 hover:bg-red-50;
+}
+```
+
+### 3.6 即時通訊模組
 
 #### **WebSocket連接管理**
 ```typescript
@@ -1883,7 +2209,7 @@ type MessageType =
   | 'SYSTEM_NOTIFICATION'
 ```
 
-### 3.5 通知系統
+### 3.7 通知系統
 
 #### **通知類型與處理**
 | 通知類型 | 顯示方式 | 持續時間 | 音效 | 震動 |
