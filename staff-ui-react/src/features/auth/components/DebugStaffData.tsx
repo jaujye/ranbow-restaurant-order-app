@@ -1,20 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStaffAuth } from '../store/authStore';
 
 /**
  * 調試組件 - 用於檢查員工數據結構
- * 只在開發環境或啟用調試模式時顯示
+ * 智能顯示控制：可通過多種方式控制顯示/隱藏
  */
 export function DebugStaffData() {
   const { currentStaff, staffProfile, token, isAuthenticated } = useStaffAuth();
+  const [isVisible, setIsVisible] = useState(false);
   
-  // 檢查是否應該顯示調試組件
-  const shouldShowDebug = import.meta.env.DEV || 
-                         localStorage.getItem('staff-ui-debug') === 'true' ||
-                         (window as any).__STAFF_UI_DEBUG__ === true;
+  useEffect(() => {
+    // 檢查是否應該顯示調試組件的邏輯
+    const checkShouldShow = () => {
+      const debugSetting = localStorage.getItem('staff-ui-debug');
+      const windowDebug = (window as any).__STAFF_UI_DEBUG__ === true;
+      
+      // 優先級：localStorage 設置 > 全局變數 > 開發環境默認
+      if (debugSetting === 'false') {
+        return false;
+      } else if (debugSetting === 'true' || windowDebug) {
+        return true;
+      } else {
+        // 在開發環境下默認顯示（但可以被 localStorage 覆蓋）
+        return import.meta.env.DEV;
+      }
+    };
+    
+    setIsVisible(checkShouldShow());
+  }, []);
+  
+  const handleClose = () => {
+    localStorage.setItem('staff-ui-debug', 'false');
+    setIsVisible(false);
+    window.location.reload(); // 刷新頁面確保狀態重置
+  };
 
   // 如果不應該顯示調試組件，返回 null
-  if (!shouldShowDebug) {
+  if (!isVisible) {
     return null;
   }
 
@@ -23,7 +45,7 @@ export function DebugStaffData() {
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-bold">Debug: Staff Data</h3>
         <button 
-          onClick={() => localStorage.setItem('staff-ui-debug', 'false')}
+          onClick={handleClose}
           className="text-white hover:text-red-400 ml-2"
           title="隱藏調試面板"
         >
@@ -87,12 +109,21 @@ export function DebugStaffData() {
 if (import.meta.env.DEV && typeof window !== 'undefined') {
   (window as any).showStaffDebug = () => {
     localStorage.setItem('staff-ui-debug', 'true');
-    console.log('員工調試面板已啟用');
+    console.log('員工調試面板已啟用，正在刷新頁面...');
+    setTimeout(() => window.location.reload(), 100);
   };
   
   (window as any).hideStaffDebug = () => {
     localStorage.setItem('staff-ui-debug', 'false');
-    console.log('員工調試面板已隱藏');
+    console.log('員工調試面板已隱藏，正在刷新頁面...');
+    setTimeout(() => window.location.reload(), 100);
+  };
+  
+  // 添加狀態檢查函數
+  (window as any).checkStaffDebug = () => {
+    const setting = localStorage.getItem('staff-ui-debug');
+    console.log('當前調試面板狀態:', setting || '默認(開發環境顯示)');
+    console.log('可用命令: showStaffDebug(), hideStaffDebug(), checkStaffDebug()');
   };
 }
 
