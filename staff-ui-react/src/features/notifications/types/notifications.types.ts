@@ -2,11 +2,11 @@
 export {
   NotificationType,
   NotificationPriority,
-  type Notification,
-  type GetNotificationsRequest,
-  type NotificationsListResponse,
-  type MarkReadRequest,
-  type MarkReadResponse
+  Notification,
+  GetNotificationsRequest,
+  NotificationsListResponse,
+  MarkReadRequest,
+  MarkReadResponse
 } from '../services/notificationsApi';
 
 // Additional UI-specific types
