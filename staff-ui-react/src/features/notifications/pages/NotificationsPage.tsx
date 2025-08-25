@@ -212,7 +212,7 @@ export function NotificationsPage() {
       <div className="bg-white shadow-sm border-b border-gray-200 px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h1 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900">通知中心</h1>
+            <h1 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900">通知中心</h1>
             <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 mt-0.5 md:mt-1">
               {unreadCount > 0 ? `${unreadCount} 則未讀` : '全部已讀'}
               <span className="hidden sm:inline"> · 共 {stats.total} 則通知</span>

@@ -100,7 +100,8 @@
       "mcp__chrome-devtools__get_document",
       "Bash(git reset:*)",
       "Bash(npx tsc:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "mcp__chrome-devtools__get_page_info"
     ],
     "deny": [],
     "ask": [],

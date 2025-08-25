@@ -367,7 +367,7 @@ export const KitchenWorkstationPage: React.FC<KitchenWorkstationPageProps> = ({
       <div className="bg-white shadow-sm border-b border-gray-200 px-3 md:px-6 py-3 md:py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 md:space-x-4">
-            <h1 className="text-lg md:text-2xl font-bold text-gray-900">廚房工作站</h1>
+            <h1 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900">廚房工作站</h1>
             
             {/* 連接狀態 */}
             <div className={cn(
