@@ -243,7 +243,7 @@ export function DashboardStats() {
           color="bg-green-100 text-green-600"
           trend={dashboardData?.todayStats?.efficiencyRating ? {
             value: `效率：${dashboardData.todayStats.efficiencyRating}%`,
-            isPositive: dashboardData.todayStats.efficiencyRating >= 80
+            isPositive: (dashboardData.todayStats.efficiencyRating || 0) >= 80
           } : undefined}
         />
 
@@ -263,19 +263,19 @@ export function DashboardStats() {
           <h3 className="text-lg font-medium text-gray-900 mb-4">團隊狀態</h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">{dashboardData.team.activeStaff}</p>
+              <p className="text-2xl font-bold text-blue-600">{dashboardData.team?.activeStaff || 0}</p>
               <p className="text-sm text-gray-600">在職員工</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">{dashboardData.team.todayOrders}</p>
+              <p className="text-2xl font-bold text-green-600">{dashboardData.team?.todayOrders || 0}</p>
               <p className="text-sm text-gray-600">今日訂單</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-orange-600">{dashboardData.team.avgEfficiency.toFixed(1)}%</p>
+              <p className="text-2xl font-bold text-orange-600">{(dashboardData.team?.avgEfficiency || 0).toFixed(1)}%</p>
               <p className="text-sm text-gray-600">平均效率</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-purple-600">{dashboardData.team.totalStaff}</p>
+              <p className="text-2xl font-bold text-purple-600">{dashboardData.team?.totalStaff || 0}</p>
               <p className="text-sm text-gray-600">總員工數</p>
             </div>
           </div>
