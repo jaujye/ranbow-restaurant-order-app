@@ -185,7 +185,7 @@ export const KitchenTestPage: React.FC = () => {
       case 'preparation':
         return (
           <PreparationList
-            workstation={selectedWorkstation}
+            workstation={selectedWorkstation || undefined}
             showAllSteps={true}
             compactMode={false}
             showTimer={true}

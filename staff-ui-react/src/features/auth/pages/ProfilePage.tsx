@@ -42,11 +42,6 @@ const tabConfig = {
     icon: User,
     description: '查看個人資訊和今日統計'
   },
-  [ProfileTab.STATISTICS]: {
-    label: '績效統計',
-    icon: TrendingUp,
-    description: '詳細的工作績效和數據分析'
-  },
   [ProfileTab.SETTINGS]: {
     label: '帳戶設定',
     icon: Settings,
@@ -199,7 +194,6 @@ function StatCard({ icon: Icon, title, value, subtitle, color, trend }: StatCard
  * 特性：
  * - 分頁式界面設計
  * - 個人資訊管理
- * - 績效統計展示
  * - 快速員工切換
  * - 設定管理
  * - 響應式設計
@@ -325,19 +319,9 @@ export function ProfilePage() {
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                onClick={handleGoBack}
-                className="flex items-center text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                返回
-              </Button>
-              <div className="h-6 w-px bg-gray-300"></div>
+            <div className="flex items-center space-x-2 md:space-x-4">
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">個人資料</h1>
-                <p className="text-sm text-gray-500">{currentStaff.name} • {currentStaff.staffId}</p>
+                <h1 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900">個人資料</h1>
               </div>
             </div>
 
@@ -348,7 +332,6 @@ export function ProfilePage() {
                 onClick={() => window.location.reload()}
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                重新整理
               </Button>
             </div>
           </div>
@@ -496,25 +479,6 @@ export function ProfilePage() {
               </div>
             </div>
 
-            {/* 側邊欄 */}
-            <div className="space-y-6">
-              <StaffProfileCard
-                showActions={true}
-                showStatistics={true}
-                onLogout={handleLogout}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* 績效統計 */}
-        {activeTab === ProfileTab.STATISTICS && (
-          <div className="space-y-8">
-            <div className="text-center py-12">
-              <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">績效統計功能</h3>
-              <p className="text-gray-600">詳細的統計分析功能正在開發中...</p>
-            </div>
           </div>
         )}
 

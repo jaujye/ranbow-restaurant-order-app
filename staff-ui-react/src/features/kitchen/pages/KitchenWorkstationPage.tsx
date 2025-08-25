@@ -325,7 +325,7 @@ export const KitchenWorkstationPage: React.FC<KitchenWorkstationPageProps> = ({
       case 'preparation':
         return (
           <PreparationList
-            workstation={selectedWorkstation}
+            workstation={selectedWorkstation || undefined}
             showAllSteps={true}
             compactMode={layoutMode === 'grid'}
             showTimer={true}
@@ -335,7 +335,7 @@ export const KitchenWorkstationPage: React.FC<KitchenWorkstationPageProps> = ({
       case 'timers':
         const { orders } = useKitchenQueue({ 
           statusFilter: ['active'],
-          workstation: selectedWorkstation 
+          workstation: selectedWorkstation || undefined 
         });
         
         return (
@@ -441,9 +441,9 @@ export const KitchenWorkstationPage: React.FC<KitchenWorkstationPageProps> = ({
       </div>
 
       {/* 快速統計 */}
-      <div className="px-3 md:px-6 py-3 md:py-4">
+      {/* <div className="px-3 md:px-6 py-3 md:py-4">
         <QuickStats />
-      </div>
+      </div> */}
 
       {/* 錯誤提示 */}
       {error && (
