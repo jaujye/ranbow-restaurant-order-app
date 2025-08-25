@@ -1,4 +1,13 @@
 import axios from 'axios';
+import {
+  NotificationType,
+  NotificationPriority,
+  Notification,
+  GetNotificationsRequest,
+  NotificationsListResponse,
+  MarkReadRequest,
+  MarkReadResponse
+} from '../types/notifications.types';
 
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api';
@@ -6,72 +15,6 @@ const API_ENDPOINTS = {
   notifications: (staffId: string) => `${API_BASE_URL}/staff/notifications/${staffId}`,
   markRead: (staffId: string) => `${API_BASE_URL}/staff/notifications/${staffId}/mark-read`,
 };
-
-// Notification Types
-export enum NotificationType {
-  NEW_ORDER = 'NEW_ORDER',
-  ORDER_STATUS_CHANGE = 'ORDER_STATUS_CHANGE',
-  ORDER_OVERDUE = 'ORDER_OVERDUE',
-  KITCHEN_ALERT = 'KITCHEN_ALERT',
-  STAFF_MESSAGE = 'STAFF_MESSAGE',
-  SYSTEM = 'SYSTEM',
-  SHIFT_START = 'SHIFT_START',
-  SHIFT_END = 'SHIFT_END',
-  EMERGENCY = 'EMERGENCY'
-}
-
-export enum NotificationPriority {
-  LOW = 'LOW',
-  NORMAL = 'NORMAL', 
-  HIGH = 'HIGH',
-  URGENT = 'URGENT',
-  EMERGENCY = 'EMERGENCY' // Database uses EMERGENCY instead of URGENT
-}
-
-// Notification Interface
-export interface Notification {
-  notificationId: string;
-  recipientStaffId: string;
-  senderStaffId?: string;
-  type: NotificationType;
-  priority: NotificationPriority;
-  title: string;
-  message: string;
-  relatedOrderId?: string;
-  isRead?: boolean; // Optional to handle different API response formats
-  read?: boolean; // API sometimes uses 'read' instead of 'isRead'
-  sentAt: string;
-  readAt?: string;
-  expiresAt?: string;
-  actionUrl?: string;
-  // Additional fields from API response
-  expired?: boolean;
-  urgent?: boolean;
-  minutesSinceSent?: number;
-}
-
-// Request/Response Types
-export interface GetNotificationsRequest {
-  unreadOnly?: boolean;
-  limit?: number;
-  offset?: number;
-}
-
-export interface NotificationsListResponse {
-  notifications: Notification[];
-  unreadCount: number;
-  totalCount: number;
-}
-
-export interface MarkReadRequest {
-  notificationId?: string; // If not provided, marks all as read
-}
-
-export interface MarkReadResponse {
-  success: boolean;
-  message: string;
-  markedCount?: number;
-}
 
 // Create axios instance with interceptors
 const createApiClient = () => {
@@ -343,4 +286,4 @@ export const notificationsApi = {
     NotificationsApiService.getNotificationsByType(staffId, NotificationType.SYSTEM)
 };
 
-// Note: Types are already exported above as interfaces, no need to re-export
+// Types are imported from notifications.types.ts to avoid circular imports

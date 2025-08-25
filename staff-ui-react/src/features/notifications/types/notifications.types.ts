@@ -1,13 +1,67 @@
-// Re-export types from API service for consistency
-export {
-  NotificationType,
-  NotificationPriority,
-  Notification,
-  GetNotificationsRequest,
-  NotificationsListResponse,
-  MarkReadRequest,
-  MarkReadResponse
-} from '../services/notificationsApi';
+// Notification Types and Enums (defined here to avoid circular imports)
+export enum NotificationType {
+  NEW_ORDER = 'NEW_ORDER',
+  ORDER_STATUS_CHANGE = 'ORDER_STATUS_CHANGE',
+  ORDER_OVERDUE = 'ORDER_OVERDUE',
+  KITCHEN_ALERT = 'KITCHEN_ALERT',
+  STAFF_MESSAGE = 'STAFF_MESSAGE',
+  SYSTEM = 'SYSTEM',
+  SHIFT_START = 'SHIFT_START',
+  SHIFT_END = 'SHIFT_END',
+  EMERGENCY = 'EMERGENCY'
+}
+
+export enum NotificationPriority {
+  LOW = 'LOW',
+  NORMAL = 'NORMAL', 
+  HIGH = 'HIGH',
+  URGENT = 'URGENT',
+  EMERGENCY = 'EMERGENCY'
+}
+
+// Notification Interface
+export interface Notification {
+  notificationId: string;
+  recipientStaffId: string;
+  senderStaffId?: string;
+  type: NotificationType;
+  priority: NotificationPriority;
+  title: string;
+  message: string;
+  relatedOrderId?: string;
+  isRead?: boolean;
+  read?: boolean; // API compatibility
+  sentAt: string;
+  readAt?: string;
+  expiresAt?: string;
+  actionUrl?: string;
+  expired?: boolean;
+  urgent?: boolean;
+  minutesSinceSent?: number;
+}
+
+// API Request/Response Types
+export interface GetNotificationsRequest {
+  unreadOnly?: boolean;
+  limit?: number;
+  offset?: number;
+}
+
+export interface NotificationsListResponse {
+  notifications: Notification[];
+  unreadCount: number;
+  totalCount: number;
+}
+
+export interface MarkReadRequest {
+  notificationId?: string;
+}
+
+export interface MarkReadResponse {
+  success: boolean;
+  message: string;
+  markedCount?: number;
+}
 
 // Additional UI-specific types
 export interface NotificationUIState {
