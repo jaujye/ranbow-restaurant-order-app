@@ -50,11 +50,22 @@ export function DashboardStats() {
   const { currentStaff } = useStaffAuth();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [overview, setOverview] = useState<RealTimeOverview | null>(null);
-  const [loading, setLoading] = useState(false); // 改為false，只有在實際加載時才設置為true
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   
   console.log('🎯 DashboardStats component rendered with currentStaff:', currentStaff);
+  
+  // 錯誤邊界保護
+  if (!currentStaff) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="col-span-full bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+          <p className="text-yellow-700">請先登入以查看統計數據</p>
+        </div>
+      </div>
+    );
+  }
 
   /**
    * 載入完整儀表板數據
@@ -102,20 +113,27 @@ export function DashboardStats() {
   /**
    * 初始化數據載入 - 登入後立即載入所有數據
    */
+  // 初始化數據載入
   useEffect(() => {
     const staffId = currentStaff?.staff?.staffId || currentStaff?.staffId;
-    
     if (staffId) {
-      console.log('🚀 初始化加載: 立即載入所有儀表板數據, staffId:', staffId);
-      // 立即並行載入所有數據
-      Promise.all([
-        loadDashboardData(),
-        loadOverviewData()
-      ]).then(() => {
-        console.log('✅ 初始化載入完成');
-      });
+      console.log('🚀 初始化加載 Dashboard 數據, staffId:', staffId);
+      loadDashboardData();
+    }
+  }, [currentStaff?.staff?.staffId, currentStaff?.staffId]);
+
+  // 初始化概覽數據載入
+  useEffect(() => {
+    console.log('🚀 初始化加載 Overview 數據');
+    loadOverviewData();
+  }, []);
+
+  // 設置輪詢更新
+  useEffect(() => {
+    const staffId = currentStaff?.staff?.staffId || currentStaff?.staffId;
+    if (staffId) {
+      console.log('🔄 設置數據輪詢更新');
       
-      // 設置輪詢更新
       // 每15秒更新一次概覽數據
       const overviewInterval = setInterval(() => {
         console.log('🔄 輪詢更新: 載入概覽數據');
