@@ -101,14 +101,16 @@
       "Bash(git reset:*)",
       "Bash(npx tsc:*)",
       "Bash(sed:*)",
-      "mcp__chrome-devtools__get_page_info"
+      "mcp__chrome-devtools__get_page_info",
+      "mcp__playwright__browser_fill_form"
     ],
     "deny": [],
     "ask": [],
     "defaultMode": "acceptEdits",
     "additionalDirectories": [
       "C:\\c\\Users\\JauJyeCH\\Desktop",
-      "C:\\c\\Users"
+      "C:\\c\\Users",
+      "C:\\c\\Users\\JauJyeCH\\Desktop\\ranbow-restaurant-order-app"
     ]
   }
 }

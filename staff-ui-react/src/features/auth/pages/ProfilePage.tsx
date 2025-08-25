@@ -541,7 +541,7 @@ export function ProfilePage() {
         )}
       </main>
       
-      {/* 臨時調試組件 */}
+      {/* 調試組件 - 智能顯示控制 */}
       <DebugStaffData />
     </div>
   );
