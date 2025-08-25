@@ -20,7 +20,7 @@ import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner';
 import { StaffProfileCard } from '../components/StaffProfileCard';
 import { QuickSwitchPanel } from '../components/QuickSwitchPanel';
 import { DebugStaffData } from '../components/DebugStaffData';
-import { useStaffAuth, useStaffAuthActions } from '../store/authStore';
+import { useStaffAuth, useStaffAuthActions, useStaffAuthStore } from '../store/authStore';
 import type { Staff } from '@/shared/types/api';
 
 /**
@@ -258,18 +258,53 @@ export function ProfilePage() {
 
   // 載入個人資料和處理重定向
   useEffect(() => {
-    if (!isLoading && !currentStaff) {
+    console.log('[ProfilePage] Auth state check:', {
+      isLoading,
+      hasCurrentStaff: !!currentStaff,
+      staffId: currentStaff?.staffId,
+      hasStaffProfile: !!staffProfile,
+      staffName: currentStaff?.name
+    });
+
+    // 等待 isLoading 完成，避免在 store rehydration 期間進行判斷
+    if (isLoading) {
+      console.log('[ProfilePage] Still loading, waiting...');
+      return;
+    }
+
+    // 如果沒有 currentStaff，重定向到登錄頁
+    if (!currentStaff) {
+      console.log('[ProfilePage] No currentStaff, redirecting to login');
       navigate('/login', { replace: true });
-    } else if (currentStaff && currentStaff.staffId && !staffProfile) {
-      // 如果有員工且 staffId 存在，但沒有個人資料，載入個人資料
-      console.log('Loading profile for staffId:', currentStaff.staffId);
+      return;
+    }
+
+    // 如果有員工但沒有 staffId，檢查是否為 rehydration 問題
+    if (!currentStaff.staffId) {
+      const { token } = useStaffAuthStore.getState();
+      console.log('[ProfilePage] Staff missing staffId:', {
+        hasToken: !!token,
+        staffName: currentStaff.name,
+        tokenLength: token?.length
+      });
+      
+      // 只有在確實沒有 token 的情況下才登出
+      if (!token) {
+        console.error('[ProfilePage] Current staff missing staffId and token, logging out:', currentStaff);
+        logout();
+        navigate('/login', { replace: true });
+        return;
+      }
+      
+      // 如果有 token，等待 rehydration 完成，不執行登出
+      console.log('[ProfilePage] Has token but no staffId, waiting for rehydration...');
+      return;
+    }
+
+    // 如果有員工和 staffId，但沒有個人資料，載入個人資料
+    if (!staffProfile) {
+      console.log('[ProfilePage] Loading profile for staffId:', currentStaff.staffId);
       loadProfile(currentStaff.staffId);
-    } else if (currentStaff && !currentStaff.staffId) {
-      // 如果員工存在但 staffId 不存在，這是數據錯誤
-      console.error('Current staff missing staffId:', currentStaff);
-      // 清除錯誤的員工數據並重定向到登錄頁
-      logout();
-      navigate('/login', { replace: true });
     }
   }, [isLoading, currentStaff, staffProfile, navigate, loadProfile, logout]);
 
