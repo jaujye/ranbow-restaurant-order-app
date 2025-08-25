@@ -363,9 +363,10 @@ export const KitchenWorkstationPage: React.FC<KitchenWorkstationPageProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 頂部導航欄 */}
-      <div className="bg-white shadow-sm border-b border-gray-200 px-3 md:px-6 py-3 md:py-4">
-        <div className="flex items-center justify-between">
+      {/* 頂部導航欄 - 統一與訂單管理頁面的padding */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between py-3 md:py-6">
           <div className="flex items-center space-x-2 md:space-x-4">
             <h1 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900">廚房工作站</h1>
             
@@ -419,6 +420,7 @@ export const KitchenWorkstationPage: React.FC<KitchenWorkstationPageProps> = ({
             >
               <Settings className="w-3 h-3 md:w-4 md:h-4" />
             </button>
+          </div>
           </div>
         </div>
       </div>

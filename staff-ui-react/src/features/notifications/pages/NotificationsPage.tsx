@@ -208,9 +208,10 @@ export function NotificationsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header - 優化手機版標題間距 */}
-      <div className="bg-white shadow-sm border-b border-gray-200 px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
-        <div className="flex items-center justify-between">
+      {/* Header - 統一與訂單管理頁面的padding */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between py-3 md:py-6">
           <div className="flex-1">
             <h1 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900">通知中心</h1>
             <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 mt-0.5 md:mt-1">
@@ -259,11 +260,11 @@ export function NotificationsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-        </div>
+          </div>
 
-        {/* Mobile action menu - 優化手機版按鈕間距 */}
-        {showMobileMenu && (
-          <div className="md:hidden mt-2 pt-2 border-t border-gray-200 space-y-1.5">
+          {/* Mobile action menu - 優化手機版按鈕間距 */}
+          {showMobileMenu && (
+            <div className="md:hidden mt-2 pt-2 border-t border-gray-200 space-y-1.5">
             <button
               onClick={() => {
                 handleRefresh();
@@ -300,8 +301,9 @@ export function NotificationsPage() {
             >
               🔍 {showFilters ? '隱藏篩選' : '顯示篩選'}
             </button>
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Quick stats - 移到 header 下方作為 tab 風格 */}
