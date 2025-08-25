@@ -53,20 +53,30 @@ export function DashboardStats() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  
+  console.log('🎯 DashboardStats component rendered with currentStaff:', currentStaff);
 
   /**
    * 載入完整儀表板數據
    */
   const loadDashboardData = async () => {
-    if (!currentStaff?.staffId) return;
+    console.log('🔍 LoadDashboardData called with currentStaff:', currentStaff);
+    
+    if (!currentStaff?.staffId) {
+      console.log('❌ No currentStaff or staffId, skipping data load');
+      setLoading(false);
+      return;
+    }
 
     try {
+      console.log('📡 Loading dashboard data for staffId:', currentStaff.staffId);
       setError(null);
       const data = await DashboardApi.getDashboardData(currentStaff.staffId);
+      console.log('✅ Dashboard data loaded successfully:', data);
       setDashboardData(data);
       setLastUpdated(new Date());
     } catch (err: any) {
-      console.error('Failed to load dashboard data:', err);
+      console.error('❌ Failed to load dashboard data:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -87,26 +97,38 @@ export function DashboardStats() {
   };
 
   /**
-   * 初始化數據載入
+   * 初始化數據載入 - 登入後立即載入所有數據
    */
   useEffect(() => {
-    loadDashboardData();
-  }, [currentStaff?.staffId]);
+    if (currentStaff?.staffId) {
+      console.log('🚀 初始化加載: 立即載入所有儀表板數據');
+      // 立即並行載入所有數據
+      Promise.all([
+        loadDashboardData(),
+        loadOverviewData()
+      ]).then(() => {
+        console.log('✅ 初始化載入完成');
+      });
+      
+      // 設置輪詢更新
+      // 每15秒更新一次概覽數據
+      const overviewInterval = setInterval(() => {
+        console.log('🔄 輪詢更新: 載入概覽數據');
+        loadOverviewData();
+      }, 15000);
+      
+      // 每2分鐘更新一次完整儀表板數據
+      const dashboardInterval = setInterval(() => {
+        console.log('🔄 輪詢更新: 載入儀表板數據');
+        loadDashboardData();
+      }, 120000);
 
-  /**
-   * 設置實時數據更新
-   */
-  useEffect(() => {
-    // 每30秒更新一次概覽數據
-    const overviewInterval = setInterval(loadOverviewData, 30000);
-    
-    // 每5分鐘更新一次完整儀表板數據
-    const dashboardInterval = setInterval(loadDashboardData, 300000);
-
-    return () => {
-      clearInterval(overviewInterval);
-      clearInterval(dashboardInterval);
-    };
+      return () => {
+        console.log('🛑 清理輪詢定時器');
+        clearInterval(overviewInterval);
+        clearInterval(dashboardInterval);
+      };
+    }
   }, [currentStaff?.staffId]);
 
   if (loading) {
@@ -170,13 +192,13 @@ export function DashboardStats() {
         {/* 待處理訂單 */}
         <StatCard
           title="待處理訂單"
-          value={currentOrders?.total || 0}
-          subtitle={`待確認：${currentOrders?.pending || 0} | 準備中：${currentOrders?.preparing || 0}`}
+          value={(currentOrders?.pending || 0) + (currentOrders?.confirmed || 0)}
+          subtitle={`待確認：${currentOrders?.pending || 0} | 已確認：${currentOrders?.confirmed || 0}`}
           icon={<ShoppingCart className="h-6 w-6 text-blue-600" />}
           color="bg-blue-100 text-blue-600"
           trend={{
-            value: `已確認：${currentOrders?.confirmed || 0}`,
-            isPositive: (currentOrders?.confirmed || 0) > 0
+            value: `準備中：${currentOrders?.preparing || 0}`,
+            isPositive: (currentOrders?.preparing || 0) > 0
           }}
         />
 
