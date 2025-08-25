@@ -4,8 +4,6 @@ import {
   ArrowLeft, 
   User, 
   Settings, 
-  Bell, 
-  Shield, 
   Activity,
   Calendar,
   Award,
@@ -134,7 +132,7 @@ function EditForm({ staff, onSave, onCancel, isLoading }: EditFormProps) {
         >
           {isLoading ? (
             <>
-              <LoadingSpinner size="xs" />
+              <LoadingSpinner size="sm" />
               <span className="ml-2">儲存中...</span>
             </>
           ) : (
@@ -146,7 +144,7 @@ function EditForm({ staff, onSave, onCancel, isLoading }: EditFormProps) {
         </Button>
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           onClick={onCancel}
           disabled={isLoading}
         >
@@ -310,7 +308,7 @@ export function ProfilePage() {
 
             <div className="flex items-center space-x-2">
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={() => window.location.reload()}
               >
@@ -364,7 +362,7 @@ export function ProfilePage() {
                   <h2 className="text-lg font-semibold text-gray-900">基本資訊</h2>
                   {!isEditing && (
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       size="sm"
                       onClick={() => setIsEditing(true)}
                     >
@@ -430,7 +428,7 @@ export function ProfilePage() {
                   <StatCard
                     icon={Activity}
                     title="處理訂單"
-                    value={staffProfile?.todayStats?.ordersProcessed || currentStaff?.dailyOrdersProcessed || 0}
+                    value={staffProfile?.todayStats?.ordersProcessed || 0}
                     subtitle="今日累計"
                     color="bg-blue-100 text-blue-600"
                     trend={{ value: 12, isPositive: true }}
@@ -446,7 +444,7 @@ export function ProfilePage() {
                   <StatCard
                     icon={Award}
                     title="效率指數"
-                    value={`${Math.round((staffProfile?.todayStats?.efficiency || currentStaff?.efficiencyRating || 0.85) * 100)}%`}
+                    value={`${Math.round((staffProfile?.todayStats?.efficiency || 0.85) * 100)}%`}
                     subtitle="工作效率"
                     color="bg-purple-100 text-purple-600"
                     trend={{ value: 5, isPositive: true }}
@@ -455,9 +453,7 @@ export function ProfilePage() {
                     icon={Calendar}
                     title="工作時數"
                     value={`${staffProfile?.todayStats?.totalWorkingHours || 
-                           (currentStaff?.isOnDuty ? 
-                             Math.round((Date.now() - new Date(currentStaff.shiftStartTime || Date.now()).getTime()) / (1000 * 60 * 60)) : 0
-                           )}h`}
+                           (currentStaff?.isOnDuty ? 8 : 0)}h`}
                     subtitle="今日累計"
                     color="bg-orange-100 text-orange-600"
                   />
