@@ -470,10 +470,10 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
             
             {showAddToCart && (
               <div className="flex items-center gap-1.5 sm:gap-2">
-                {/* Quantity Selector - 手機版超緊湊 */}
+                {/* Quantity Selector - 正圓形按鈕靠左 */}
                 {(quantity > 1 || isHovered) && (
                   <div className={cn(
-                    'flex items-center gap-0.5 sm:gap-1 transition-all duration-base',
+                    'flex items-center gap-1 sm:gap-2 transition-all duration-base -ml-1 sm:-ml-2',
                     isHovered ? 'opacity-100 scale-100' : 'opacity-80 scale-95'
                   )}>
                     <Button
@@ -481,12 +481,12 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                       size="sm"
                       onClick={(e) => handleQuantityChange(quantity - 1, e)}
                       disabled={quantity <= 1}
-                      className="w-4 h-4 sm:w-6 sm:h-6 p-0 rounded-full hover:scale-110 active:scale-95 min-w-4"
+                      className="w-5 h-5 sm:w-7 sm:h-7 p-0 rounded-full hover:scale-110 active:scale-95 flex items-center justify-center"
                       aria-label="減少數量"
                     >
                       <MinusIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                     </Button>
-                    <span className="w-3 sm:w-4 text-center text-xs sm:text-sm font-semibold select-none">
+                    <span className="w-4 sm:w-5 text-center text-xs sm:text-sm font-semibold select-none">
                       {quantity}
                     </span>
                     <Button
@@ -494,7 +494,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                       size="sm"
                       onClick={(e) => handleQuantityChange(quantity + 1, e)}
                       disabled={quantity >= 99}
-                      className="w-4 h-4 sm:w-6 sm:h-6 p-0 rounded-full hover:scale-110 active:scale-95 min-w-4"
+                      className="w-5 h-5 sm:w-7 sm:h-7 p-0 rounded-full hover:scale-110 active:scale-95 flex items-center justify-center"
                       aria-label="增加數量"
                     >
                       <PlusIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
