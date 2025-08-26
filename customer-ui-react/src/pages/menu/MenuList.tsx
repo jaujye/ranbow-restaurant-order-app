@@ -104,34 +104,34 @@ const MenuList: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      {/* Search Bar */}
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+    <div className="container mx-auto px-3 py-3 sm:px-4 sm:py-6">
+      {/* Search Bar - 手機版優化 */}
+      <div className="relative mb-4 sm:mb-6">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
         <input
           type="search"
           placeholder="搜尋菜品..."
           value={localSearchQuery}
           onChange={handleSearchChange}
-          className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          className="w-full pl-9 pr-4 py-2.5 sm:pl-10 sm:py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm sm:text-base"
         />
         {localSearchQuery && (
           <button
             onClick={clearSearch}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         )}
       </div>
 
-      {/* Category Tabs */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+      {/* Category Tabs - 手機版緊湊化 */}
+      <div className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2">
         {availableCategories.map((category) => (
           <button
             key={category}
             onClick={() => handleCategoryChange(category)}
-            className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors
+            className={`whitespace-nowrap px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors
               ${currentCategoryDisplay === category
                 ? 'bg-primary-500 text-white shadow-md'
                 : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
@@ -157,9 +157,9 @@ const MenuList: React.FC = () => {
         </div>
       )}
 
-      {/* Menu Items */}
+      {/* Menu Items - 手機版緊湊間距 */}
       {!isLoading && (
-        <div className="space-y-4">
+        <div className="space-y-2 sm:space-y-4">
           {filteredItems.length > 0 ? (
             filteredItems.map((item) => (
               <MenuItemCard
@@ -168,7 +168,7 @@ const MenuList: React.FC = () => {
                 variant="default"
                 showAddToCart={true}
                 showViewButton={true}
-                className="mb-4"
+                className=""
               />
             ))
           ) : (

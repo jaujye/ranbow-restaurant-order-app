@@ -372,11 +372,11 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
     )
   }
 
-  // Default variant
+  // Default variant - 手機版優化
   return (
     <Card 
       className={cn(
-        'p-5 transition-all duration-base cursor-pointer group',
+        'p-3 sm:p-5 transition-all duration-base cursor-pointer group',
         'hover:shadow-medium hover:scale-[1.01]',
         'card-hover',
         !item.available && 'opacity-75',
@@ -386,49 +386,49 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="flex gap-5">
-        {/* Item Image/Icon */}
+      <div className="flex gap-3 sm:gap-5">
+        {/* Item Image/Icon - 手機版縮小 */}
         <div className={cn(
-          'w-20 h-20 rounded-large flex items-center justify-center flex-shrink-0',
+          'w-16 h-16 sm:w-20 sm:h-20 rounded-large flex items-center justify-center flex-shrink-0',
           'bg-gradient-to-br from-primary-100 to-accent-100',
           'transition-all duration-base',
           'group-hover:shadow-medium group-hover:scale-105'
         )}>
-          <span className="text-3xl transition-transform duration-base group-hover:scale-110">
+          <span className="text-2xl sm:text-3xl transition-transform duration-base group-hover:scale-110">
             {getCategoryIcon(item.category)}
           </span>
         </div>
         
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between mb-2">
+          <div className="flex items-start justify-between mb-1.5 sm:mb-2">
             <div className="flex-1">
-              {/* Title and Badges */}
-              <div className="flex items-center gap-2 mb-1">
+              {/* Title and Badges - 手機版緊湊化 */}
+              <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
                 <h3 className={cn(
-                  'font-semibold text-lg transition-colors duration-base',
+                  'font-semibold text-base sm:text-lg transition-colors duration-base',
                   'group-hover:text-primary-600'
                 )}>
                   {item.name}
                 </h3>
                 {item.popular && (
-                  <span className="px-2 py-1 bg-red-100 text-red-600 text-xs font-medium rounded-full animate-pulse">
+                  <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-red-100 text-red-600 text-xs font-medium rounded-full animate-pulse">
                     熱銷
                   </span>
                 )}
                 {!item.available && (
-                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                  <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
                     缺貨
                   </span>
                 )}
               </div>
               
-              {/* Description */}
-              <p className="text-text-secondary text-sm mb-3 text-ellipsis-2 leading-relaxed">
+              {/* Description - 手機版縮短 */}
+              <p className="text-text-secondary text-xs sm:text-sm mb-2 sm:mb-3 text-ellipsis-2 leading-relaxed">
                 {item.description || '美味可口的料理'}
               </p>
               
-              {/* Metadata */}
-              <div className="flex items-center gap-4 text-sm text-text-secondary mb-3">
+              {/* Metadata - 手機版縮小 */}
+              <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-text-secondary mb-2 sm:mb-3">
                 <span className="flex items-center gap-1">
                   {getCategoryDisplayName(item.category)}
                 </span>
@@ -443,11 +443,11 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
               </div>
             </div>
             
-            {/* Favorite Button */}
+            {/* Favorite Button - 手機版縮小 */}
             <button
               onClick={handleToggleFavorite}
               className={cn(
-                'p-2 rounded-medium transition-all duration-base',
+                'p-1.5 sm:p-2 rounded-medium transition-all duration-base',
                 'hover:scale-110 active:scale-95',
                 'focus-visible:ring-2 focus-visible:ring-primary-500/50',
                 isFavorite ? 'text-red-500' : 'text-gray-400 hover:text-red-400'
@@ -455,25 +455,25 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
               aria-label={isFavorite ? '取消收藏' : '加入收藏'}
             >
               {isFavorite ? (
-                <HeartIconSolid className="w-5 h-5 animate-bounce-gentle" />
+                <HeartIconSolid className="w-4 h-4 sm:w-5 sm:h-5 animate-bounce-gentle" />
               ) : (
-                <HeartIcon className="w-5 h-5" />
+                <HeartIcon className="w-4 h-4 sm:w-5 sm:h-5" />
               )}
             </button>
           </div>
           
-          {/* Price and Actions */}
+          {/* Price and Actions - 手機版優化 */}
           <div className="flex items-center justify-between">
-            <span className="text-primary-500 font-bold text-xl">
+            <span className="text-primary-500 font-bold text-lg sm:text-xl">
               {formatPrice(item.price)}
             </span>
             
             {showAddToCart && (
-              <div className="flex items-center gap-2">
-                {/* Quantity Selector (shown when quantity > 1 or hovered) */}
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                {/* Quantity Selector - 手機版縮小 */}
                 {(quantity > 1 || isHovered) && (
                   <div className={cn(
-                    'flex items-center gap-2 transition-all duration-base',
+                    'flex items-center gap-1 sm:gap-2 transition-all duration-base',
                     isHovered ? 'opacity-100 scale-100' : 'opacity-80 scale-95'
                   )}>
                     <Button
@@ -481,12 +481,12 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                       size="sm"
                       onClick={(e) => handleQuantityChange(quantity - 1, e)}
                       disabled={quantity <= 1}
-                      className="w-8 h-8 p-0 rounded-full hover:scale-110 active:scale-95"
+                      className="w-6 h-6 sm:w-8 sm:h-8 p-0 rounded-full hover:scale-110 active:scale-95"
                       aria-label="減少數量"
                     >
                       <MinusIcon className="w-3 h-3" />
                     </Button>
-                    <span className="w-6 text-center text-sm font-semibold select-none">
+                    <span className="w-4 sm:w-6 text-center text-xs sm:text-sm font-semibold select-none">
                       {quantity}
                     </span>
                     <Button
@@ -494,7 +494,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                       size="sm"
                       onClick={(e) => handleQuantityChange(quantity + 1, e)}
                       disabled={quantity >= 99}
-                      className="w-8 h-8 p-0 rounded-full hover:scale-110 active:scale-95"
+                      className="w-6 h-6 sm:w-8 sm:h-8 p-0 rounded-full hover:scale-110 active:scale-95"
                       aria-label="增加數量"
                     >
                       <PlusIcon className="w-3 h-3" />
@@ -502,14 +502,14 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                   </div>
                 )}
                 
-                {/* Add to Cart Button */}
+                {/* Add to Cart Button - 手機版緊湊 */}
                 <Button
                   size="sm"
                   onClick={handleAddToCart}
                   disabled={!item.available || isAdding}
                   loading={isAdding}
                   className={cn(
-                    'font-medium transition-all duration-base',
+                    'text-xs sm:text-sm font-medium transition-all duration-base px-2 sm:px-3',
                     'hover:scale-105 active:scale-95',
                     addButtonClicked && 'animate-pulse-glow',
                     !item.available && 'cursor-not-allowed'
@@ -517,13 +517,18 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                 >
                   {quantity > 1 ? (
                     <>
-                      <ShoppingCartIcon className="w-4 h-4 mr-1" />
-                      加入 {quantity}
+                      <ShoppingCartIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                      <span className="hidden sm:inline">加入</span> {quantity}
                     </>
                   ) : (
                     <>
-                      <PlusIcon className="w-4 h-4 mr-1" />
-                      {isAdding ? '加入中...' : '加入購物車'}
+                      <PlusIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                      {isAdding ? '加入中' : (
+                        <>
+                          <span className="hidden sm:inline">加入購物車</span>
+                          <span className="sm:hidden">加入</span>
+                        </>
+                      )}
                     </>
                   )}
                 </Button>
