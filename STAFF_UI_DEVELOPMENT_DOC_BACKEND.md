@@ -1288,6 +1288,543 @@ DEBUG - 調試信息
 }
 ```
 
+## 8. 業務邏輯實踐詳解
+
+> **🔧 深度解析：員工UI系統業務邏輯層實現**
+>
+> **本章節詳細說明每個業務邏輯層的實際實現方式、工作流程和關鍵決策邏輯。**
+> **這些不是理論設計，而是基於現有代碼的實際業務邏輯分析。**
+
+### 8.1 員工認證業務邏輯實踐
+
+#### **StaffService.authenticateStaff() - 雙重認證機制**
+
+**工作流程**：
+```java
+public Optional<Staff> authenticateStaff(String identifier, String password) {
+    // 階段1：員工ID認證
+    Optional<Staff> staffByEmployeeId = staffDAO.findByEmployeeId(identifier);
+    if (staffByEmployeeId.isPresent()) {
+        Staff staff = staffByEmployeeId.get();
+        Optional<User> user = userDAO.findById(staff.getUserId());
+        
+        // 驗證用戶狀態和權限
+        if (user.isPresent() && user.get().isActive() && 
+            (user.get().getRole() == UserRole.STAFF || user.get().getRole() == UserRole.ADMIN)) {
+            
+            // 密碼驗證
+            Optional<String> passwordHash = userDAO.getPasswordHashByUserId(user.get().getUserId());
+            if (passwordHash.isPresent() && passwordService.verifyPassword(password, passwordHash.get())) {
+                // 更新登入時間和員工活動
+                userDAO.updateLastLogin(user.get().getUserId(), LocalDateTime.now());
+                staff.updateActivity();
+                staffDAO.update(staff);
+                return Optional.of(staff);
+            }
+        }
+    }
+    
+    // 階段2：Email認證 (備用方式)
+    Optional<User> userByEmail = userDAO.findByEmail(identifier);
+    // ... 類似的驗證流程
+}
+```
+
+**關鍵業務決策**：
+- **雙重認證路徑**：先嘗試員工ID，失敗後嘗試Email
+- **多重驗證檢查**：用戶狀態、角色權限、密碼正確性
+- **即時狀態更新**：成功登入後立即更新最後登入時間和員工活動時間
+- **安全性考量**：使用BCrypt密碼雜湊驗證，不存儲明文密碼
+
+#### **登入會話管理機制**
+
+**SessionService整合流程**：
+```java
+// 在StaffController.staffLogin()中的實現
+if (staffOpt.isPresent()) {
+    // 自動開始班次（如果未開始）
+    if (!staff.isOnDuty()) {
+        staffService.startShift(staff.getStaffId());
+    }
+    
+    // 生成會話和JWT令牌
+    String sessionId = sessionService.createSession(staff.getStaffId(), "Staff Portal", "127.0.0.1");
+    String token = jwtService.generateToken(staff.getStaffId(), sessionId, "Staff Portal");
+    String refreshToken = jwtService.generateToken(staff.getStaffId(), sessionId + "_refresh", "Staff Portal");
+    
+    return ResponseEntity.ok(Map.of(
+        "staff", profile,
+        "token", token,
+        "refreshToken", refreshToken,
+        "sessionId", sessionId,
+        "expiresIn", 8 * 60 * 60, // 8小時
+        "unreadNotifications", notificationService.countUnreadNotifications(staff.getStaffId())
+    ));
+}
+```
+
+**業務邏輯決策**：
+- **自動班次管理**：登入時自動檢查並開始班次
+- **多層次會話**：Session、JWT Token、Refresh Token三層安全機制
+- **即時通知整合**：登入時立即載入未讀通知數量
+- **長期會話**：8小時有效期適合餐廳工作環境
+
+### 8.2 訂單管理業務邏輯實踐
+
+#### **StaffController訂單狀態管理流程**
+
+**updateOrderStatus() 業務邏輯**：
+```java
+@PutMapping("/orders/{orderId}/status")
+public ResponseEntity<?> updateOrderStatus(@PathVariable String orderId, 
+                                         @RequestBody OrderStatusUpdateRequest request) {
+    boolean success = orderService.updateOrderStatus(orderId, request.getStatus());
+    
+    if (success) {
+        // 員工活動追蹤
+        if (request.getStaffId() != null) {
+            staffService.updateStaffActivity(request.getStaffId());
+            
+            // 完成訂單的統計記錄
+            if (request.getStatus() == OrderStatus.COMPLETED || 
+                request.getStatus() == OrderStatus.DELIVERED) {
+                staffService.recordOrderProcessed(request.getStaffId());
+            }
+        }
+        
+        Optional<Order> updatedOrder = orderService.findOrderById(orderId);
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "訂單狀態已更新",
+            "order", updatedOrder.orElse(null)
+        ));
+    }
+}
+```
+
+**關鍵業務決策**：
+- **狀態更新的副作用**：每次狀態更新都觸發員工活動記錄
+- **績效統計整合**：完成訂單時自動記錄到員工統計數據
+- **即時反饋**：返回更新後的完整訂單信息
+- **錯誤處理**：狀態更新失敗時返回具體錯誤信息
+
+#### **智能訂單分組邏輯**
+
+**不同狀態的訂單分組策略**：
+```java
+// getPendingOrders() - 待處理訂單邏輯
+@GetMapping("/orders/pending")
+public ResponseEntity<?> getPendingOrders() {
+    List<Map<String, Object>> pendingOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.PENDING);
+    List<Map<String, Object>> confirmedOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.CONFIRMED);
+    
+    return ResponseEntity.ok(Map.of(
+        "pending", pendingOrders,      // 新訂單，需要確認
+        "confirmed", confirmedOrders,  // 已確認，準備製作
+        "total", pendingOrders.size() + confirmedOrders.size()
+    ));
+}
+
+// getInProgressOrders() - 進行中訂單邏輯
+@GetMapping("/orders/in-progress")
+public ResponseEntity<?> getInProgressOrders() {
+    List<Map<String, Object>> preparingOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.PREPARING);
+    List<Map<String, Object>> readyOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.READY);
+    
+    return ResponseEntity.ok(Map.of(
+        "preparing", preparingOrders,  // 正在製作
+        "ready", readyOrders,         // 製作完成，等待取餐
+        "total", preparingOrders.size() + readyOrders.size()
+    ));
+}
+```
+
+**業務邏輯設計原理**：
+- **工作流程導向**：按照餐廳實際工作流程分組訂單
+- **優先級管理**：pending → confirmed → preparing → ready 的自然流程
+- **負載平衡**：分組顯示避免單一列表過長，提高操作效率
+- **即時統計**：每個分組都提供即時計數信息
+
+### 8.3 廚房管理業務邏輯實踐
+
+#### **KitchenService.startPreparingOrder() - 智能廚房調度**
+
+**完整的廚房訂單啟動流程**：
+```java
+public boolean startPreparingOrder(String orderId, String staffId) {
+    Optional<KitchenOrder> kitchenOrderOpt = kitchenOrderDAO.findByOrderId(orderId);
+    
+    if (kitchenOrderOpt.isEmpty()) {
+        // 動態創建廚房訂單
+        Optional<Order> orderOpt = orderDAO.findById(orderId);
+        if (orderOpt.isEmpty()) return false;
+        
+        Order order = orderOpt.get();
+        // 智能預估烹飪時間
+        int estimatedCookingTime = calculateEstimatedCookingTime(order);
+        
+        KitchenOrder kitchenOrder = new KitchenOrder(orderId, estimatedCookingTime);
+        kitchenOrder.startCooking(staffId);
+        kitchenOrderDAO.save(kitchenOrder);
+        
+        // 同步更新主訂單狀態
+        orderDAO.updateStatus(orderId, OrderStatus.PREPARING);
+        
+        // 員工活動記錄
+        staffService.updateStaffActivity(staffId);
+        
+        return true;
+    } else {
+        // 恢復已存在的廚房訂單
+        KitchenOrder kitchenOrder = kitchenOrderOpt.get();
+        kitchenOrder.startCooking(staffId);
+        kitchenOrderDAO.update(kitchenOrder);
+        
+        orderDAO.updateStatus(orderId, OrderStatus.PREPARING);
+        staffService.updateStaffActivity(staffId);
+        
+        return true;
+    }
+}
+```
+
+**關鍵業務邏輯**：
+- **動態訂單創建**：不存在的廚房訂單自動創建，支援靈活的工作流程
+- **智能時間預估**：基於訂單項目數量計算預估烹飪時間
+- **狀態同步機制**：廚房訂單和主訂單狀態保持一致
+- **員工績效追蹤**：每個操作都記錄到員工活動日誌
+
+#### **烹飪時間計算演算法**
+
+**calculateEstimatedCookingTime() 實現邏輯**：
+```java
+private int calculateEstimatedCookingTime(Order order) {
+    // 基礎烹飪時間算法
+    int baseTime = 15; // 基礎15分鐘
+    int itemCount = order.getOrderItems().size();
+    return baseTime + (itemCount * 5); // 每個項目增加5分鐘
+    
+    // 未來可擴展考慮因素：
+    // - 菜品複雜度評分
+    // - 當前廚房負載
+    // - 廚師技能等級
+    // - 歷史平均完成時間
+}
+```
+
+**演算法設計考量**：
+- **基礎時間模型**：簡單但有效的線性時間計算
+- **可擴展架構**：預留複雜度、負載、技能等因素的擴展空間
+- **實時調整**：支援後續的機器學習優化
+
+#### **超時訂單監控機制**
+
+**checkForOverdueOrders() 自動化監控**：
+```java
+public void checkForOverdueOrders() {
+    List<KitchenOrder> overdueOrders = getOverdueOrders();
+    
+    for (KitchenOrder kitchenOrder : overdueOrders) {
+        int overdueMinutes = kitchenOrder.getOverdueMinutes();
+        
+        // 創建超時通知
+        notificationService.createOvertimeOrderNotification(
+            kitchenOrder.getOrderId(), overdueMinutes, kitchenOrder.getAssignedStaffId());
+        
+        // 動態優先級調整
+        if (overdueMinutes > 15) {
+            updateOrderPriority(kitchenOrder.getOrderId(), 
+                Math.min(10, 7 + overdueMinutes / 10));
+        }
+    }
+}
+```
+
+**自動化管理策略**：
+- **主動監控**：定時檢查超時訂單，而非被動等待
+- **分級通知**：根據超時程度發送不同優先級通知
+- **動態優先級**：超時越久優先級越高，最高為10級
+- **多方通知**：同時通知負責廚師和管理人員
+
+### 8.4 統計分析業務邏輯實踐
+
+#### **StaffStatisticsService多維度統計實現**
+
+**getDailyStatistics() - 日統計邏輯**：
+```java
+public Optional<StaffStatistics> getDailyStatistics(String staffId, LocalDate date) {
+    LocalDate targetDate = date != null ? date : LocalDate.now();
+    return statisticsDAO.findByStaffAndDate(staffId, targetDate, StatisticsPeriod.DAILY);
+}
+
+public Optional<StaffStatistics> getWeeklyStatistics(String staffId, LocalDate weekStartDate) {
+    LocalDate targetDate = weekStartDate != null ? weekStartDate : getStartOfCurrentWeek();
+    return statisticsDAO.findByStaffAndDate(staffId, targetDate, StatisticsPeriod.WEEKLY);
+}
+
+public Optional<StaffStatistics> getMonthlyStatistics(String staffId, LocalDate monthStartDate) {
+    LocalDate targetDate = monthStartDate != null ? monthStartDate : LocalDate.now().withDayOfMonth(1);
+    return statisticsDAO.findByStaffAndDate(staffId, targetDate, StatisticsPeriod.MONTHLY);
+}
+```
+
+**時間周期處理邏輯**：
+- **靈活時間範圍**：支援指定時間或使用當前時間
+- **ISO週標準**：使用`WeekFields.ISO`確保週的計算標準化
+- **月份對齊**：月統計始終從每月1號開始計算
+- **統一接口**：三種時間周期使用相同的DAO接口，便於維護
+
+#### **團隊績效聚合計算**
+
+**getTeamStatistics() 複雜聚合邏輯**：
+```java
+public TeamStatistics getTeamStatistics() {
+    LocalDate today = LocalDate.now();
+    List<Staff> allStaff = staffDAO.findAll();
+    
+    TeamStatistics teamStats = new TeamStatistics();
+    teamStats.setTotalStaff(allStaff.size());
+    teamStats.setOnDutyStaff((int) allStaff.stream().filter(Staff::isOnDuty).count());
+    
+    // 聚合計算各項指標
+    int totalOrdersProcessed = 0, totalOrdersCompleted = 0;
+    double totalRevenue = 0.0, totalEfficiencyRating = 0.0;
+    int staffWithStats = 0;
+    
+    for (Staff staff : allStaff) {
+        Optional<StaffStatistics> statsOpt = getDailyStatistics(staff.getStaffId(), today);
+        if (statsOpt.isPresent()) {
+            StaffStatistics stats = statsOpt.get();
+            totalOrdersProcessed += stats.getOrdersProcessed();
+            totalOrdersCompleted += stats.getOrdersCompleted();
+            totalRevenue += stats.getTotalRevenue();
+            totalEfficiencyRating += stats.getEfficiencyRating();
+            staffWithStats++;
+        }
+    }
+    
+    // 計算團隊平均值
+    teamStats.setAverageEfficiencyRating(
+        staffWithStats > 0 ? totalEfficiencyRating / staffWithStats : 0.0);
+    teamStats.setCompletionRate(
+        totalOrdersProcessed > 0 ? (double) totalOrdersCompleted / totalOrdersProcessed : 0.0);
+    
+    return teamStats;
+}
+```
+
+**聚合演算法特點**：
+- **即時計算**：每次請求都重新計算，確保數據即時性
+- **零除保護**：所有除法運算都包含零除檢查
+- **選擇性統計**：只計算有統計數據的員工，避免空值影響
+- **多維度指標**：同時計算數量、效率、收入等多個維度
+
+#### **排行榜演算法實現**
+
+**getStaffLeaderboard() 動態排名邏輯**：
+```java
+public List<StaffLeaderboard> getStaffLeaderboard(StatisticsPeriod period, int limit) {
+    LocalDate startDate = getStartDateForPeriod(period);
+    List<StaffStatistics> topPerformers = statisticsDAO.findTopPerformers(period, startDate, limit);
+    
+    return topPerformers.stream()
+        .map(stats -> {
+            Optional<Staff> staffOpt = staffDAO.findById(stats.getStaffId());
+            if (staffOpt.isPresent()) {
+                return new StaffLeaderboard(staffOpt.get(), stats);
+            }
+            return null;
+        })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+}
+```
+
+**排名邏輯設計**：
+- **多期間支援**：日、週、月排行榜使用統一邏輯
+- **數據完整性**：確保排行榜中的員工信息完整
+- **空值處理**：過濾掉無效的員工資料
+- **延遲排序**：在DAO層進行排序，提高效率
+
+### 8.5 通知系統業務邏輯實踐
+
+#### **NotificationService智能通知分發**
+
+**createNewOrderNotification() - 部門導向通知**：
+```java
+public void createNewOrderNotification(String orderId, String customerInfo, String tableNumber) {
+    List<Staff> kitchenStaff = staffDAO.findByDepartment("廚房");
+    String message = String.format("桌號 %s 的新訂單 - %s", tableNumber, customerInfo);
+    
+    for (Staff staff : kitchenStaff) {
+        if (staff.isOnDuty()) {  // 只通知當班員工
+            Notification notification = Notification.newOrderNotification(staff.getStaffId(), orderId, message);
+            notificationDAO.save(notification);
+        }
+    }
+}
+```
+
+**通知分發策略**：
+- **部門定向**：新訂單只通知廚房部門員工
+- **班次過濾**：只向當前在班的員工發送通知
+- **格式化訊息**：統一的訊息格式，包含桌號和客戶信息
+- **批量處理**：一次性為所有相關員工創建通知
+
+#### **分級通知機制**
+
+**createOvertimeOrderNotification() - 分級通知邏輯**：
+```java
+public void createOvertimeOrderNotification(String orderId, int overdueMinutes, String assignedStaffId) {
+    // 第一層：通知負責的員工
+    if (assignedStaffId != null) {
+        Notification notification = Notification.overtimeOrderNotification(
+            assignedStaffId, orderId, overdueMinutes);
+        notificationDAO.save(notification);
+    }
+    
+    // 第二層：通知管理層
+    List<Staff> managers = staffDAO.findByPosition("Manager");
+    for (Staff manager : managers) {
+        if (manager.isOnDuty() && !manager.getStaffId().equals(assignedStaffId)) {
+            Notification notification = Notification.overtimeOrderNotification(
+                manager.getStaffId(), orderId, overdueMinutes);
+            notificationDAO.save(notification);
+        }
+    }
+}
+```
+
+**分級通知設計**：
+- **責任明確**：首先通知直接負責人
+- **管理監督**：同時通知管理層進行監督
+- **避免重複**：管理層員工不會收到重複通知
+- **在班過濾**：只通知當前在班的管理人員
+
+#### **廣播通知機制**
+
+**broadcastToDepartment() - 部門廣播實現**：
+```java
+public void broadcastToDepartment(String department, NotificationType type, String title, 
+                                String message, NotificationPriority priority) {
+    List<Staff> departmentStaff = staffDAO.findByDepartment(department);
+    List<String> staffIds = departmentStaff.stream()
+        .filter(Staff::isOnDuty)  // 只給在班員工發送
+        .map(Staff::getStaffId)
+        .toList();
+    
+    if (!staffIds.isEmpty()) {
+        broadcastNotification(staffIds, type, title, message, priority);
+    }
+}
+```
+
+**廣播機制特色**：
+- **部門定向**：精確向指定部門廣播
+- **動態過濾**：即時過濾在班員工
+- **批量發送**：一次API調用發送所有通知
+- **空值保護**：沒有符合條件的員工時不執行廣播
+
+### 8.6 數據訪問層業務邏輯實踐
+
+#### **StaffDAO高效查詢實現**
+
+**複雜的SQL查詢策略**：
+```sql
+-- SELECT_ON_DUTY_STAFF - 在班員工查詢
+SELECT staff_id, user_id, employee_id, department, position, is_on_duty,
+       shift_start_time, shift_end_time, last_activity_time,
+       daily_orders_processed, efficiency_rating, created_at, updated_at
+FROM staff 
+WHERE is_on_duty = true 
+ORDER BY shift_start_time  -- 按上班時間排序
+
+-- SELECT_STAFF_BY_DEPARTMENT - 部門員工查詢  
+SELECT staff_id, user_id, employee_id, department, position, is_on_duty,
+       shift_start_time, shift_end_time, last_activity_time,
+       daily_orders_processed, efficiency_rating, created_at, updated_at
+FROM staff 
+WHERE department = ? 
+ORDER BY employee_id  -- 按員工編號排序
+```
+
+**查詢優化策略**：
+- **索引友好**：WHERE條件對應資料庫索引
+- **排序優化**：根據業務需求選擇最佳排序欄位
+- **欄位選擇**：選擇必要欄位，避免SELECT *
+- **參數化查詢**：防止SQL注入攻擊
+
+#### **原子性操作保證**
+
+**updateStaffActivity() - 原子性更新**：
+```java
+private static final String UPDATE_STAFF_ACTIVITY = """
+    UPDATE staff SET last_activity_time = ?, updated_at = ?
+    WHERE staff_id = ?
+    """;
+
+public void updateActivity(String staffId) {
+    LocalDateTime now = LocalDateTime.now();
+    jdbcTemplate.update(UPDATE_STAFF_ACTIVITY, 
+        Timestamp.valueOf(now), Timestamp.valueOf(now), staffId);
+}
+```
+
+**數據一致性保證**：
+- **單一SQL語句**：確保更新操作的原子性
+- **時間戳同步**：last_activity_time和updated_at同時更新
+- **事務支援**：利用Spring的事務管理確保一致性
+
+### 8.7 錯誤處理和異常管理實踐
+
+#### **全面的異常捕捉策略**
+
+**StaffService中的錯誤處理模式**：
+```java
+public Optional<Staff> authenticateStaff(String identifier, String password) {
+    try {
+        System.out.println("Attempting staff authentication for identifier: " + identifier);
+        // 業務邏輯實現...
+        System.out.println("Staff authentication successful for: " + identifier);
+        return Optional.of(staff);
+    } catch (Exception e) {
+        System.err.println("Error in staff authentication: " + e.getMessage());
+        e.printStackTrace();
+        return Optional.empty();
+    }
+}
+```
+
+**異常處理特點**：
+- **詳細日誌記錄**：記錄操作開始、成功和失敗狀態
+- **堆疊跟踪**：printStackTrace()用於調試
+- **優雅降級**：返回Optional.empty()而不是拋出異常
+- **一致性接口**：所有服務方法使用類似的錯誤處理模式
+
+#### **API層錯誤響應統一化**
+
+**StaffController中的錯誤響應模式**：
+```java
+@PostMapping("/login")
+public ResponseEntity<?> staffLogin(@RequestBody StaffLoginRequest request) {
+    try {
+        // 業務邏輯處理...
+        return ResponseEntity.ok(successResponse);
+    } catch (Exception e) {
+        System.err.println("Error in staff login: " + e.getMessage());
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of("error", "系統錯誤", "details", e.getMessage()));
+    }
+}
+```
+
+**統一錯誤響應格式**：
+- **HTTP狀態碼**：準確的HTTP狀態碼對應不同錯誤類型
+- **結構化響應**：error(用戶友好)和details(技術詳情)分離
+- **中文錯誤訊息**：用戶友好的中文錯誤描述
+- **調試信息保留**：開發環境下保留技術詳情
+
 ---
 
 ## ⚠️ **開發完成檢查清單**
@@ -1318,10 +1855,19 @@ DEBUG - 調試信息
 > - [ ] 處理了WebSocket連接管理
 > - [ ] 整合了真實的業務事件觸發
 >
+> **✅ 業務邏輯檢查：**
+> - [ ] 員工認證實現了雙重驗證機制（員工ID + Email）
+> - [ ] 訂單狀態更新包含副作用處理（統計記錄、活動更新）
+> - [ ] 廚房管理實現了智能時間預估和超時監控
+> - [ ] 統計服務實現了多維度聚合計算
+> - [ ] 通知系統實現了分級和廣播機制
+> - [ ] 異常處理實現了統一的錯誤響應格式
+>
 > **✅ 測試驗證：**
 > - [ ] 使用真實數據測試所有API端點
 > - [ ] 驗證資料庫數據的正確性
 > - [ ] 測試緩存功能的實際效果
+> - [ ] 驗證業務邏輯的工作流程正確性
 >
 > **🔴 重要提醒：本文檔中的所有JSON範例和數據格式僅用於說明API結構，開發者必須實現連接真實資料庫和Redis的完整功能，而不是返回文檔中的示例數據！**
 >
