@@ -158,7 +158,7 @@ const DemoPage: React.FC = () => {
                 <TestTube className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">統計系統演示</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">員工績效統計系統</h1>
                 <p className="text-sm sm:text-base text-gray-600 hidden sm:block">展示彩虹餐廳統計報表儀表板功能</p>
               </div>
             </div>

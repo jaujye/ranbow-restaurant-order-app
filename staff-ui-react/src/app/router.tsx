@@ -1,4 +1,4 @@
-import React, { lazy } from 'react';
+import { lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/shared/components/auth/ProtectedRoute';
 import { DashboardLayout } from '@/shared/components/layout/DashboardLayout';
