@@ -172,15 +172,15 @@ const Checkout: React.FC = () => {
   // 如果訂單完成，顯示成功頁面
   if (orderComplete && currentStep === 3) {
     return (
-      <div className="container mx-auto px-4 py-6 max-w-2xl">
-        <Card className="p-8 text-center">
+      <div className="container mx-auto px-3 py-3 sm:px-4 sm:py-6 max-w-2xl">
+        <Card className="p-4 sm:p-8 text-center bg-gradient-to-br from-white to-success-50/20 border-l-4 border-l-success-500 shadow-rainbow-lg">
           <div className="text-green-500 mb-6">
             <CheckCircle className="w-16 h-16 mx-auto" />
           </div>
           
-          <h1 className="text-2xl font-bold mb-4">訂單提交成功！</h1>
+          <h1 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">訂單提交成功！</h1>
           
-          <div className="text-text-secondary mb-6 space-y-2">
+          <div className="text-text-secondary mb-4 sm:mb-6 space-y-1.5 sm:space-y-2">
             <p>您的訂單已成功提交並完成付款</p>
             <p>餐廳正在準備您的美味餐點</p>
             <div className="flex items-center justify-center gap-2 text-primary-500 font-medium">
@@ -189,7 +189,7 @@ const Checkout: React.FC = () => {
             </div>
           </div>
           
-          <div className="bg-background-light rounded-lg p-4 mb-6">
+          <div className="bg-gradient-to-r from-gray-50 to-primary-50/30 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-primary-200">
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-text-secondary">訂單編號</span>
@@ -232,9 +232,9 @@ const Checkout: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-4xl">
+    <div className="container mx-auto px-3 py-3 sm:px-4 sm:py-6 max-w-4xl">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
         <Button
           variant="ghost"
           size="sm"
@@ -244,7 +244,7 @@ const Checkout: React.FC = () => {
           <ArrowLeft size={20} />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">結帳</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">結帳</h1>
           <p className="text-text-secondary text-sm">
             步驟 {currentStep} / 2
           </p>
@@ -252,47 +252,47 @@ const Checkout: React.FC = () => {
       </div>
 
       {/* Progress Bar */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 sm:mb-8">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
           <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-primary-500' : 'text-text-secondary'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
               currentStep >= 1 ? 'bg-primary-500 text-white' : 'bg-gray-200'
             }`}>
               1
             </div>
-            <span className="text-sm font-medium">訂單確認</span>
+            <span className="text-xs sm:text-sm font-medium">訂單確認</span>
           </div>
           
-          <div className={`flex-1 h-1 mx-4 ${currentStep >= 2 ? 'bg-primary-500' : 'bg-gray-200'}`} />
+          <div className={`flex-1 h-0.5 sm:h-1 mx-2 sm:mx-4 ${currentStep >= 2 ? 'bg-primary-500' : 'bg-gray-200'}`} />
           
           <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-primary-500' : 'text-text-secondary'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
               currentStep >= 2 ? 'bg-primary-500 text-white' : 'bg-gray-200'
             }`}>
               2
             </div>
-            <span className="text-sm font-medium">付款方式</span>
+            <span className="text-xs sm:text-sm font-medium">付款方式</span>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-6 lg:grid-cols-3">
         {/* Main Content */}
         <div className="lg:col-span-2">
           {/* Step 1: 訂單確認 */}
           {currentStep === 1 && (
-            <div className="space-y-6">
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <ShoppingCart className="w-5 h-5" />
+            <div className="space-y-3 sm:space-y-6">
+              <Card className="p-3 sm:p-6 bg-gradient-to-r from-white to-primary-50/20 border-l-4 border-l-primary-500 shadow-large hover:shadow-rainbow-lg transition-all duration-300">
+                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+                  <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
                   訂單商品
                 </h2>
                 
-                <div className="space-y-4">
+                <div className="space-y-2.5 sm:space-y-4">
                   {cartItems.map((item) => (
-                    <div key={item.id} className="flex items-center gap-4 pb-4 border-b border-border-light last:border-b-0">
-                      <div className="w-16 h-16 bg-gradient-to-br from-primary-100 to-accent-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <span className="text-xl">
+                    <div key={item.id} className="flex items-center gap-2.5 sm:gap-4 pb-2.5 sm:pb-4 border-b border-border-light last:border-b-0">
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-primary-400 via-accent-400 to-secondary-400 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 shadow-medium">
+                        <span className="text-lg sm:text-xl">
                           {item.menuItem.category === 'dessert' ? '🧁' : 
                            item.menuItem.category === 'beverage' ? '🥤' : 
                            item.menuItem.category === 'appetizer' ? '🥗' : '🍔'}
@@ -300,18 +300,18 @@ const Checkout: React.FC = () => {
                       </div>
                       
                       <div className="flex-1">
-                        <h3 className="font-medium">{item.menuItem.name}</h3>
-                        <p className="text-text-secondary text-sm">
+                        <h3 className="font-medium text-sm sm:text-base">{item.menuItem.name}</h3>
+                        <p className="text-text-secondary text-xs sm:text-sm">
                           {formatPrice(item.unitPrice)} × {item.quantity}
                         </p>
                         {item.specialRequests && (
-                          <p className="text-sm text-text-secondary mt-1">
+                          <p className="text-xs sm:text-sm text-text-secondary mt-1">
                             備註: {item.specialRequests}
                           </p>
                         )}
                       </div>
                       
-                      <div className="font-medium">
+                      <div className="font-medium text-sm sm:text-base">
                         {formatPrice(item.totalPrice)}
                       </div>
                     </div>
@@ -319,15 +319,15 @@ const Checkout: React.FC = () => {
                 </div>
               </Card>
 
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <MapPin className="w-5 h-5" />
+              <Card className="p-3 sm:p-6 bg-gradient-to-r from-white to-accent-50/20 border-l-4 border-l-accent-500 shadow-large hover:shadow-rainbow-lg transition-all duration-300">
+                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
                   用餐資訊
                 </h2>
                 
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">
+                    <label className="block text-xs sm:text-sm font-medium mb-2">
                       桌號 *
                     </label>
                     <Input
@@ -339,15 +339,15 @@ const Checkout: React.FC = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4" />
+                    <label className="block text-xs sm:text-sm font-medium mb-2 flex items-center gap-2">
+                      <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       特殊需求 (選填)
                     </label>
                     <textarea
                       value={checkoutData.specialRequests}
                       onChange={(e) => setSpecialRequests(e.target.value)}
                       placeholder="有任何特殊需求或備註嗎？"
-                      className="w-full p-3 border border-border-default rounded-lg resize-none h-20 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full p-2.5 sm:p-3 border border-border-default rounded-lg resize-none h-16 sm:h-20 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                     />
                   </div>
                 </div>
@@ -357,7 +357,7 @@ const Checkout: React.FC = () => {
                 <Button 
                   onClick={handleStepNext}
                   disabled={!checkoutData.tableNumber}
-                  className="px-8"
+                  className="px-6 sm:px-8 py-2 sm:py-2.5"
                 >
                   下一步
                 </Button>
@@ -367,17 +367,17 @@ const Checkout: React.FC = () => {
 
           {/* Step 2: 付款方式 */}
           {currentStep === 2 && (
-            <div className="space-y-6">
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4">選擇付款方式</h2>
+            <div className="space-y-3 sm:space-y-6">
+              <Card className="p-3 sm:p-6 bg-gradient-to-r from-white to-secondary-50/20 border-l-4 border-l-secondary-500 shadow-large hover:shadow-rainbow-lg transition-all duration-300">
+                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">選擇付款方式</h2>
                 
-                <div className="space-y-4">
+                <div className="space-y-2.5 sm:space-y-4">
                   {paymentMethods.map((method) => (
                     <button
                       key={method.value}
                       onClick={() => method.enabled && handlePaymentMethodSelect(method.value)}
                       disabled={!method.enabled}
-                      className={`w-full p-6 rounded-xl border-2 text-left transition-all group ${
+                      className={`w-full p-3 sm:p-6 rounded-xl border-2 text-left transition-all group ${
                         checkoutData.paymentMethod === method.value
                           ? 'border-primary-500 bg-primary-50 shadow-rainbow'
                           : method.enabled
@@ -385,33 +385,33 @@ const Checkout: React.FC = () => {
                           : 'border-border-light bg-gray-50 opacity-50 cursor-not-allowed'
                       }`}
                     >
-                      <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-lg bg-gradient-to-r ${method.gradient} text-white`}>
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <div className={`p-2 sm:p-3 rounded-lg bg-gradient-to-r ${method.gradient} text-white shadow-medium`}>
                           {method.icon}
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-lg flex items-center gap-2">
+                          <h3 className="font-semibold text-base sm:text-lg flex items-center gap-2">
                             {method.label}
                             {method.badges.map((badge, index) => (
                               <span
                                 key={index}
-                                className="text-xs bg-gradient-to-r from-primary-100 to-accent-100 text-primary-600 px-2 py-1 rounded-full"
+                                className="text-xs bg-gradient-to-r from-primary-100 to-accent-100 text-primary-600 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full"
                               >
                                 {badge}
                               </span>
                             ))}
                           </h3>
-                          <p className="text-text-secondary">
+                          <p className="text-text-secondary text-xs sm:text-sm">
                             {method.description}
                           </p>
                         </div>
                         {checkoutData.paymentMethod === method.value && (
                           <div className="text-primary-500">
-                            <CheckCircle className="w-5 h-5" />
+                            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                           </div>
                         )}
                         <div className="text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <ArrowLeft className="w-5 h-5 rotate-180" />
+                          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" />
                         </div>
                       </div>
                     </button>
@@ -420,13 +420,13 @@ const Checkout: React.FC = () => {
               </Card>
 
               <div className="flex justify-between">
-                <Button variant="ghost" onClick={handleStepPrev}>
+                <Button variant="ghost" onClick={handleStepPrev} className="py-2 sm:py-2.5">
                   上一步
                 </Button>
                 <Button 
                   onClick={handleSubmitOrder}
                   disabled={!checkoutData.paymentMethod || isCreatingOrder || isProcessingPayment}
-                  className="px-8"
+                  className="px-6 sm:px-8 py-2 sm:py-2.5"
                 >
                   {isCreatingOrder || isProcessingPayment ? (
                     <>處理中...</>
@@ -442,24 +442,24 @@ const Checkout: React.FC = () => {
         {/* Order Summary Sidebar */}
         <div className="lg:col-span-1">
           <div className="sticky top-6">
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4">訂單摘要</h2>
+            <Card className="p-3 sm:p-6 bg-gradient-to-br from-white to-info-50/20 border-l-4 border-l-info-500 shadow-large">
+              <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">訂單摘要</h2>
               
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between">
+              <div className="space-y-2.5 sm:space-y-3 mb-4 sm:mb-6">
+                <div className="flex justify-between text-sm">
                   <span>小計</span>
                   <span>{formatPrice(subtotal)}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
                   <span>稅金 (5%)</span>
                   <span>{formatPrice(tax)}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
                   <span>服務費 (10%)</span>
                   <span>{formatPrice(serviceCharge)}</span>
                 </div>
-                <div className="border-t border-border-light pt-3">
-                  <div className="flex justify-between font-semibold text-lg">
+                <div className="border-t border-border-light pt-2.5 sm:pt-3">
+                  <div className="flex justify-between font-semibold text-base sm:text-lg">
                     <span>總計</span>
                     <span className="text-primary-500">
                       {formatPrice(cartTotal)}
@@ -468,7 +468,7 @@ const Checkout: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-3 text-sm text-text-secondary">
+              <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-text-secondary">
                 <div className="flex items-center gap-2">
                   <span>顧客:</span>
                   <span className="font-medium">{user?.name}</span>
