@@ -291,3 +291,62 @@ npm run dev
 # 3. 訪問應用
 # 打開瀏覽器訪問 http://localhost:3xxx
 ```
+
+## 🎭 PLAYWRIGHT 前端測試與除錯工作方法
+
+### 📱 **基本操作指令:**
+```bash
+# 導航到URL
+mcp__playwright__browser_navigate --url "http://localhost:3000"
+
+# 截圖
+mcp__playwright__browser_take_screenshot --filename "test-screenshot.png"
+
+# 獲取頁面快照（包含所有元素）
+mcp__playwright__browser_snapshot
+
+# 點擊元素
+mcp__playwright__browser_click --element "登入按鈕" --ref "button[data-testid='login']"
+
+# 填寫表單
+mcp__playwright__browser_type --element "用戶名輸入框" --ref "input[name='username']" --text "testuser"
+
+# 等待元素出現
+mcp__playwright__browser_wait_for --text "載入完成"
+```
+
+### 🔍 **除錯工作流:**
+```bash
+# 1. 檢查網路請求
+mcp__playwright__browser_network_requests
+
+# 2. 查看控制台訊息
+mcp__playwright__browser_console_messages
+
+# 3. 執行JavaScript
+mcp__playwright__browser_evaluate --function "() => document.querySelector('.cart-total').innerText"
+
+# 4. 填寫完整表單
+mcp__playwright__browser_fill_form --fields [
+  {"name": "email", "type": "textbox", "ref": "input[type='email']", "value": "test@example.com"},
+  {"name": "password", "type": "textbox", "ref": "input[type='password']", "value": "password123"}
+]
+```
+
+### ⚡ **常用測試場景:**
+```bash
+# 測試登入流程
+1. mcp__playwright__browser_navigate --url "http://localhost:3000/login"
+2. mcp__playwright__browser_fill_form --fields [...]
+3. mcp__playwright__browser_click --element "登入" --ref "button[type='submit']"
+4. mcp__playwright__browser_wait_for --text "歡迎"
+
+# 測試購物車
+1. mcp__playwright__browser_click --element "添加到購物車" --ref ".add-to-cart"
+2. mcp__playwright__browser_navigate --url "/cart"
+3. mcp__playwright__browser_snapshot  # 檢查購物車內容
+
+# 測試響應式設計
+1. mcp__playwright__browser_resize --width 375 --height 667  # iPhone尺寸
+2. mcp__playwright__browser_take_screenshot --filename "mobile-view.png"
+```
