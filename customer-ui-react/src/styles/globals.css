@@ -812,7 +812,6 @@
     );
     animation: pulse-glow 2s ease-in-out infinite;
   }
-}
 
 /* 工具類 - 現代化實用工具 */
 @layer utilities {
