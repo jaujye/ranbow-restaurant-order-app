@@ -50,8 +50,10 @@ public class StaffService {
                 if (user.isPresent() && user.get().isActive() && 
                     (user.get().getRole() == UserRole.STAFF || user.get().getRole() == UserRole.ADMIN)) {
                     
-                    // 簡化認證邏輯 - 對於Demo系統，接受任何密碼
-                    boolean passwordValid = true; // passwordService.verifyPassword(password, user.getPasswordHash());
+                    // 從資料庫獲取密碼雜湊進行驗證
+                    Optional<String> passwordHash = userDAO.getPasswordHashByUserId(user.get().getUserId());
+                    boolean passwordValid = passwordHash.isPresent() && 
+                                            passwordService.verifyPassword(password, passwordHash.get());
                     System.out.println("Password verification result for employee ID " + identifier + ": " + passwordValid);
                     
                     if (passwordValid) {
@@ -75,8 +77,10 @@ public class StaffService {
                     
                     Optional<Staff> staffByUserId = staffDAO.findByUserId(user.getUserId());
                     if (staffByUserId.isPresent()) {
-                        // 簡化認證邏輯 - 對於Demo系統，接受任何密碼
-                        boolean passwordValid = true; // passwordService.verifyPassword(password, user.getPasswordHash());
+                        // 從資料庫獲取密碼雜湊進行驗證
+                        Optional<String> passwordHash = userDAO.getPasswordHashByEmail(identifier);
+                        boolean passwordValid = passwordHash.isPresent() && 
+                                                passwordService.verifyPassword(password, passwordHash.get());
                         System.out.println("Password verification result for email " + identifier + ": " + passwordValid);
                         
                         if (passwordValid) {

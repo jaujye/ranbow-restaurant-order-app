@@ -66,6 +66,14 @@ public class UserDAO {
         SELECT COUNT(*) FROM users WHERE role = 'CUSTOMER' AND is_active = true
         """;
     
+    private static final String SELECT_PASSWORD_HASH_BY_EMAIL = """
+        SELECT password_hash FROM users WHERE email = ? AND is_active = true
+        """;
+    
+    private static final String SELECT_PASSWORD_HASH_BY_USER_ID = """
+        SELECT password_hash FROM users WHERE user_id = ? AND is_active = true
+        """;
+    
     private final RowMapper<User> userRowMapper = new RowMapper<User>() {
         @Override
         public User mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -167,5 +175,33 @@ public class UserDAO {
     
     public boolean existsByEmail(String email) {
         return findByEmail(email).isPresent();
+    }
+    
+    /**
+     * Get password hash by email for authentication
+     * @param email User email
+     * @return Optional password hash
+     */
+    public Optional<String> getPasswordHashByEmail(String email) {
+        try {
+            String passwordHash = jdbcTemplate.queryForObject(SELECT_PASSWORD_HASH_BY_EMAIL, String.class, email);
+            return Optional.ofNullable(passwordHash);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+    
+    /**
+     * Get password hash by user ID for authentication
+     * @param userId User ID
+     * @return Optional password hash
+     */
+    public Optional<String> getPasswordHashByUserId(String userId) {
+        try {
+            String passwordHash = jdbcTemplate.queryForObject(SELECT_PASSWORD_HASH_BY_USER_ID, String.class, userId);
+            return Optional.ofNullable(passwordHash);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 }

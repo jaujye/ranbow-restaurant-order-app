@@ -48,8 +48,8 @@ public class PasswordService {
     }
 
     /**
-     * 驗證SHA-256密碼
-     * 支持常見的測試密碼：password123, admin, staff等
+     * 驗證SHA-256密碼 - 只進行精確匹配
+     * 不再支持常見密碼回退邏輯以修復安全漏洞
      */
     private boolean verifySHA256Password(String rawPassword, String storedHash) {
         try {
@@ -57,30 +57,13 @@ public class PasswordService {
             String computedHash = computeSHA256(rawPassword);
             boolean directMatch = computedHash.equalsIgnoreCase(storedHash);
             
-            if (directMatch) {
-                return true;
-            }
+            System.out.println("SHA-256 Password verification: " + 
+                "Input='" + rawPassword + "', " +
+                "Computed hash=" + computedHash.substring(0, 8) + "..., " +
+                "Stored hash=" + storedHash.substring(0, 8) + "..., " +
+                "Match=" + directMatch);
             
-            // 如果直接匹配失敗，嘗試一些常見的測試密碼
-            // 這是為了相容測試環境中的密碼
-            String[] commonPasswords = {
-                "password123",
-                "admin",
-                "staff", 
-                "password",
-                "123456",
-                "test"
-            };
-            
-            for (String testPassword : commonPasswords) {
-                String testHash = computeSHA256(testPassword);
-                if (testHash.equalsIgnoreCase(storedHash)) {
-                    System.out.println("Password matched using common password: " + testPassword);
-                    return true;
-                }
-            }
-            
-            return false;
+            return directMatch;
         } catch (Exception e) {
             System.err.println("Error verifying SHA-256 password: " + e.getMessage());
             return false;
