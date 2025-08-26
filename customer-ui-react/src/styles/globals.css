@@ -530,11 +530,10 @@
     @apply shadow-large safe-top;
     background: linear-gradient(135deg, 
       rgba(var(--rainbow-red), 0.95) 0%, 
-      rgba(var(--rainbow-orange), 0.95) 20%, 
-      rgba(var(--rainbow-yellow), 0.95) 40%, 
-      rgba(var(--rainbow-green), 0.95) 60%, 
-      rgba(var(--rainbow-blue), 0.95) 80%, 
-      rgba(var(--rainbow-purple), 0.95) 100%
+      rgba(var(--rainbow-purple), 0.95) 25%, 
+      rgba(var(--rainbow-blue), 0.95) 50%, 
+      rgba(var(--rainbow-green), 0.95) 75%, 
+      rgba(var(--rainbow-red), 0.95) 100%
     );
     background-size: 200% 200%;
     animation: gradient-shift 8s ease infinite;
@@ -614,11 +613,10 @@
     @apply shadow-large safe-bottom;
     background: linear-gradient(45deg, 
       rgba(var(--rainbow-purple), 0.95) 0%, 
-      rgba(var(--rainbow-blue), 0.95) 20%, 
-      rgba(var(--rainbow-green), 0.95) 40%, 
-      rgba(var(--rainbow-yellow), 0.95) 60%, 
-      rgba(var(--rainbow-orange), 0.95) 80%, 
-      rgba(var(--rainbow-red), 0.95) 100%
+      rgba(var(--rainbow-blue), 0.95) 25%, 
+      rgba(var(--rainbow-green), 0.95) 50%, 
+      rgba(var(--rainbow-red), 0.95) 75%, 
+      rgba(var(--rainbow-purple), 0.95) 100%
     );
     background-size: 200% 200%;
     animation: gradient-shift 10s ease infinite reverse;
