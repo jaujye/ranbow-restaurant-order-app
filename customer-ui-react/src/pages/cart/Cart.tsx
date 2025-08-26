@@ -130,12 +130,12 @@ const Cart: React.FC = () => {
       </div>
 
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
-        {/* Cart Items - 手機版緊湊間距 */}
-        <div className="lg:col-span-2 space-y-3 sm:space-y-4">
+        {/* Cart Items - 超緊湊間距 */}
+        <div className="lg:col-span-2 space-y-2 sm:space-y-3">
           {items.map((item) => (
             <Card 
               key={item.id} 
-              className="p-3 sm:p-4 bg-gradient-to-r from-white to-gray-50 border-l-4 border-l-primary-500 shadow-medium hover:shadow-large transition-all duration-300 hover:scale-[1.02] relative overflow-hidden"
+              className="p-2.5 sm:p-3 bg-gradient-to-r from-white to-gray-50 border-l-4 border-l-primary-500 shadow-medium hover:shadow-large transition-all duration-300 hover:scale-[1.02] relative overflow-hidden"
             >
               {/* 背景裝飾 */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary-50/30 to-transparent rounded-full -translate-y-16 translate-x-16 pointer-events-none" />
@@ -152,7 +152,7 @@ const Cart: React.FC = () => {
 
                 {/* Product Details - 增強對比度設計 */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-3">
+                  <div className="flex justify-between items-start mb-2">
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-lg sm:text-xl text-gray-900 truncate mb-1">
                         {item.menuItem.name}
@@ -172,9 +172,9 @@ const Cart: React.FC = () => {
                   </div>
 
                   {/* Price and Quantity - 增強視覺設計 */}
-                  <div className="flex justify-between items-center mb-3 p-2 sm:p-3 bg-gradient-to-r from-gray-50 to-primary-50/20 rounded-lg border border-primary-100/50">
+                  <div className="flex justify-between items-center mb-2 p-1.5 sm:p-2 bg-gradient-to-r from-gray-50 to-primary-50/20 rounded-lg border border-primary-100/50">
                     <div className="flex items-center gap-2">
-                      <span className="text-primary-600 font-bold text-lg sm:text-xl bg-primary-50 px-2 py-1 rounded-md">
+                      <span className="text-primary-600 font-bold text-lg sm:text-xl bg-primary-50 px-1.5 py-0.5 rounded-md">
                         {formatPrice(item.unitPrice)}
                       </span>
                       <span className="text-gray-500 font-medium text-sm sm:text-base">
@@ -182,34 +182,34 @@ const Cart: React.FC = () => {
                       </span>
                     </div>
                     
-                    <div className="flex items-center gap-1 bg-white rounded-full p-1 shadow-sm border border-gray-200">
+                    <div className="flex items-center gap-1 bg-white rounded-full p-0.5 shadow-sm border border-gray-200">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                         disabled={item.quantity <= 1}
-                        className="w-7 h-7 sm:w-9 sm:h-9 p-0 rounded-full hover:bg-red-50 hover:text-red-600 disabled:opacity-30 transition-all duration-200"
+                        className="w-6 h-6 sm:w-7 sm:h-7 p-0 rounded-full hover:bg-red-50 hover:text-red-600 disabled:opacity-30 transition-all duration-200"
                       >
-                        <Minus size={14} className="sm:w-4 sm:h-4" />
+                        <Minus size={12} className="sm:w-3.5 sm:h-3.5" />
                       </Button>
-                      <span className="w-8 sm:w-10 text-center font-bold text-base sm:text-lg text-gray-900 bg-primary-50 rounded-full py-1">
+                      <span className="w-7 sm:w-8 text-center font-bold text-sm sm:text-base text-gray-900 bg-primary-50 rounded-full py-0.5">
                         {item.quantity}
                       </span>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                        className="w-7 h-7 sm:w-9 sm:h-9 p-0 rounded-full hover:bg-primary-50 hover:text-primary-600 transition-all duration-200"
+                        className="w-6 h-6 sm:w-7 sm:h-7 p-0 rounded-full hover:bg-primary-50 hover:text-primary-600 transition-all duration-200"
                       >
-                        <Plus size={14} className="sm:w-4 sm:h-4" />
+                        <Plus size={12} className="sm:w-3.5 sm:h-3.5" />
                       </Button>
                     </div>
                   </div>
 
                   {/* Special Requests - 優化設計 */}
-                  <div className="space-y-2 mb-2">
+                  <div className="space-y-1.5 mb-1.5">
                     {editingItem === item.id ? (
-                      <div className="space-y-2 p-2 sm:p-3 bg-amber-50 rounded-lg border border-amber-200">
+                      <div className="space-y-1.5 p-1.5 sm:p-2 bg-amber-50 rounded-lg border border-amber-200">
                         <Input
                           value={editRequests}
                           onChange={(e) => setEditRequests(e.target.value)}
@@ -235,7 +235,7 @@ const Cart: React.FC = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className={`flex items-center gap-2 p-2 rounded-lg transition-all duration-200 ${item.specialRequests ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'}`}>
+                      <div className={`flex items-center gap-2 p-1.5 rounded-lg transition-all duration-200 ${item.specialRequests ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'}`}>
                         {item.specialRequests ? (
                           <p className="text-sm text-amber-800 flex-1 leading-relaxed font-medium">
                             📝 {item.specialRequests}
@@ -258,8 +258,8 @@ const Cart: React.FC = () => {
                   </div>
 
                   {/* Item Total - 突出顯示 */}
-                  <div className="flex justify-end pt-2 sm:pt-3 border-t-2 border-primary-200">
-                    <div className="bg-gradient-to-r from-primary-500 to-accent-500 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg shadow-md">
+                  <div className="flex justify-end pt-1.5 sm:pt-2 border-t-2 border-primary-200">
+                    <div className="bg-gradient-to-r from-primary-500 to-accent-500 text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg shadow-md">
                       <span className="font-bold text-base sm:text-lg">
                         小計: {formatPrice(item.totalPrice)}
                       </span>
@@ -271,7 +271,7 @@ const Cart: React.FC = () => {
           ))}
 
           {/* Continue Shopping - 優化設計 */}
-          <Card className="p-3 sm:p-4 bg-gradient-to-r from-secondary-50 to-primary-50 border border-primary-200 hover:shadow-lg transition-all duration-300">
+          <Card className="p-2 sm:p-3 bg-gradient-to-r from-secondary-50 to-primary-50 border border-primary-200 hover:shadow-lg transition-all duration-300">
             <Button
               variant="ghost"
               onClick={handleContinueShopping}
