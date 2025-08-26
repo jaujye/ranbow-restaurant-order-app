@@ -80,9 +80,15 @@ export default {
         error: {
           50: 'rgba(var(--color-error), 0.05)',
           100: 'rgba(var(--color-error), 0.1)',
+          200: 'rgba(var(--color-error), 0.2)',
+          300: 'rgba(var(--color-error), 0.3)',
+          400: 'rgba(var(--color-error), 0.4)',
           500: 'rgb(var(--color-error))',
           600: 'rgba(var(--color-error), 0.8)',
           700: 'rgba(var(--color-error), 0.9)',
+          800: 'rgba(var(--color-error), 0.95)',
+          900: 'rgba(var(--color-error), 0.97)',
+          950: 'rgba(var(--color-error), 0.99)',
         },
         info: {
           50: 'rgba(var(--color-info), 0.05)',
