@@ -138,10 +138,10 @@ const Header: React.FC<HeaderProps> = ({
       {/* Center Section */}
       <div className="nav-center">
         <h1 className={cn(
-          'nav-title text-lg font-bold text-white truncate',
+          'nav-title text-sm font-bold text-white truncate',
           'transition-all duration-base',
           // Responsive text sizing
-          'sm:text-xl lg:text-2xl',
+          'sm:text-lg lg:text-xl',
           // Enhanced typography
           'tracking-wide'
         )}>
@@ -219,11 +219,13 @@ const Header: React.FC<HeaderProps> = ({
                 
                 {/* Dropdown Menu */}
                 <div className={cn(
-                  'user-dropdown absolute right-0 top-full mt-3 w-72',
+                  'user-dropdown absolute right-0 top-full mt-2 w-64 sm:w-72',
                   'bg-white/95 backdrop-blur-xl rounded-large',
                   'shadow-rainbow-lg border border-white/20',
                   'z-popover overflow-hidden',
-                  'animate-slide-up'
+                  'animate-slide-up',
+                  // 手機版調整
+                  'max-w-[90vw] sm:max-w-none'
                 )}>
                   {/* Close button for mobile */}
                   <button
@@ -235,36 +237,36 @@ const Header: React.FC<HeaderProps> = ({
                   </button>
                   
                   {/* User Info */}
-                  <div className="dropdown-header p-6 border-b border-gray-100 bg-gradient-to-r from-primary-50 to-accent-50">
+                  <div className="dropdown-header p-4 sm:p-6 border-b border-gray-100 bg-gradient-to-r from-primary-50 to-accent-50">
                     <div className="user-info">
-                      <div className="user-avatar mb-3 flex justify-center">
-                        <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center text-white text-xl font-bold shadow-medium">
+                      <div className="user-avatar mb-2 sm:mb-3 flex justify-center">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-primary flex items-center justify-center text-white text-lg sm:text-xl font-bold shadow-medium">
                           U
                         </div>
                       </div>
-                      <div className="user-name text-center font-semibold text-gray-800 mb-1">
+                      <div className="user-name text-center font-semibold text-gray-800 mb-1 text-sm sm:text-base">
                         用戶名稱
                       </div>
-                      <div className="user-email text-center text-sm text-gray-600">
+                      <div className="user-email text-center text-xs sm:text-sm text-gray-600">
                         user@example.com
                       </div>
                     </div>
                   </div>
                   
                   {/* Menu Items */}
-                  <div className="dropdown-menu p-3">
+                  <div className="dropdown-menu p-2 sm:p-3">
                     <button
                       onClick={() => handleDropdownItemClick('/profile')}
                       className={cn(
-                        'dropdown-item w-full flex items-center gap-4 px-4 py-3',
+                        'dropdown-item w-full flex items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3',
                         'text-left hover:bg-gray-50 rounded-medium',
                         'transition-colors duration-fast',
                         'focus-visible:ring-2 focus-visible:ring-primary-500/50'
                       )}
                     >
-                      <UserCircleIcon className="w-5 h-5 text-gray-500" />
+                      <UserCircleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
                       <div>
-                        <div className="font-medium text-gray-800">個人資料</div>
+                        <div className="font-medium text-gray-800 text-sm sm:text-base">個人資料</div>
                         <div className="text-xs text-gray-500">編輯個人信息</div>
                       </div>
                     </button>
@@ -272,15 +274,15 @@ const Header: React.FC<HeaderProps> = ({
                     <button
                       onClick={() => handleDropdownItemClick('/orders')}
                       className={cn(
-                        'dropdown-item w-full flex items-center gap-4 px-4 py-3',
+                        'dropdown-item w-full flex items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3',
                         'text-left hover:bg-gray-50 rounded-medium',
                         'transition-colors duration-fast',
                         'focus-visible:ring-2 focus-visible:ring-primary-500/50'
                       )}
                     >
-                      <BellIcon className="w-5 h-5 text-gray-500" />
+                      <BellIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
                       <div>
-                        <div className="font-medium text-gray-800">我的訂單</div>
+                        <div className="font-medium text-gray-800 text-sm sm:text-base">我的訂單</div>
                         <div className="text-xs text-gray-500">查看訂單記錄</div>
                       </div>
                     </button>
@@ -290,15 +292,15 @@ const Header: React.FC<HeaderProps> = ({
                     <button
                       onClick={handleLogout}
                       className={cn(
-                        'dropdown-item logout-item w-full flex items-center gap-4 px-4 py-3',
+                        'dropdown-item logout-item w-full flex items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3',
                         'text-left text-red-600 hover:bg-red-50 rounded-medium',
                         'transition-colors duration-fast',
                         'focus-visible:ring-2 focus-visible:ring-red-500/50'
                       )}
                     >
-                      <ArrowLeftIcon className="w-5 h-5" />
+                      <ArrowLeftIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                       <div>
-                        <div className="font-medium">登出</div>
+                        <div className="font-medium text-sm sm:text-base">登出</div>
                         <div className="text-xs text-red-500">退出當前帳戶</div>
                       </div>
                     </button>

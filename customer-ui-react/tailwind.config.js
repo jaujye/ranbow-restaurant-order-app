@@ -125,15 +125,15 @@ export default {
         'system': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'sans-serif'],
       },
       
-      // 字體大小
+      // 字體大小 - 手機版優化
       fontSize: {
-        xs: ['12px', { lineHeight: '16px' }],
-        sm: ['14px', { lineHeight: '20px' }],
-        base: ['16px', { lineHeight: '24px' }],
-        lg: ['18px', { lineHeight: '28px' }],
-        xl: ['20px', { lineHeight: '28px' }],
-        '2xl': ['24px', { lineHeight: '32px' }],
-        '3xl': ['28px', { lineHeight: '36px' }],
+        'xs': ['11px', { lineHeight: '16px' }],
+        'sm': ['13px', { lineHeight: '18px' }],
+        'base': ['15px', { lineHeight: '22px' }],
+        'lg': ['17px', { lineHeight: '24px' }],
+        'xl': ['19px', { lineHeight: '26px' }],
+        '2xl': ['22px', { lineHeight: '30px' }],
+        '3xl': ['26px', { lineHeight: '34px' }],
       },
       
       // 間距系統

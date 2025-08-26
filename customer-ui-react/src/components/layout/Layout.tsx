@@ -112,10 +112,10 @@ const Layout: React.FC<LayoutProps> = ({
     // Safe area support for mobile devices
     'safe-left safe-right',
     
-    // Responsive content container
+    // Responsive content container - 手機版縮小間距
     {
-      // Mobile: full width with padding
-      'px-4': isMobile,
+      // Mobile: 縮小padding改善視覺空間
+      'px-2': isMobile,
       // Tablet: constrained width with more padding
       'px-6 max-w-4xl mx-auto': isTablet,
       // Desktop: max width with sidebar potential
@@ -148,8 +148,8 @@ const Layout: React.FC<LayoutProps> = ({
             className={cn(
               'transition-all duration-base',
               {
-                // Mobile header styling
-                'px-4': isMobile,
+                // Mobile header styling - 縮小間距
+                'px-2': isMobile,
                 // Tablet/Desktop header styling
                 'px-6': !isMobile,
               }
@@ -168,9 +168,9 @@ const Layout: React.FC<LayoutProps> = ({
           {/* Content wrapper for better responsive behavior */}
           <div className={cn(
             'content-wrapper w-full',
-            // Responsive spacing
+            // Responsive spacing - 手機版縮小垂直間距
             {
-              'py-4': isMobile,
+              'py-2': isMobile,
               'py-6': isTablet,
               'py-8': isDesktop,
             }
@@ -187,8 +187,8 @@ const Layout: React.FC<LayoutProps> = ({
               {
                 // Hide on desktop unless explicitly shown
                 'lg:hidden': !isDesktop,
-                // Mobile styling
-                'px-2': isMobile,
+                // Mobile styling - 進一步縮小間距
+                'px-1': isMobile,
                 // Tablet styling
                 'px-4': isTablet,
               }

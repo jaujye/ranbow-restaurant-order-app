@@ -17,10 +17,15 @@
   --rainbow-purple: 175, 82, 222;
   --rainbow-pink: 255, 45, 146;
   
-  /* 響應式尺寸 */
-  --header-height: 64px;
-  --bottom-nav-height: 80px;
-  --content-padding: 16px;
+  /* 響應式尺寸 - 手機版優化 */
+  --header-height: 56px;
+  --header-height-mobile: 52px;
+  --bottom-nav-height: 68px;
+  --bottom-nav-height-mobile: 64px;
+  --content-padding: 12px;
+  --content-padding-mobile: 8px;
+  --section-gap: 16px;
+  --section-gap-mobile: 12px;
   
   /* 動畫參數 */
   --transition-fast: 150ms;
@@ -313,16 +318,27 @@
 
 /* 組件層級樣式 - 現代化按鈕系統 */
 @layer components {
-  /* 按鈕基礎樣式 - 增強版 */
+  /* 按鈕基礎樣式 - 手機版優化 */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-3 rounded-medium font-medium;
+    @apply inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-medium font-medium;
     @apply transition-all duration-base touch-target;
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
     @apply active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed;
     @apply select-none;
+    @apply text-sm sm:text-base;
     transition: all var(--transition-base) var(--ease-spring);
     font-weight: 600;
     letter-spacing: 0.025em;
+    min-height: 44px; /* WCAG觸控標準 */
+  }
+  
+  /* 手機版按鈕尺寸調整 */
+  @media (max-width: 640px) {
+    .btn {
+      @apply px-3 py-2 text-sm;
+      min-height: 42px;
+      gap: 6px;
+    }
   }
   
   .btn-primary {
@@ -381,16 +397,25 @@
     animation: gradient-shift 3s ease infinite;
   }
   
-  /* 輸入框樣式 - 現代化設計與無障礙增強 */
+  /* 輸入框樣式 - 手機版優化 */
   .input {
-    @apply w-full px-4 py-3 border-2 border-border-light rounded-medium;
+    @apply w-full px-3 py-2.5 border-2 border-border-light rounded-medium;
     @apply bg-white/80 text-text-primary placeholder-text-disabled;
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-400;
     @apply transition-all duration-base;
+    @apply text-sm sm:text-base;
     backdrop-filter: blur(10px);
     font-size: 16px; /* 防止iOS縮放 */
-    line-height: 1.5;
-    min-height: 48px; /* 確保觸控目標大小符合WCAG標準 */
+    line-height: 1.4;
+    min-height: 44px; /* WCAG觸控標準 */
+  }
+  
+  /* 手機版輸入框調整 */
+  @media (max-width: 640px) {
+    .input {
+      @apply px-3 py-2 text-sm;
+      min-height: 42px;
+    }
   }
   
   .input:focus-visible {
@@ -440,12 +465,20 @@
     }
   }
   
-  /* 卡片樣式 - 現代化玻璃態射設計 */
+  /* 卡片樣式 - 手機版優化 */
   .card {
     @apply bg-white/90 rounded-large shadow-medium border border-white/20;
     @apply transition-all duration-base;
+    @apply p-4;
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  /* 手機版卡片調整 */
+  @media (max-width: 640px) {
+    .card {
+      @apply p-3 rounded-medium;
+    }
   }
   
   .card-hover {
@@ -479,13 +512,20 @@
   }
   
   .card-rainbow-content {
-    @apply relative bg-white rounded-large p-6 h-full;
+    @apply relative bg-white rounded-large p-4 h-full;
   }
   
-  /* 導航系統 - 現代化彩虹設計 */
+  /* 手機版彩虹卡片內容調整 */
+  @media (max-width: 640px) {
+    .card-rainbow-content {
+      @apply p-3 rounded-medium;
+    }
+  }
+  
+  /* 導航系統 - 手機版優化 */
   .top-nav {
     @apply fixed top-0 left-0 right-0;
-    @apply flex items-center justify-between px-4 py-3;
+    @apply flex items-center justify-between px-3 py-2;
     @apply backdrop-blur-md border-b border-white/20;
     @apply shadow-large safe-top;
     background: linear-gradient(135deg, 
@@ -502,9 +542,24 @@
     z-index: 1035;
   }
   
+  /* 手機版導航調整 */
+  @media (max-width: 640px) {
+    .top-nav {
+      @apply px-2 py-1.5;
+      height: var(--header-height-mobile);
+    }
+  }
+  
   .nav-left, .nav-right {
-    @apply flex items-center gap-3;
+    @apply flex items-center gap-2;
     @apply min-w-0 flex-1;
+  }
+  
+  /* 手機版導航左右區域調整 */
+  @media (max-width: 640px) {
+    .nav-left, .nav-right {
+      @apply gap-1;
+    }
   }
   
   .nav-center {
@@ -512,7 +567,7 @@
   }
   
   .nav-title {
-    @apply text-lg font-bold text-white truncate;
+    @apply text-base sm:text-lg font-bold text-white truncate;
     text-shadow: 
       0 2px 4px rgba(0, 0, 0, 0.3),
       0 0 8px rgba(0, 0, 0, 0.2);
@@ -520,13 +575,32 @@
     letter-spacing: 0.05em;
   }
   
+  /* 手機版標題調整 */
+  @media (max-width: 640px) {
+    .nav-title {
+      @apply text-sm;
+      letter-spacing: 0.025em;
+    }
+  }
+  
   .nav-btn {
-    @apply flex items-center justify-center p-3 rounded-medium;
+    @apply flex items-center justify-center p-2.5 rounded-medium;
     @apply text-white hover:text-white hover:bg-white/25;
     @apply transition-all duration-base touch-target;
     @apply active:scale-95 hover:shadow-medium;
     backdrop-filter: blur(10px);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  /* 手機版導航按鈕調整 */
+  @media (max-width: 640px) {
+    .nav-btn {
+      @apply p-2;
+      min-width: 40px;
+      min-height: 40px;
+    }
   }
   
   .nav-btn svg {
@@ -535,7 +609,7 @@
   
   .bottom-nav {
     @apply fixed bottom-0 left-0 right-0;
-    @apply flex items-center justify-around px-2 py-3;
+    @apply flex items-center justify-around px-1 py-2;
     @apply backdrop-blur-md border-t border-white/20;
     @apply shadow-large safe-bottom;
     background: linear-gradient(45deg, 
@@ -549,17 +623,35 @@
     background-size: 200% 200%;
     animation: gradient-shift 10s ease infinite reverse;
     height: var(--bottom-nav-height);
+  }
+  
+  /* 手機版底部導航調整 */
+  @media (max-width: 640px) {
+    .bottom-nav {
+      @apply px-0.5 py-1.5;
+      height: var(--bottom-nav-height-mobile);
+    }
+  }
     z-index: 1040;
   }
   
   .nav-item {
-    @apply flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-medium;
+    @apply flex flex-col items-center justify-center gap-1 px-2 py-1.5 rounded-medium;
     @apply text-white transition-all duration-base touch-target-lg;
     @apply hover:text-white hover:bg-white/25 hover:scale-105;
     @apply active:scale-95;
+    @apply text-xs sm:text-sm;
     backdrop-filter: blur(10px);
-    min-width: 64px;
+    min-width: 56px;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* 手機版底部導航項目調整 */
+  @media (max-width: 640px) {
+    .nav-item {
+      @apply px-1.5 py-1 gap-0.5 text-xs;
+      min-width: 48px;
+    }
   }
   
   .nav-item svg {
@@ -583,6 +675,72 @@
   
   .nav-item-active svg {
     transform: translateY(-1px) scale(1.1);
+  }
+  
+  /* 主要內容區域 - 手機版優化 */
+  .main-content {
+    @apply px-4 py-4;
+    margin-top: var(--header-height);
+    margin-bottom: var(--bottom-nav-height);
+    min-height: calc(100vh - var(--header-height) - var(--bottom-nav-height));
+  }
+  
+  /* 手機版主要內容調整 */
+  @media (max-width: 640px) {
+    .main-content {
+      @apply px-2 py-3;
+      margin-top: var(--header-height-mobile);
+      margin-bottom: var(--bottom-nav-height-mobile);
+      min-height: calc(100vh - var(--header-height-mobile) - var(--bottom-nav-height-mobile));
+    }
+  }
+  
+  /* 頁面容器 - 響應式間距 */
+  .page-container {
+    @apply max-w-7xl mx-auto px-4 py-6;
+  }
+  
+  @media (max-width: 640px) {
+    .page-container {
+      @apply px-2 py-3;
+    }
+  }
+  
+  /* 節區間距 - 手機版優化 */
+  .section-gap {
+    margin-bottom: var(--section-gap);
+  }
+  
+  @media (max-width: 640px) {
+    .section-gap {
+      margin-bottom: var(--section-gap-mobile);
+    }
+  }
+  
+  /* 響應式文字大小 - 手機版優化 */
+  .text-mobile-xs { font-size: 10px; line-height: 14px; }
+  .text-mobile-sm { font-size: 12px; line-height: 16px; }
+  .text-mobile-base { font-size: 14px; line-height: 20px; }
+  .text-mobile-lg { font-size: 16px; line-height: 22px; }
+  .text-mobile-xl { font-size: 18px; line-height: 24px; }
+  
+  /* 手機版標題字體 */
+  @media (max-width: 640px) {
+    .heading-mobile-1 { font-size: 20px; line-height: 28px; font-weight: 700; }
+    .heading-mobile-2 { font-size: 18px; line-height: 26px; font-weight: 600; }
+    .heading-mobile-3 { font-size: 16px; line-height: 24px; font-weight: 600; }
+    .heading-mobile-4 { font-size: 14px; line-height: 20px; font-weight: 500; }
+  }
+  
+  /* 緊湊佈局輔助類 */
+  .compact-spacing > * + * {
+    margin-top: 8px;
+  }
+  
+  @media (max-width: 640px) {
+    .compact-spacing > * + * {
+      margin-top: 6px;
+    }
   }
   
   /* 載入動畫 - 現代化設計 */
