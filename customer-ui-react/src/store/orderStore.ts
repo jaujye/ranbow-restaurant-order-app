@@ -233,7 +233,7 @@ export const useOrderStore = create<OrderState>()((set, get) => ({
       
       // Get user information for customerId
       const user = useAuthStore.getState().user
-      const customerId = user?.userId || user?.id || 'guest-user'
+      const customerId = user?.id?.toString() || 'guest-user'
       
       const response = await PaymentService.createPayment({
         orderId: order.id?.toString() || orderId.toString(),  // Convert to string for backend

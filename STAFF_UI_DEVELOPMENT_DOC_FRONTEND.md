@@ -5,8 +5,8 @@
 ## 📋 **文檔概述**
 
 - **項目名稱**: Ranbow Restaurant Staff UI System  
-- **版本**: 2.0.0 🚀 **重大架構優化版本**
-- **更新日期**: 2025-01-23
+- **版本**: 2.1.0 🎨 **完整UI/UX設計整合版本**
+- **更新日期**: 2025-01-25
 - **最新更新內容**:
   - ✅ **v1.1**: 根據現有Java Spring後端結構重新設計前端目錄規範
   - ✅ **v1.1**: 更新API接口定義以對應實際的StaffController實現
@@ -19,6 +19,11 @@
   - 🚀 **v2.0 NEW**: **狀態管理最佳實踐** - Zustand + React Query + TypeScript嚴格類型
   - 🚀 **v2.0 NEW**: **錯誤處理與性能優化** - ErrorBoundary、樂觀更新、請求去重
   - 🚀 **v2.0 NEW**: **生產級前端工程師實施指南** - 完整的代碼範例和最佳實踐
+  - 🎨 **v2.1 NEW**: **完整UI/UX設計實施規範** - 整合彩虹主題漸變配色系統
+  - 🎨 **v2.1 NEW**: **導航系統設計規範** - 雙導航欄架構（頂部+底部）詳細設計
+  - 🎨 **v2.1 NEW**: **核心模組UI設計** - 儀表板、訂單管理、廚房工作站、個人中心完整設計規範
+  - 🎨 **v2.1 NEW**: **Tailwind CSS配色系統** - 完整的自定義色彩配置與工作站色彩映射
+  - 🎨 **v2.1 NEW**: **組件樣式實現細節** - 實際程式碼中的樣式類別與設計模式
 - **目標**: 建立高效、直觀的員工端操作界面，支援訂單管理、廚房工作流程、即時通訊
 - **技術棧**: React + TypeScript + Tailwind CSS (前端) | Spring Boot + PostgreSQL + Redis + WebSocket (後端)
 
@@ -1690,24 +1695,67 @@ export class ErrorBoundary extends React.Component<
 
 ## 2. UI/UX設計實施規範
 
-### 2.1 彩虹主題色彩系統
+### 2.1 彩虹主題色彩系統 🌈
 
-#### **主色調定義（高飽和度）**
-| 色彩用途 | HEX值 | RGB | HSL | 使用場景 |
-|---------|-------|-----|-----|---------|
-| 主色-橙紅 | #FF6B35 | 255,107,53 | 16°,100%,60% | 主要按鈕、重要標識 |
-| 主色-深 | #E64A1A | 230,74,26 | 14°,82%,50% | 按鈕按下、active狀態 |
-| 次色-綠 | #2E8B57 | 46,139,87 | 146°,50%,36% | 成功狀態、完成標記 |
-| 強調-金 | #FFD700 | 255,215,0 | 51°,100%,50% | 星級、重要提示 |
+#### **核心配色方案 - 漸變主題**
 
-#### **狀態色彩（高對比度）**
-| 狀態 | 文字色 | 背景色 | 邊框色 | 對比度 |
-|-----|--------|--------|--------|--------|
-| 緊急 | #FFFFFF | #FF3B30 | #CC0000 | 7.2:1 |
-| 處理中 | #FFFFFF | #FF9500 | #E68600 | 6.8:1 |
-| 完成 | #FFFFFF | #34C759 | #2CA846 | 5.9:1 |
-| 待處理 | #FFFFFF | #007AFF | #0051CC | 6.5:1 |
-| 已取消 | #333333 | #E5E5EA | #C7C7CC | 8.1:1 |
+**導航欄漸變配色**
+```css
+/* 頂部導航欄 - 暖色系漸變 */
+background: linear-gradient(to right, 
+  from-orange-500,    /* #f97316 */
+  via-red-500,        /* #ef4444 */
+  to-pink-500         /* #ec4899 */
+);
+
+/* 底部導航欄 - 冷色系漸變 */
+background: linear-gradient(to right,
+  from-indigo-600,    /* #4f46e5 */
+  via-purple-600,     /* #9333ea */  
+  to-pink-600         /* #db2777 */
+);
+```
+
+**工作站色彩映射**
+| 工作站類型 | 漸變配色 | 圖標 | 使用場景 |
+|-----------|---------|------|---------|
+| 冷盤站 | `from-blue-500 to-cyan-500` | 🥗 | 冷盤工作站識別 |
+| 熱食站 | `from-red-500 to-orange-500` | 🍳 | 熱食工作站識別 |
+| 燒烤站 | `from-orange-500 to-yellow-500` | 🔥 | 燒烤工作站識別 |
+| 備料站 | `from-green-500 to-emerald-500` | 🔪 | 備料工作站識別 |
+| 甜點站 | `from-purple-500 to-pink-500` | 🍰 | 甜點工作站識別 |
+| 飲品站 | `from-cyan-500 to-blue-500` | 🥤 | 飲品工作站識別 |
+
+#### **Tailwind CSS 自定義色彩配置**
+```javascript
+// tailwind.config.js - 完整色彩系統
+colors: {
+  primary: {
+    50: '#f0f9ff',   // 最淺
+    500: '#0ea5e9',  // 標準
+    900: '#0c4a6e',  // 最深
+  },
+  accent: {
+    50: '#fef7ff',   // 最淺紫
+    700: '#a855f7',  // 標準紫
+    900: '#7c2d94',  // 深紫
+  },
+  // 功能色彩
+  success: { /* 綠色系 */ },
+  warning: { /* 黃色系 */ },
+  danger:  { /* 紅色系 */ },
+}
+```
+
+#### **訂單狀態色彩規範（實際實現）**
+| 狀態 | 文字色 | 背景色 | 邊框色 | 狀態類名 |
+|-----|--------|--------|--------|---------|
+| 待處理 | text-yellow-700 | bg-yellow-50 | border-yellow-200 | status-pending |
+| 已確認 | text-blue-700 | bg-blue-50 | border-blue-200 | status-confirmed |
+| 製作中 | text-orange-700 | bg-orange-50 | border-orange-200 | status-preparing |
+| 已完成 | text-green-700 | bg-green-50 | border-green-200 | status-ready |
+| 已交付 | text-gray-700 | bg-gray-50 | border-gray-200 | status-completed |
+| 已取消 | text-red-700 | bg-red-50 | border-red-200 | status-cancelled |
 
 ### 2.2 字體與文字規範
 
@@ -1728,7 +1776,56 @@ export class ErrorBoundary extends React.Component<
 - **金額**: 18px, font-weight: 600, font-variant-numeric: tabular-nums
 - **狀態標籤**: 14px, font-weight: 600, text-transform: uppercase
 
-### 2.3 互動元素規範
+### 2.3 導航系統設計規範 🧭
+
+#### **雙導航欄架構**
+
+**頂部導航欄 (TopNavigationBar)**
+```typescript
+// 位置：固定在頂部 (fixed top-0)
+// 高度：64px (h-16)
+// 背景：暖色系漸變
+// Z-index：z-50
+
+interface TopNavBar {
+  左側區域: {
+    logo: "Shield圖標 + 彩虹餐廳文字",
+    subtitle: "員工作業系統"
+  },
+  右側區域: {
+    userInfo: "姓名 + 職位",
+    avatar: "首字母頭像",
+    actions: ["設置按鈕", "登出按鈕"]
+  }
+}
+```
+
+**底部導航欄 (BottomNavigationBar)**
+```typescript
+// 位置：固定在底部 (fixed bottom-0)
+// 高度：自適應 (py-2)
+// 背景：冷色系漸變
+// Z-index：z-50
+
+const navigationItems = [
+  { name: '首頁', icon: Home, href: '/dashboard' },
+  { name: '訂單', icon: ClipboardList, href: '/orders' },
+  { name: '廚房', icon: ChefHat, href: '/kitchen' },
+  { name: '報表', icon: BarChart3, href: '/stats' },
+  { name: '通知', icon: Bell, href: '/notifications', badge: true },
+  { name: '個人', icon: User, href: '/profile' }
+]
+
+// 選中狀態樣式
+activeStyles: {
+  background: "bg-white/20",
+  border: "border-white/30",
+  transform: "scale-105",
+  shadow: "shadow-lg"
+}
+```
+
+### 2.4 互動元素規範
 
 #### **觸控目標尺寸**
 | 元素類型 | 最小尺寸 | 推薦尺寸 | 間距要求 |
@@ -1750,7 +1847,205 @@ export class ErrorBoundary extends React.Component<
 
 ## 3. 核心功能模組開發
 
-### 3.1 員工認證模組
+### 3.1 儀表板模組 📊
+
+#### **儀表板統計卡片設計**
+```typescript
+// DashboardStats 組件設計規範
+interface StatCard {
+  // 卡片樣式
+  container: "bg-white rounded-lg shadow-sm border border-gray-200 p-6",
+  
+  // 圖標配色
+  iconColors: {
+    待處理訂單: "bg-blue-100 text-blue-600",
+    廚房隊列: "bg-orange-100 text-orange-600",
+    今日處理: "bg-green-100 text-green-600",
+    待處理通知: "bg-purple-100 text-purple-600"
+  },
+  
+  // 數據顯示
+  value: "text-2xl font-semibold text-gray-900",
+  subtitle: "text-sm text-gray-500",
+  trend: "text-sm text-green-600 或 text-red-600"
+}
+```
+
+**團隊狀態顯示區**
+```typescript
+// 網格佈局：grid-cols-2 lg:grid-cols-4
+const teamMetrics = [
+  { label: "在職員工", color: "text-blue-600" },
+  { label: "今日訂單", color: "text-green-600" },
+  { label: "平均效率", color: "text-orange-600" },
+  { label: "總員工數", color: "text-purple-600" }
+]
+```
+
+---
+
+#### **🔧 Dashboard實戰開發經驗 (重要)**
+
+##### **API整合最佳實踐**
+
+**數據結構兼容處理**
+```typescript
+// ⚠️ 關鍵問題：currentStaff數據結構變化
+// 實際結構：{staff: {staffId: "..."}, displayName: "...", ...}
+// 但代碼可能期望：{staffId: "...", name: "...", ...}
+
+// ✅ 兼容性解決方案
+const getStaffId = (currentStaff: any) => 
+  currentStaff?.staff?.staffId || currentStaff?.staffId;
+
+const getStaffName = (currentStaff: any) => 
+  currentStaff?.staff?.name || currentStaff?.name || currentStaff?.displayName;
+```
+
+**Null安全的數值處理**
+```typescript
+// ⚠️ 常見錯誤：toFixed()作用在undefined上
+// 錯誤代碼：dashboardData.team.avgEfficiency.toFixed(1)
+// 
+// ✅ 正確處理
+const safeToFixed = (value: number | undefined, digits: number = 1) =>
+  (value || 0).toFixed(digits);
+
+// 使用範例
+{(dashboardData.team?.avgEfficiency || 0).toFixed(1)}%
+```
+
+**API調用策略**
+```typescript
+// ✅ 推薦的數據載入模式
+useEffect(() => {
+  // 立即載入Dashboard數據（需要staffId）
+  const staffId = getStaffId(currentStaff);
+  if (staffId) {
+    loadDashboardData();
+  }
+}, [currentStaff?.staff?.staffId, currentStaff?.staffId]);
+
+useEffect(() => {
+  // 立即載入Overview數據（不需要staffId）
+  loadOverviewData();
+}, []);
+
+useEffect(() => {
+  // 設置輪詢更新
+  const overviewInterval = setInterval(loadOverviewData, 15000);  // 15秒
+  const dashboardInterval = setInterval(loadDashboardData, 120000); // 2分鐘
+  
+  return () => {
+    clearInterval(overviewInterval);
+    clearInterval(dashboardInterval);
+  };
+}, [currentStaff?.staff?.staffId, currentStaff?.staffId]);
+```
+
+##### **常見錯誤與解決方案**
+
+**❌ 錯誤1：toFixed TypeError**
+```typescript
+// 問題：TypeError: Cannot read properties of undefined (reading 'toFixed')
+// 原因：API返回的數值字段為undefined
+
+// 解決方案：
+{(dashboardData.team?.avgEfficiency || 0).toFixed(1)}%
+```
+
+**❌ 錯誤2：數據結構不匹配**
+```typescript
+// 問題：無法獲取staffId導致API調用失敗
+// 原因：currentStaff結構變化
+
+// 解決方案：兼容性處理
+const staffId = currentStaff?.staff?.staffId || currentStaff?.staffId;
+if (!staffId) return; // 早期退出
+```
+
+**❌ 錯誤3：Promise.all競爭錯誤**
+```typescript
+// 問題：複雜的Promise.all導致React渲染異常
+// 錯誤代碼：
+Promise.all([loadDashboardData(), loadOverviewData()])
+
+// 解決方案：分離useEffect
+useEffect(() => loadDashboardData(), [staffId]);
+useEffect(() => loadOverviewData(), []);
+```
+
+**❌ 錯誤4：未處理的邊界情況**
+```typescript
+// 問題：未登入用戶訪問Dashboard崩潰
+// 解決方案：添加錯誤邊界
+if (!currentStaff) {
+  return <LoginPrompt />;
+}
+```
+
+##### **性能優化建議**
+
+**輪詢策略優化**
+```typescript
+// ✅ 分級更新策略
+const POLLING_INTERVALS = {
+  OVERVIEW: 15000,      // 15秒 - 輕量級數據，頻繁更新
+  DASHBOARD: 120000,    // 2分鐘 - 完整數據，較少更新
+  NOTIFICATIONS: 30000  // 30秒 - 通知數據，中等頻率
+};
+```
+
+**錯誤處理最佳實踐**
+```typescript
+// ✅ 漸進式錯誤處理
+const loadDataSafely = async (apiCall: () => Promise<any>) => {
+  try {
+    await apiCall();
+  } catch (error) {
+    console.error('API調用失敗，但不影響其他功能:', error);
+    // 不拋出錯誤，讓其他API繼續運行
+  }
+};
+```
+
+##### **響應式設計實現**
+
+**網格佈局策略**
+```css
+/* 統計卡片響應式網格 */
+.dashboard-stats {
+  @apply grid gap-6;
+  @apply grid-cols-1;        /* 手機：單列 */
+  @apply md:grid-cols-2;     /* 平板：雙列 */
+  @apply lg:grid-cols-4;     /* 桌面：四列 */
+}
+
+/* 團隊統計響應式網格 */
+.team-stats {
+  @apply grid gap-4;
+  @apply grid-cols-2;        /* 手機：2x2 */
+  @apply lg:grid-cols-4;     /* 桌面：1x4 */
+}
+```
+
+**卡片內容響應式**
+```css
+/* 統計數值響應式字體 */
+.stat-value {
+  @apply text-xl font-semibold;
+  @apply sm:text-2xl;        /* 大屏幕更大字體 */
+}
+
+/* 副標題響應式顯示 */
+.stat-subtitle {
+  @apply text-xs;
+  @apply sm:text-sm;         /* 大屏幕更易讀 */
+  @apply truncate;           /* 防止溢出 */
+}
+```
+
+### 3.2 員工認證模組
 
 #### **登入頁面要求**
 - 支援工號/Email + 密碼登入
@@ -1784,7 +2079,59 @@ interface StaffMember {
 }
 ```
 
-### 3.2 訂單管理模組
+### 3.3 訂單管理模組 📋
+
+#### **訂單卡片UI設計規範**
+
+**卡片容器樣式**
+```css
+/* 基礎卡片樣式 */
+.order-card {
+  @apply bg-white border rounded-xl shadow-sm hover:shadow-md;
+  @apply transition-all duration-200;
+  @apply border-l-4; /* 左側狀態條 */
+}
+
+/* 狀態條配色 - 使用左邊框顏色 */
+.order-pending { border-left-color: theme('colors.yellow.500'); }
+.order-confirmed { border-left-color: theme('colors.blue.500'); }
+.order-preparing { border-left-color: theme('colors.orange.500'); }
+.order-ready { border-left-color: theme('colors.green.500'); }
+.order-completed { border-left-color: theme('colors.gray.500'); }
+.order-cancelled { border-left-color: theme('colors.red.500'); }
+```
+
+**卡片內容結構**
+```typescript
+interface OrderCardLayout {
+  header: {
+    orderNumber: "text-sm sm:text-lg font-semibold",
+    statusBadge: "px-2 py-1 rounded-full text-xs font-medium",
+    priorityBadge: "bg-red-100 text-red-800 (緊急)",
+    amount: "text-sm sm:text-xl font-bold text-gray-900"
+  },
+  
+  customerInfo: {
+    icon: "User/Phone/MapPin w-3 h-3",
+    text: "text-xs sm:text-sm text-gray-600"
+  },
+  
+  itemsPreview: {
+    maxDisplay: 3, // 最多顯示3項
+    overflow: "text-xs text-gray-500 (還有N項商品...)"
+  },
+  
+  actionButtons: {
+    style: "px-3 py-1.5 text-xs sm:text-sm rounded-lg",
+    colors: {
+      確認: "bg-blue-600 hover:bg-blue-700",
+      開始製作: "bg-orange-600 hover:bg-orange-700",
+      完成: "bg-green-600 hover:bg-green-700",
+      取消: "bg-red-600 hover:bg-red-700"
+    }
+  }
+}
+```
 
 #### **訂單列表功能**
 - 分類顯示：全部/待處理/進行中/已完成/已取消
@@ -1818,7 +2165,79 @@ interface OrderCardDisplay {
 }
 ```
 
-### 3.3 廚房工作台模組
+### 3.4 廚房工作站模組 👨‍🍳
+
+#### **工作站卡片UI設計**
+
+**工作站視覺系統**
+```typescript
+// WorkstationCard 設計規範
+interface WorkstationCardDesign {
+  // 容器樣式
+  container: {
+    base: "bg-white rounded-lg shadow-sm border-2",
+    hover: "hover:shadow-md transform hover:scale-[1.02]",
+    selected: "border-blue-500 ring-2 ring-blue-200",
+    inactive: "opacity-60 bg-gray-50",
+    overdue: "border-red-300 bg-red-50"
+  },
+  
+  // 工作站圖標系統
+  iconSystem: {
+    container: "p-2 rounded-lg bg-gradient-to-r",
+    emoji: "text-2xl",
+    statusIndicator: "w-3 h-3 rounded-full"
+  },
+  
+  // 訂單概覽網格
+  orderGrid: {
+    layout: "grid grid-cols-3 gap-2",
+    card: {
+      排隊: "bg-blue-50 text-blue-700",
+      製作中: "bg-yellow-50 text-yellow-700",
+      逾時: "bg-red-50 text-red-700"
+    }
+  }
+}
+```
+
+**工作站總覽儀表板**
+```typescript
+// 總覽統計卡片
+const overviewCards = [
+  { 
+    icon: Activity,
+    label: "活躍工作站",
+    color: "bg-blue-50 text-blue-600"
+  },
+  {
+    icon: Clock,
+    label: "總訂單數",
+    color: "bg-green-50 text-green-600"
+  },
+  {
+    icon: Users,
+    label: "製作中",
+    color: "bg-yellow-50 text-yellow-600"
+  },
+  {
+    icon: AlertCircle,
+    label: "逾時警告",
+    color: "bg-red-50 text-red-600"
+  }
+]
+```
+
+**工作站狀態指示器**
+```css
+/* 工作站運行狀態 */
+.workstation-active { background-color: #22c55e; } /* 綠色 */
+.workstation-inactive { background-color: #ef4444; } /* 紅色 */
+.workstation-overloaded { 
+  background-color: #f59e0b; 
+  animation: pulse 2s infinite;
+}
+```
 
 #### **廚房隊列顯示**
 - 區分顯示：正在製作/等待製作/即將完成
@@ -1849,7 +2268,77 @@ interface CookingTimer {
 }
 ```
 
-### 3.4 即時通訊模組
+### 3.5 個人中心模組 👤
+
+#### **個人資料卡片設計**
+
+**卡片結構設計**
+```typescript
+interface StaffProfileCardDesign {
+  // 容器結構
+  container: "bg-white rounded-lg shadow-sm border border-gray-200",
+  
+  // 頭部標題欄
+  header: {
+    icon: "User h-5 w-5 text-blue-600",
+    title: "text-sm font-medium text-gray-900",
+    refreshBtn: "RefreshCw h-3 w-3 animate-spin"
+  },
+  
+  // 個人資訊區
+  profileSection: {
+    avatar: "h-16 w-16 rounded-full ring-2 ring-gray-200",
+    onlineIndicator: "h-4 w-4 bg-green-500 rounded-full",
+    name: "text-lg font-semibold text-gray-900",
+    positionBadge: "inline-flex px-2 py-1 rounded-full text-xs"
+  },
+  
+  // 統計數據網格
+  statsGrid: {
+    layout: "grid grid-cols-2 gap-3",
+    card: {
+      處理訂單: "bg-blue-50 text-blue-600",
+      平均時間: "bg-green-50 text-green-600",
+      營業額: "bg-purple-50 text-purple-600",
+      效率指數: "bg-orange-50 text-orange-600"
+    }
+  }
+}
+```
+
+**職位色彩系統**
+```typescript
+const positionColors: Record<StaffPosition, string> = {
+  MANAGER: 'bg-purple-100 text-purple-800 border-purple-200',
+  SUPERVISOR: 'bg-blue-100 text-blue-800 border-blue-200',
+  COOK: 'bg-green-100 text-green-800 border-green-200',
+  SERVER: 'bg-orange-100 text-orange-800 border-orange-200',
+  CASHIER: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  CLEANER: 'bg-gray-100 text-gray-800 border-gray-200',
+}
+```
+
+**功能按鈕組**
+```css
+/* 操作按鈕樣式 */
+.profile-actions {
+  @apply flex flex-col space-y-2;
+}
+
+.btn-edit {
+  @apply flex-1 border border-gray-300 hover:bg-gray-50;
+}
+
+.btn-settings {
+  @apply flex-1 border border-gray-300 hover:bg-gray-50;
+}
+
+.btn-logout {
+  @apply text-red-600 border-red-300 hover:bg-red-50;
+}
+```
+
+### 3.6 即時通訊模組
 
 #### **WebSocket連接管理**
 ```typescript
@@ -1883,7 +2372,7 @@ type MessageType =
   | 'SYSTEM_NOTIFICATION'
 ```
 
-### 3.5 通知系統
+### 3.7 通知系統
 
 #### **通知類型與處理**
 | 通知類型 | 顯示方式 | 持續時間 | 音效 | 震動 |
@@ -1893,6 +2382,546 @@ type MessageType =
 | 狀態更新 | Badge | 3秒 | ✗ | ✗ |
 | 系統消息 | Toast | 5秒 | ✗ | ✗ |
 | 錯誤提示 | Modal | 需確認 | ✓ | ✓ |
+
+### 3.8 統計報表模組 📊
+
+#### **統計報表模組 UI 設計規範**
+
+**📊 現狀分析**
+- **後端API**: ✅ 完整實現（daily/weekly/monthly/team stats/leaderboard）
+- **前端架構**: ✅ 統計模組已建立，基礎組件已實現  
+- **設計語言**: ✅ DailyStatsCard已採用與orders模組一致的設計規範
+
+#### **API接口調用策略**
+
+**統計報表相關API端點**
+```typescript
+// API端點配置 (services/statisticsApi.ts)
+export const STATS_API_ENDPOINTS = {
+  // 個人統計
+  STATS_DAILY: (staffId: string) => `${ENV_CONFIG.API_BASE_URL}/staff/${staffId}/stats/daily`,
+  STATS_WEEKLY: (staffId: string) => `${ENV_CONFIG.API_BASE_URL}/staff/${staffId}/stats/weekly`,
+  STATS_MONTHLY: (staffId: string) => `${ENV_CONFIG.API_BASE_URL}/staff/${staffId}/stats/monthly`,
+  
+  // 團隊統計
+  TEAM_STATS: `${ENV_CONFIG.API_BASE_URL}/staff/team/stats`,
+  LEADERBOARD: `${ENV_CONFIG.API_BASE_URL}/staff/leaderboard`,
+} as const;
+
+// API調用服務實現
+interface StatsApiService {
+  // 個人統計
+  getDailyStats(staffId: string, date?: string): Promise<DailyStats>;
+  getWeeklyStats(staffId: string, weekStart?: string): Promise<WeeklyStats>;
+  getMonthlyStats(staffId: string, monthStart?: string): Promise<MonthlyStats>;
+  
+  // 團隊統計  
+  getTeamStats(): Promise<TeamStats>;
+  getLeaderboard(period?: 'DAILY' | 'WEEKLY' | 'MONTHLY', limit?: number): Promise<LeaderboardEntry[]>;
+}
+```
+
+**統計數據類型定義**
+```typescript
+// 統計數據接口 (與後端API對應)
+interface DailyStats {
+  date: string;
+  staffId: string;
+  statisticsId: string;
+  period: 'DAILY';
+  ordersProcessed: number;
+  ordersCompleted: number;
+  ordersCancelled: number;
+  averageProcessingTime: number;
+  efficiencyScore: number;
+  totalRevenue: number;
+  hoursWorked: number;
+  overtimeHours: number;
+  customerRating: number;
+  periodStart: string;
+  periodEnd: string;
+  
+  // UI計算字段
+  completionRate: number;
+  previousDayOrders: number;
+  previousDayRevenue: number;
+  ordersTrend: 'up' | 'down' | 'stable';
+  revenueTrend: 'up' | 'down' | 'stable';
+}
+
+interface TeamStats {
+  totalStaff: number;
+  activeStaff: number;
+  todayOrdersProcessed: number;
+  todayAverageProcessingTime: number;
+  todayEfficiencyScore: number;
+  todayRevenue: number;
+  topPerformers: StaffPerformance[];
+  departmentStats: Record<string, DepartmentStats>;
+}
+
+interface LeaderboardEntry {
+  rank: number;
+  staffId: string;
+  name: string;
+  department: 'KITCHEN' | 'SERVICE' | 'CASHIER';
+  ordersProcessed: number;
+  efficiencyScore: number;
+  averageTime: number;
+}
+```
+
+#### **響應式設計統一化**
+
+**參考orders模組的響應式模式：**
+
+**1. 統計卡片響應式佈局**
+```css
+/* 統計卡片網格系統 */
+.stats-grid {
+  @apply grid gap-4;
+  /* 手機版: 1列佈局 */
+  @apply grid-cols-1;
+  /* 平板版: 2列佈局 */
+  @apply md:grid-cols-2;
+  /* 桌面版: 4列佈局 */
+  @apply lg:grid-cols-4;
+}
+
+/* 手機版統計卡片特殊處理 */
+@media (max-width: 768px) {
+  .stats-card {
+    @apply p-3;  /* 較小內距 */
+    .stat-value {
+      @apply text-xl;  /* 較小字體 */
+    }
+    .stat-label {
+      @apply text-xs;  /* 較小標籤 */
+    }
+  }
+}
+```
+
+**2. 圖表響應式配置**
+```typescript
+// PerformanceChart響應式配置
+const getChartConfig = (screenSize: 'mobile' | 'tablet' | 'desktop') => ({
+  mobile: {
+    height: 200,
+    showLegend: false,
+    tickCount: 3,
+    fontSize: 10,
+    enablePan: true,
+    enableZoom: false,
+  },
+  tablet: {
+    height: 250,
+    showLegend: true,
+    tickCount: 5,
+    fontSize: 12,
+    enablePan: true,
+    enableZoom: true,
+  },
+  desktop: {
+    height: 300,
+    showLegend: true,
+    tickCount: 8,
+    fontSize: 14,
+    enablePan: false,
+    enableZoom: true,
+  }
+});
+```
+
+#### **設計語言對齊orders模組**
+
+**配色系統統一規範**
+```typescript
+// 統計項目配色映射 (與orders模組保持一致)
+export const STATS_COLOR_SCHEME = {
+  // 主要統計 - 藍色系 (與orders主色調一致)
+  primary: {
+    orders: 'text-blue-600 bg-blue-50 border-blue-200',
+    badge: 'bg-blue-100 text-blue-800',
+    icon: 'text-blue-600',
+  },
+  
+  // 成功指標 - 綠色系 (完成率、效率提升)
+  success: {
+    completion: 'text-green-600 bg-green-50 border-green-200',
+    badge: 'bg-green-100 text-green-800',
+    icon: 'text-green-600',
+  },
+  
+  // 收入數據 - 橙色系 (營收、利潤)
+  revenue: {
+    money: 'text-orange-600 bg-orange-50 border-orange-200',
+    badge: 'bg-orange-100 text-orange-800',
+    icon: 'text-orange-600',
+  },
+  
+  // 時間效率 - 紫色系 (處理時間、工時)
+  time: {
+    efficiency: 'text-purple-600 bg-purple-50 border-purple-200',
+    badge: 'bg-purple-100 text-purple-800',
+    icon: 'text-purple-600',
+  },
+  
+  // 警告指標 - 紅色系 (下降趨勢、超時)
+  warning: {
+    decline: 'text-red-600 bg-red-50 border-red-200',
+    badge: 'bg-red-100 text-red-800',
+    icon: 'text-red-600',
+  }
+} as const;
+```
+
+**統一卡片設計語言**
+```typescript
+// 統計卡片統一設計 (對齊OrderCard設計)
+interface StatsCard {
+  className: "bg-white border rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border-l-4";
+  padding: "p-3 sm:p-4";
+  
+  header: {
+    layout: "flex items-center justify-between mb-2 sm:mb-3";
+    icon: "w-4 h-4 sm:w-5 sm:h-5";
+    badge: "px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs font-medium rounded-full";
+  };
+  
+  content: {
+    value: "text-sm sm:text-xl font-bold";
+    label: "text-xs sm:text-sm text-gray-600";
+    trend: "flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium";
+  };
+}
+```
+
+#### **組件設計實現細節**
+
+**1. DailyStatsCard 手機版優化**
+```typescript
+const DailyStatsCard: React.FC<DailyStatsCardProps> = ({ variant = 'default' }) => {
+  const isMobile = useBreakpoint('md'); // < 768px
+  
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+      {/* 手機版: 緊湊標題 */}
+      <div className={`p-${isMobile ? '3' : '6'} pb-4 border-b border-gray-100`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg">
+              <Activity className={`w-${isMobile ? '4' : '5'} h-${isMobile ? '4' : '5'}`} />
+            </div>
+            <div>
+              <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold text-gray-900`}>
+                今日統計
+              </h3>
+              <p className="text-xs text-gray-500">
+                {formatDate(stats.date, isMobile)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 統計網格: 手機版2x2, 桌面版1x4 */}
+      <div className="p-4">
+        <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}`}>
+          <StatItem
+            label="訂單"
+            value={stats.totalOrders}
+            icon={<ShoppingBag className={`w-${isMobile ? '4' : '5'} h-${isMobile ? '4' : '5'}`} />}
+            color="blue"
+            compact={isMobile}
+          />
+          {/* 其他統計項目... */}
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+**2. PerformanceChart 圖表適配**
+```typescript
+const PerformanceChart: React.FC = () => {
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
+  
+  const chartConfig = useMemo(() => ({
+    height: isMobile ? 200 : 300,
+    margin: isMobile ? { top: 10, right: 10, bottom: 20, left: 30 } 
+                     : { top: 20, right: 30, bottom: 40, left: 50 },
+    
+    // 手機版: 橫向滑動支援
+    enablePan: isMobile,
+    panBoundaries: isMobile ? { minX: -100, maxX: 100 } : undefined,
+    
+    // 簡化數據點顯示
+    showTooltip: !isMobile,
+    showLegend: !isMobile,
+    dataPointCount: isMobile ? 7 : 14, // 手機版顯示7天，桌面版14天
+  }), [isMobile, width]);
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-100">
+      {/* 圖表標題 */}
+      <div className="p-4 border-b border-gray-100">
+        <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold`}>
+          績效趨勢
+        </h3>
+      </div>
+      
+      {/* 響應式圖表容器 */}
+      <div className={`p-${isMobile ? '2' : '4'}`}>
+        {isMobile ? (
+          // 手機版: 可滑動圖表
+          <div className="overflow-x-auto">
+            <div style={{ minWidth: '400px' }}>
+              <ResponsiveLineChart config={chartConfig} data={chartData} />
+            </div>
+          </div>
+        ) : (
+          // 桌面版: 自適應圖表
+          <ResponsiveLineChart config={chartConfig} data={chartData} />
+        )}
+      </div>
+    </div>
+  );
+};
+```
+
+**3. TeamLeaderboard 表格設計**
+```typescript
+// 參考OrderQueue的表格設計模式
+const TeamLeaderboard: React.FC = () => {
+  const isMobile = useBreakpoint('md');
+  
+  return (
+    <div className="bg-white rounded-xl border border-gray-100">
+      <div className="p-4 border-b border-gray-100">
+        <h3 className="text-lg font-semibold">團隊排行榜</h3>
+      </div>
+      
+      {isMobile ? (
+        // 手機版: 卡片列表 (參考OrderCard compact模式)
+        <div className="p-2 space-y-2">
+          {leaderboard.map((entry, index) => (
+            <div key={entry.staffId} 
+                 className="p-3 border rounded-lg bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                    index === 0 ? 'bg-yellow-100 text-yellow-800' :
+                    index === 1 ? 'bg-gray-100 text-gray-800' :
+                    index === 2 ? 'bg-orange-100 text-orange-800' :
+                    'bg-blue-100 text-blue-800'
+                  }`}>
+                    {entry.rank}
+                  </div>
+                  <div>
+                    <div className="font-medium text-sm">{entry.name}</div>
+                    <div className="text-xs text-gray-500">{entry.department}</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-semibold text-sm">{entry.ordersProcessed}單</div>
+                  <div className="text-xs text-gray-500">{entry.efficiencyScore}%</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        // 桌面版: 表格顯示
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr className="text-left">
+                <th className="p-3 font-medium text-gray-600">排名</th>
+                <th className="p-3 font-medium text-gray-600">員工</th>
+                <th className="p-3 font-medium text-gray-600">部門</th>
+                <th className="p-3 font-medium text-gray-600">處理訂單</th>
+                <th className="p-3 font-medium text-gray-600">效率分數</th>
+                <th className="p-3 font-medium text-gray-600">平均時間</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {leaderboard.map((entry) => (
+                <tr key={entry.staffId} className="hover:bg-gray-50">
+                  <td className="p-3">{entry.rank}</td>
+                  <td className="p-3 font-medium">{entry.name}</td>
+                  <td className="p-3">{entry.department}</td>
+                  <td className="p-3">{entry.ordersProcessed}</td>
+                  <td className="p-3">{entry.efficiencyScore}%</td>
+                  <td className="p-3">{entry.averageTime}分鐘</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
+```
+
+#### **視圖模式切換設計**
+
+**參考OrderQueue的視圖控制模式**
+```typescript
+// 統計報表頁面視圖控制
+const PerformanceReportPage: React.FC = () => {
+  const [viewMode, setViewMode] = useState<'overview' | 'detailed' | 'chart'>('overview');
+  
+  // 視圖切換控制 (參考OrderQueue設計)
+  const renderViewControls = () => (
+    <div className="flex items-center space-x-2">
+      <div className="flex bg-gray-100 rounded-lg p-1">
+        <button
+          onClick={() => setViewMode('overview')}
+          className={cn(
+            'p-2 rounded-md transition-colors',
+            viewMode === 'overview' 
+              ? 'bg-white text-gray-900 shadow-sm' 
+              : 'text-gray-600 hover:text-gray-900'
+          )}
+          title="概覽視圖"
+        >
+          <Grid className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => setViewMode('detailed')}
+          className={cn(
+            'p-2 rounded-md transition-colors',
+            viewMode === 'detailed' 
+              ? 'bg-white text-gray-900 shadow-sm' 
+              : 'text-gray-600 hover:text-gray-900'
+          )}
+          title="詳細視圖"
+        >
+          <List className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => setViewMode('chart')}
+          className={cn(
+            'p-2 rounded-md transition-colors',
+            viewMode === 'chart' 
+              ? 'bg-white text-gray-900 shadow-sm' 
+              : 'text-gray-600 hover:text-gray-900'
+          )}
+          title="圖表視圖"
+        >
+          <BarChart3 className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* 工具列 (參考OrderQueue工具列設計) */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center space-x-4">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900">績效統計</h1>
+          <button
+            onClick={refreshStats}
+            disabled={loading}
+            className={cn(
+              'p-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors',
+              loading && 'animate-spin'
+            )}
+            title="重新整理"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex items-center space-x-4">
+          {/* 時間篩選器 */}
+          <StatsFilters />
+          
+          {/* 視圖切換 */}
+          {renderViewControls()}
+          
+          {/* 導出功能 */}
+          <button
+            onClick={exportStats}
+            className="p-2 border border-gray-300 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+            title="導出報表"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* 根據視圖模式渲染內容 */}
+      {viewMode === 'overview' && <OverviewView />}
+      {viewMode === 'detailed' && <DetailedView />}
+      {viewMode === 'chart' && <ChartView />}
+    </div>
+  );
+};
+```
+
+#### **實時更新整合**
+
+**WebSocket統計數據推送**
+```typescript
+// 統計數據WebSocket整合
+const useStatsWebSocket = (staffId: string) => {
+  const updateStats = useStatisticsStore(state => state.updateStats);
+  
+  useWebSocket(`${ENV_CONFIG.WS_BASE_URL}/staff/${staffId}/stats`, {
+    onMessage: (event) => {
+      const message = JSON.parse(event.data);
+      
+      switch (message.type) {
+        case 'STATS_UPDATE':
+          // 實時更新統計數據
+          updateStats(message.data);
+          break;
+          
+        case 'LEADERBOARD_UPDATE':
+          // 更新排行榜
+          updateLeaderboard(message.data);
+          break;
+          
+        case 'TEAM_STATS_UPDATE':
+          // 更新團隊統計
+          updateTeamStats(message.data);
+          break;
+      }
+    }
+  });
+};
+```
+
+#### **導出功能設計**
+
+```typescript
+// 統計報表導出功能
+const useStatsExport = () => {
+  const exportToPDF = async (statsData: StatsData, type: 'daily' | 'weekly' | 'monthly') => {
+    // PDF導出邏輯
+    const doc = new jsPDF();
+    doc.text(`${type.toUpperCase()} 績效報告`, 20, 20);
+    // ... PDF內容生成
+    doc.save(`performance-report-${type}-${Date.now()}.pdf`);
+  };
+
+  const exportToExcel = async (statsData: StatsData) => {
+    // Excel導出邏輯
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(statsData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Stats');
+    XLSX.writeFile(workbook, `stats-export-${Date.now()}.xlsx`);
+  };
+
+  return { exportToPDF, exportToExcel };
+};
+```
 
 ## 4. 性能與優化要求
 

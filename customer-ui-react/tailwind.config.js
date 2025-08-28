@@ -7,47 +7,47 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
-      // 彩虹主題色彩系統
+      // 動態主題色彩系統 - 與ThemeProvider整合
       colors: {
-        // 主要色彩
+        // 主要色彩 - 使用CSS變量支援動態主題
         primary: {
-          50: '#FFF5F1',
-          100: '#FFE8DD',
-          200: '#FFD1BB',
-          300: '#FFB088',
-          400: '#FF8A5C',
-          500: '#FF6B35', // --primary-color
-          600: '#E64A1A', // --primary-dark
-          700: '#CC3F17',
-          800: '#A63314',
-          900: '#7A2610',
-          950: '#4F1809',
+          50: 'rgba(var(--color-primary), 0.05)',
+          100: 'rgba(var(--color-primary), 0.1)',
+          200: 'rgba(var(--color-primary), 0.2)',
+          300: 'rgba(var(--color-primary), 0.3)',
+          400: 'rgba(var(--color-primary), 0.4)',
+          500: 'rgb(var(--color-primary))', // 主要色彩
+          600: 'rgba(var(--color-primary), 0.8)',
+          700: 'rgba(var(--color-primary), 0.9)',
+          800: 'rgba(var(--color-primary), 0.95)',
+          900: 'rgba(var(--color-primary), 0.97)',
+          950: 'rgba(var(--color-primary), 0.99)',
         },
         secondary: {
-          50: '#F0F9F4',
-          100: '#DCF2E4',
-          200: '#BBE5CA',
-          300: '#8DD3A5',
-          400: '#5ABB7A',
-          500: '#4CAF50', // --secondary-light
-          600: '#2E8B57', // --secondary-color
-          700: '#1E5A3A', // --secondary-dark
-          800: '#16472D',
-          900: '#0F3320',
-          950: '#081F13',
+          50: 'rgba(var(--color-secondary), 0.05)',
+          100: 'rgba(var(--color-secondary), 0.1)',
+          200: 'rgba(var(--color-secondary), 0.2)',
+          300: 'rgba(var(--color-secondary), 0.3)',
+          400: 'rgba(var(--color-secondary), 0.4)',
+          500: 'rgb(var(--color-secondary))', // 次要色彩
+          600: 'rgba(var(--color-secondary), 0.8)',
+          700: 'rgba(var(--color-secondary), 0.9)',
+          800: 'rgba(var(--color-secondary), 0.95)',
+          900: 'rgba(var(--color-secondary), 0.97)',
+          950: 'rgba(var(--color-secondary), 0.99)',
         },
         accent: {
-          50: '#FEFCE8',
-          100: '#FEFBCC',
-          200: '#FEF798',
-          300: '#FFED4A', // --accent-light
-          400: '#FDE047',
-          500: '#FFD700', // --accent-color
-          600: '#DAB500', // --accent-dark
-          700: '#B8A00E',
-          800: '#8A7A0A',
-          900: '#5C5107',
-          950: '#2E2A04',
+          50: 'rgba(var(--color-accent), 0.05)',
+          100: 'rgba(var(--color-accent), 0.1)',
+          200: 'rgba(var(--color-accent), 0.2)',
+          300: 'rgba(var(--color-accent), 0.3)',
+          400: 'rgba(var(--color-accent), 0.4)',
+          500: 'rgb(var(--color-accent))', // 強調色彩
+          600: 'rgba(var(--color-accent), 0.8)',
+          700: 'rgba(var(--color-accent), 0.9)',
+          800: 'rgba(var(--color-accent), 0.95)',
+          900: 'rgba(var(--color-accent), 0.97)',
+          950: 'rgba(var(--color-accent), 0.99)',
         },
         
         // 彩虹色彩
@@ -62,72 +62,96 @@ export default {
           pink: '#FF2D92',
         },
         
-        // 狀態色彩
+        // 狀態色彩 - 使用CSS變量支援動態主題
         success: {
-          50: '#F0F9F4',
-          100: '#DCF2E4',
-          500: '#4CAF50',
-          600: '#45A049',
-          700: '#3D8B40',
+          50: 'rgba(var(--color-success), 0.05)',
+          100: 'rgba(var(--color-success), 0.1)',
+          200: 'rgba(var(--color-success), 0.2)',
+          300: 'rgba(var(--color-success), 0.3)',
+          400: 'rgba(var(--color-success), 0.4)',
+          500: 'rgb(var(--color-success))',
+          600: 'rgba(var(--color-success), 0.8)',
+          700: 'rgba(var(--color-success), 0.9)',
+          800: 'rgba(var(--color-success), 0.95)',
+          900: 'rgba(var(--color-success), 0.97)',
+          950: 'rgba(var(--color-success), 0.99)',
         },
         warning: {
-          50: '#FFF8E1',
-          100: '#FFECB3',
-          500: '#FF9800',
-          600: '#F57C00',
-          700: '#EF6C00',
+          50: 'rgba(var(--color-warning), 0.05)',
+          100: 'rgba(var(--color-warning), 0.1)',
+          200: 'rgba(var(--color-warning), 0.2)',
+          300: 'rgba(var(--color-warning), 0.3)',
+          400: 'rgba(var(--color-warning), 0.4)',
+          500: 'rgb(var(--color-warning))',
+          600: 'rgba(var(--color-warning), 0.8)',
+          700: 'rgba(var(--color-warning), 0.9)',
+          800: 'rgba(var(--color-warning), 0.95)',
+          900: 'rgba(var(--color-warning), 0.97)',
+          950: 'rgba(var(--color-warning), 0.99)',
         },
         error: {
-          50: '#FFEBEE',
-          100: '#FFCDD2',
-          500: '#F44336',
-          600: '#E53935',
-          700: '#D32F2F',
+          50: 'rgba(var(--color-error), 0.05)',
+          100: 'rgba(var(--color-error), 0.1)',
+          200: 'rgba(var(--color-error), 0.2)',
+          300: 'rgba(var(--color-error), 0.3)',
+          400: 'rgba(var(--color-error), 0.4)',
+          500: 'rgb(var(--color-error))',
+          600: 'rgba(var(--color-error), 0.8)',
+          700: 'rgba(var(--color-error), 0.9)',
+          800: 'rgba(var(--color-error), 0.95)',
+          900: 'rgba(var(--color-error), 0.97)',
+          950: 'rgba(var(--color-error), 0.99)',
         },
         info: {
-          50: '#E3F2FD',
-          100: '#BBDEFB',
-          500: '#2196F3',
-          600: '#1E88E5',
-          700: '#1976D2',
+          50: 'rgba(var(--color-info), 0.05)',
+          100: 'rgba(var(--color-info), 0.1)',
+          200: 'rgba(var(--color-info), 0.2)',
+          300: 'rgba(var(--color-info), 0.3)',
+          400: 'rgba(var(--color-info), 0.4)',
+          500: 'rgb(var(--color-info))',
+          600: 'rgba(var(--color-info), 0.8)',
+          700: 'rgba(var(--color-info), 0.9)',
+          800: 'rgba(var(--color-info), 0.95)',
+          900: 'rgba(var(--color-info), 0.97)',
+          950: 'rgba(var(--color-info), 0.99)',
         },
         
-        // 文字色彩
+        // 語義色彩 - 使用CSS變量支援動態主題
         text: {
-          primary: '#333333',
-          secondary: '#666666',
-          disabled: '#999999',
+          primary: 'rgb(var(--color-text))',
+          secondary: 'rgb(var(--color-textSecondary))',
+          disabled: 'rgba(var(--color-text), 0.4)',
         },
         
-        // 邊框色彩
         border: {
-          light: '#E0E0E0',
-          medium: '#CCCCCC',
-          dark: '#999999',
+          light: 'rgba(var(--color-border), 0.6)',
+          medium: 'rgb(var(--color-border))',
+          dark: 'rgba(var(--color-border), 1.2)',
         },
         
-        // 背景色彩
         background: {
-          default: '#FAFAFA',
-          card: '#FFFFFF',
+          default: 'rgb(var(--color-background))',
+          surface: 'rgb(var(--color-surface))',
           overlay: 'rgba(0, 0, 0, 0.5)',
         },
       },
       
-      // 字體系統
+      // 字體系統 - 多語言支援
       fontFamily: {
-        'noto': ['Noto Sans TC', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        'inter': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        'noto': ['Noto Sans TC', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        'system': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'sans-serif'],
       },
       
-      // 字體大小
+      // 字體大小 - 手機版優化
       fontSize: {
-        xs: ['12px', { lineHeight: '16px' }],
-        sm: ['14px', { lineHeight: '20px' }],
-        base: ['16px', { lineHeight: '24px' }],
-        lg: ['18px', { lineHeight: '28px' }],
-        xl: ['20px', { lineHeight: '28px' }],
-        '2xl': ['24px', { lineHeight: '32px' }],
-        '3xl': ['28px', { lineHeight: '36px' }],
+        'xs': ['11px', { lineHeight: '16px' }],
+        'sm': ['13px', { lineHeight: '18px' }],
+        'base': ['15px', { lineHeight: '22px' }],
+        'lg': ['17px', { lineHeight: '24px' }],
+        'xl': ['19px', { lineHeight: '26px' }],
+        '2xl': ['22px', { lineHeight: '30px' }],
+        '3xl': ['26px', { lineHeight: '34px' }],
       },
       
       // 間距系統

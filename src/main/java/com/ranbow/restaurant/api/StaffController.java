@@ -19,8 +19,8 @@ import java.util.Optional;
  * Handles authentication, order management, kitchen operations, and staff statistics
  */
 @RestController
-@RequestMapping("/api/staff")
-@CrossOrigin(origins = "*")
+@RequestMapping("/staff")
+@CrossOrigin(origins = "*") 
 public class StaffController {
 
     @Autowired
@@ -37,6 +37,21 @@ public class StaffController {
     
     @Autowired
     private NotificationService notificationService;
+    
+    @Autowired
+    private JwtService jwtService;
+    
+    @Autowired
+    private SessionService sessionService;
+
+    // ================================
+    // TEST ENDPOINTS FOR DEBUGGING
+    // ================================
+    
+    @GetMapping("/test")
+    public ResponseEntity<?> testEndpoint() {
+        return ResponseEntity.ok(Map.of("status", "test working", "message", "Staff controller is active", "timestamp", System.currentTimeMillis()));
+    }
 
     // ================================
     // STAFF AUTHENTICATION ENDPOINTS
@@ -63,10 +78,19 @@ public class StaffController {
                         staffService.startShift(staff.getStaffId());
                     }
                     
+                    // Generate session ID and JWT tokens
+                    String sessionId = sessionService.createSession(staff.getStaffId(), "Staff Portal", "127.0.0.1");
+                    String token = jwtService.generateToken(staff.getStaffId(), sessionId, "Staff Portal");
+                    String refreshToken = jwtService.generateToken(staff.getStaffId(), sessionId + "_refresh", "Staff Portal");
+                    
                     return ResponseEntity.ok(Map.of(
                         "success", true,
                         "message", "登入成功",
                         "staff", profile,
+                        "token", token,
+                        "refreshToken", refreshToken,
+                        "sessionId", sessionId,
+                        "expiresIn", 8 * 60 * 60, // 8 hours in seconds
                         "unreadNotifications", notificationService.countUnreadNotifications(staff.getStaffId())
                     ));
                 }
@@ -161,18 +185,180 @@ public class StaffController {
     }
 
     // ================================
+    // DASHBOARD ENDPOINTS
+    // ================================
+
+    /**
+     * Get dashboard data for staff
+     * GET /api/staff/dashboard/{staffId}
+     */
+    @GetMapping("/dashboard/{staffId}")
+    public ResponseEntity<?> getDashboardData(@PathVariable String staffId) {
+        try {
+            // 基本驗證
+            if (staffId == null || staffId.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "error", "無效的員工ID"));
+            }
+
+            // 獲取訂單統計 - 使用null安全方法
+            int pendingCount = 0, confirmedCount = 0, preparingCount = 0, readyCount = 0;
+            try {
+                List<Order> pendingOrders = orderService.getOrdersByStatus(OrderStatus.PENDING);
+                pendingCount = pendingOrders != null ? pendingOrders.size() : 0;
+                
+                List<Order> confirmedOrders = orderService.getOrdersByStatus(OrderStatus.CONFIRMED);
+                confirmedCount = confirmedOrders != null ? confirmedOrders.size() : 0;
+                
+                List<Order> preparingOrders = orderService.getOrdersByStatus(OrderStatus.PREPARING);
+                preparingCount = preparingOrders != null ? preparingOrders.size() : 0;
+                
+                List<Order> readyOrders = orderService.getOrdersByStatus(OrderStatus.READY);
+                readyCount = readyOrders != null ? readyOrders.size() : 0;
+            } catch (Exception e) {
+                System.err.println("Error getting order counts: " + e.getMessage());
+            }
+
+            // 獲取廚房隊列統計
+            int queueLength = 0, activeQueues = 0;
+            try {
+                List<KitchenOrder> kitchenQueue = kitchenService.getKitchenQueue();
+                if (kitchenQueue != null) {
+                    queueLength = kitchenQueue.size();
+                    activeQueues = (int) kitchenQueue.stream()
+                        .filter(q -> q != null && q.getKitchenStatus() != null && !q.getKitchenStatus().isCompleted())
+                        .count();
+                }
+            } catch (Exception e) {
+                System.err.println("Error getting kitchen queue: " + e.getMessage());
+            }
+
+            // 獲取通知數量
+            int unreadNotifications = 0;
+            try {
+                unreadNotifications = notificationService.countUnreadNotifications(staffId);
+            } catch (Exception e) {
+                System.err.println("Error counting notifications: " + e.getMessage());
+            }
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", Map.of(
+                    "todayStats", Map.of(
+                        "ordersProcessed", 0,
+                        "averageProcessingTime", 0.0,
+                        "efficiencyRating", 0.0
+                    ),
+                    "orders", Map.of(
+                        "pending", pendingCount,
+                        "confirmed", confirmedCount,
+                        "preparing", preparingCount,
+                        "ready", readyCount,
+                        "total", pendingCount + confirmedCount + preparingCount + readyCount,
+                        "recentOrders", List.of()
+                    ),
+                    "kitchen", Map.of(
+                        "queueLength", queueLength,
+                        "activeQueues", activeQueues,
+                        "recentItems", List.of()
+                    ),
+                    "team", Map.of(
+                        "totalStaff", 0,
+                        "activeStaff", 0,
+                        "todayOrders", 0,
+                        "avgEfficiency", 0.0
+                    ),
+                    "notifications", Map.of(
+                        "unread", unreadNotifications
+                    ),
+                    "lastUpdated", System.currentTimeMillis()
+                )
+            ));
+            
+        } catch (Exception e) {
+            System.err.println("Dashboard error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("success", false, "error", "Dashboard 載入失敗", "details", e.getMessage()));
+        }
+    }
+    
+    // 輔助方法：安全獲取訂單列表
+    private List<Order> safeGetOrdersByStatus(OrderStatus status) {
+        try {
+            List<Order> orders = orderService.getOrdersByStatus(status);
+            return orders != null ? orders : List.of();
+        } catch (Exception e) {
+            System.err.println("Error getting orders by status " + status + ": " + e.getMessage());
+            return List.of();
+        }
+    }
+    
+    // 輔助方法：安全獲取廚房隊列
+    private List<KitchenOrder> safeGetKitchenQueue() {
+        try {
+            List<KitchenOrder> queue = kitchenService.getKitchenQueue();
+            return queue != null ? queue : List.of();
+        } catch (Exception e) {
+            System.err.println("Error getting kitchen queue: " + e.getMessage());
+            return List.of();
+        }
+    }
+
+    /**
+     * Get real-time overview data (optimized for frequent polling)
+     * GET /api/staff/overview
+     */
+    @GetMapping("/overview")
+    public ResponseEntity<?> getRealTimeOverview() {
+        try {
+            // 獲取訂單概覽 (輕量級查詢)
+            int pendingCount = orderService.getOrdersByStatus(OrderStatus.PENDING).size();
+            int confirmedCount = orderService.getOrdersByStatus(OrderStatus.CONFIRMED).size();
+            int preparingCount = orderService.getOrdersByStatus(OrderStatus.PREPARING).size();
+            int readyCount = orderService.getOrdersByStatus(OrderStatus.READY).size();
+            
+            // 獲取廚房隊列概覽
+            List<KitchenOrder> activeQueues = kitchenService.getKitchenQueue().stream()
+                .filter(q -> !q.getKitchenStatus().isCompleted()).toList();
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", Map.of(
+                    "orders", Map.of(
+                        "pending", pendingCount,
+                        "confirmed", confirmedCount,
+                        "preparing", preparingCount,
+                        "ready", readyCount,
+                        "total", pendingCount + confirmedCount + preparingCount + readyCount
+                    ),
+                    "kitchen", Map.of(
+                        "activeQueues", activeQueues.size(),
+                        "totalItems", activeQueues.size()
+                    ),
+                    "timestamp", System.currentTimeMillis()
+                )
+            ));
+            
+        } catch (Exception e) {
+            System.err.println("Error getting real-time overview: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "無法載入即時概覽", "details", e.getMessage()));
+        }
+    }
+
+    // ================================
     // ORDER MANAGEMENT FOR STAFF
     // ================================
 
     /**
      * Get pending orders for staff
-     * GET /api/orders/pending
+     * GET /api/staff/orders/pending
      */
     @GetMapping("/orders/pending")
     public ResponseEntity<?> getPendingOrders() {
         try {
-            List<Order> pendingOrders = orderService.getOrdersByStatus(OrderStatus.PENDING);
-            List<Order> confirmedOrders = orderService.getOrdersByStatus(OrderStatus.CONFIRMED);
+            List<Map<String, Object>> pendingOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.PENDING);
+            List<Map<String, Object>> confirmedOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.CONFIRMED);
             
             return ResponseEntity.ok(Map.of(
                 "pending", pendingOrders,
@@ -189,13 +375,13 @@ public class StaffController {
 
     /**
      * Get orders currently being prepared
-     * GET /api/orders/in-progress
+     * GET /api/staff/orders/in-progress
      */
     @GetMapping("/orders/in-progress")
     public ResponseEntity<?> getInProgressOrders() {
         try {
-            List<Order> preparingOrders = orderService.getOrdersByStatus(OrderStatus.PREPARING);
-            List<Order> readyOrders = orderService.getOrdersByStatus(OrderStatus.READY);
+            List<Map<String, Object>> preparingOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.PREPARING);
+            List<Map<String, Object>> readyOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.READY);
             
             return ResponseEntity.ok(Map.of(
                 "preparing", preparingOrders,
@@ -212,13 +398,13 @@ public class StaffController {
 
     /**
      * Get completed orders
-     * GET /api/orders/completed
+     * GET /api/staff/orders/completed
      */
     @GetMapping("/orders/completed")
     public ResponseEntity<?> getCompletedOrders() {
         try {
-            List<Order> deliveredOrders = orderService.getOrdersByStatus(OrderStatus.DELIVERED);
-            List<Order> completedOrders = orderService.getOrdersByStatus(OrderStatus.COMPLETED);
+            List<Map<String, Object>> deliveredOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.DELIVERED);
+            List<Map<String, Object>> completedOrders = orderService.getOrdersWithCompleteDataByStatus(OrderStatus.COMPLETED);
             
             return ResponseEntity.ok(Map.of(
                 "delivered", deliveredOrders,
@@ -235,7 +421,7 @@ public class StaffController {
 
     /**
      * Update order status
-     * PUT /api/orders/{orderId}/status
+     * PUT /api/staff/orders/{orderId}/status
      */
     @PutMapping("/orders/{orderId}/status")
     public ResponseEntity<?> updateOrderStatus(@PathVariable String orderId, 
@@ -277,7 +463,7 @@ public class StaffController {
 
     /**
      * Get detailed order information including customer info
-     * GET /api/orders/{orderId}/details
+     * GET /api/staff/orders/{orderId}/details
      */
     @GetMapping("/orders/{orderId}/details")
     public ResponseEntity<?> getOrderDetails(@PathVariable String orderId) {
@@ -313,7 +499,7 @@ public class StaffController {
 
     /**
      * Get kitchen preparation queue
-     * GET /api/kitchen/queue
+     * GET /api/staff/kitchen/queue
      */
     @GetMapping("/kitchen/queue")
     public ResponseEntity<?> getKitchenQueue() {
@@ -340,7 +526,7 @@ public class StaffController {
 
     /**
      * Start preparing an order
-     * POST /api/kitchen/start/{orderId}
+     * POST /api/staff/kitchen/start/{orderId}
      */
     @PostMapping("/kitchen/start/{orderId}")
     public ResponseEntity<?> startOrder(@PathVariable String orderId, 
@@ -372,7 +558,7 @@ public class StaffController {
 
     /**
      * Update cooking timer for an order
-     * PUT /api/kitchen/timer/{orderId}
+     * PUT /api/staff/kitchen/timer/{orderId}
      */
     @PutMapping("/kitchen/timer/{orderId}")
     public ResponseEntity<?> updateTimer(@PathVariable String orderId, 
@@ -402,7 +588,7 @@ public class StaffController {
 
     /**
      * Mark order as ready/complete
-     * POST /api/kitchen/complete/{orderId}
+     * POST /api/staff/kitchen/complete/{orderId}
      */
     @PostMapping("/kitchen/complete/{orderId}")
     public ResponseEntity<?> completeOrder(@PathVariable String orderId, 

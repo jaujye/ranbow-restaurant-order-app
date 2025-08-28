@@ -107,7 +107,7 @@ export class ProfileService {
       }
     }
     
-    return this.updateProfile(currentUserResponse.data.user.userId, profileData)
+    return this.updateProfile(currentUserResponse.data.user.id.toString(), profileData)
   }
 
   /**
@@ -130,7 +130,7 @@ export class ProfileService {
       }
     }
     
-    return this.changePassword(currentUserResponse.data.user.userId, passwordData)
+    return this.changePassword(currentUserResponse.data.user.id.toString(), passwordData)
   }
 
   /**
@@ -158,7 +158,7 @@ export class ProfileService {
       }
     }
     
-    return this.getUserCoupons(currentUserResponse.data.user.userId)
+    return this.getUserCoupons(currentUserResponse.data.user.id.toString())
   }
 
   /**
@@ -180,7 +180,7 @@ export class ProfileService {
       }
     }
     
-    return this.getUserAddresses(currentUserResponse.data.user.userId)
+    return this.getUserAddresses(currentUserResponse.data.user.id.toString())
   }
 
   /**
@@ -202,7 +202,7 @@ export class ProfileService {
       }
     }
     
-    return this.getUserReviews(currentUserResponse.data.user.userId)
+    return this.getUserReviews(currentUserResponse.data.user.id.toString())
   }
 
   /**

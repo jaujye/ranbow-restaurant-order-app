@@ -92,14 +92,26 @@
       "Bash(git merge:*)",
       "Bash(git log:*)",
       "Bash(npx playwright test:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(git restore:*)",
+      "Bash(ren:*)",
+      "Bash(tasklist:*)",
+      "Bash(powershell:*)",
+      "mcp__chrome-devtools__get_document",
+      "Bash(git reset:*)",
+      "Bash(npx tsc:*)",
+      "Bash(sed:*)",
+      "mcp__chrome-devtools__get_page_info",
+      "mcp__playwright__browser_fill_form",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": [],
     "defaultMode": "acceptEdits",
     "additionalDirectories": [
       "C:\\c\\Users\\JauJyeCH\\Desktop",
-      "C:\\c\\Users"
+      "C:\\c\\Users",
+      "C:\\c\\Users\\JauJyeCH\\Desktop\\ranbow-restaurant-order-app"
     ]
   }
 }

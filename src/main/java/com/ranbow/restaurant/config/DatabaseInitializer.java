@@ -120,7 +120,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             
             // Check database version/info
             String version = jdbcTemplate.queryForObject("SELECT version()", String.class);
-            logger.info("🗄️ PostgreSQL version: {}", version.split(" ")[1]);
+            logger.info("🗄️ PostgreSQL version: {}", version != null && version.contains(" ") ? version.split(" ")[1] : version);
             
         } catch (Exception e) {
             logger.warn("Could not verify data: {}", e.getMessage());

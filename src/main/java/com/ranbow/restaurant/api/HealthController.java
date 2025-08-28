@@ -89,7 +89,7 @@ public class HealthController {
             
             dbHealth.put("status", "UP");
             dbHealth.put("connection", connectionTest);
-            dbHealth.put("version", version.split(" ")[1]);
+            dbHealth.put("version", version != null && version.contains(" ") ? version.split(" ")[1] : version);
             dbHealth.put("currentTime", dbTime);
             dbHealth.put("tableCount", tableCount);
             

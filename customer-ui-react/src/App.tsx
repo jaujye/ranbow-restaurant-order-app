@@ -81,13 +81,9 @@ const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <>{children}</>
 }
 
-// Public routes that don't require authentication
-const publicRoutes = ['/login', '/register']
-
 // Main App Component
 const App: React.FC = () => {
   const location = useLocation()
-  const isPublicRoute = publicRoutes.includes(location.pathname)
   
   // Auth store for application initialization
   const { token, refreshUser } = useAuthStore((state) => ({

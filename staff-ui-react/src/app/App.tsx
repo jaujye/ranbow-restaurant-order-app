@@ -3,8 +3,8 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import AppRouter from './router';
 import { GlobalProviders } from './providers';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { ErrorFallback } from '@/components/ui/ErrorFallback';
+import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner';
+import { ErrorFallback } from '@/shared/components/ui/ErrorFallback';
 import { env, isDevelopment } from '@/config/env.config';
 
 // Enable debugging in development

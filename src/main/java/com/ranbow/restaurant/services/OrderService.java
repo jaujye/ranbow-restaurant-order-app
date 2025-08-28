@@ -3,13 +3,18 @@ package com.ranbow.restaurant.services;
 import com.ranbow.restaurant.dao.OrderDAO;
 import com.ranbow.restaurant.models.*;
 import com.ranbow.restaurant.api.OrderController;
+import com.ranbow.restaurant.events.OrderStatusChangeEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 public class OrderService {
@@ -19,6 +24,12 @@ public class OrderService {
     
     @Autowired
     private MenuService menuService;
+    
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
     
     public Order createOrder(String customerId, String tableNumber) {
         Order newOrder = new Order(customerId, tableNumber);
@@ -182,14 +193,8 @@ public class OrderService {
             }
             
             if (order.getStatus() == OrderStatus.PENDING) {
-                // Use updateStatus method to properly update the status in database
-                boolean updated = orderDAO.updateStatus(orderId, OrderStatus.CONFIRMED);
-                if (updated) {
-                    order.setStatus(OrderStatus.CONFIRMED); // Update local object status
-                    return true;
-                } else {
-                    throw new RuntimeException("Failed to update order status in database");
-                }
+                // Use updateOrderStatus to ensure kitchen order is created
+                return updateOrderStatus(orderId, OrderStatus.CONFIRMED);
             }
         }
         return false;
@@ -199,20 +204,33 @@ public class OrderService {
         Optional<Order> orderOpt = findOrderById(orderId);
         if (orderOpt.isPresent()) {
             Order order = orderOpt.get();
+            OrderStatus oldStatus = order.getStatus();
             
             // Validate status transition
-            if (isValidStatusTransition(order.getStatus(), newStatus)) {
+            if (isValidStatusTransition(oldStatus, newStatus)) {
                 // Use updateStatus method to properly update the status in database
                 boolean updated = orderDAO.updateStatus(orderId, newStatus);
                 if (updated) {
                     order.setStatus(newStatus); // Update local object status
+                    
+                    // Publish order status change event for other services to handle
+                    try {
+                        OrderStatusChangeEvent event = new OrderStatusChangeEvent(
+                            this, orderId, oldStatus, newStatus, order);
+                        eventPublisher.publishEvent(event);
+                    } catch (Exception e) {
+                        System.err.println("Failed to publish order status change event for " + orderId + ": " + e.getMessage());
+                        e.printStackTrace();
+                        // Don't fail the status update if event publishing fails
+                    }
+                    
                     return true;
                 } else {
                     throw new RuntimeException("Failed to update order status in database");
                 }
             } else {
                 throw new IllegalStateException("無效的狀態轉換: " + 
-                        order.getStatus() + " -> " + newStatus);
+                        oldStatus + " -> " + newStatus);
             }
         }
         return false;
@@ -463,5 +481,114 @@ public class OrderService {
         
         public double getCompletionRate() { return completionRate; }
         public void setCompletionRate(double completionRate) { this.completionRate = completionRate; }
+    }
+
+    /**
+     * Get orders by status with complete customer and menu item information
+     * This method returns orders with fully populated customer details and menu items
+     */
+    public List<Map<String, Object>> getOrdersWithCompleteDataByStatus(OrderStatus status) {
+        List<Order> orders = orderDAO.findByStatus(status);
+        List<Map<String, Object>> completeOrders = new ArrayList<>();
+        
+        for (Order order : orders) {
+            Map<String, Object> orderData = new HashMap<>();
+            
+            // Basic order information
+            orderData.put("orderId", order.getOrderId());
+            orderData.put("order_id", order.getOrderId());
+            orderData.put("customerId", order.getCustomerId());
+            orderData.put("customer_id", order.getCustomerId());
+            orderData.put("status", order.getStatus().toString());
+            orderData.put("totalAmount", order.getTotalAmount());
+            orderData.put("total_amount", order.getTotalAmount());
+            orderData.put("subtotal", order.getSubtotal());
+            orderData.put("tax", order.getTax());
+            orderData.put("specialInstructions", order.getSpecialInstructions());
+            orderData.put("special_instructions", order.getSpecialInstructions());
+            orderData.put("tableNumber", order.getTableNumber());
+            orderData.put("table_number", order.getTableNumber());
+            orderData.put("orderTime", order.getOrderTime());
+            orderData.put("order_time", order.getOrderTime());
+            orderData.put("completedTime", order.getCompletedTime());
+            orderData.put("completed_time", order.getCompletedTime());
+            
+            // Generate friendly order number (first 8 characters + sequential number)
+            String friendlyOrderNumber = "RB" + String.format("%06d", Math.abs(order.getOrderId().hashCode() % 999999));
+            orderData.put("orderNumber", friendlyOrderNumber);
+            orderData.put("order_number", friendlyOrderNumber);
+            
+            // Get customer information
+            try {
+                Optional<User> customerOpt = userService.findUserById(order.getCustomerId());
+                if (customerOpt.isPresent()) {
+                    User customer = customerOpt.get();
+                    orderData.put("customerName", customer.getUsername());
+                    orderData.put("customer_name", customer.getUsername());
+                    orderData.put("customerEmail", customer.getEmail());
+                    orderData.put("customer_email", customer.getEmail());
+                    orderData.put("customerPhone", customer.getPhoneNumber());
+                    orderData.put("customer_phone", customer.getPhoneNumber());
+                } else {
+                    orderData.put("customerName", "Unknown Customer");
+                    orderData.put("customer_name", "Unknown Customer");
+                    orderData.put("customerEmail", "");
+                    orderData.put("customer_email", "");
+                    orderData.put("customerPhone", "");
+                    orderData.put("customer_phone", "");
+                }
+            } catch (Exception e) {
+                System.err.println("Error getting customer info for order " + order.getOrderId() + ": " + e.getMessage());
+                orderData.put("customerName", "Unknown Customer");
+                orderData.put("customer_name", "Unknown Customer");
+                orderData.put("customerEmail", "");
+                orderData.put("customer_email", "");
+                orderData.put("customerPhone", "");
+                orderData.put("customer_phone", "");
+            }
+            
+            // Get order items with complete menu information
+            List<Map<String, Object>> orderItems = new ArrayList<>();
+            for (OrderItem item : order.getOrderItems()) {
+                Map<String, Object> itemData = new HashMap<>();
+                
+                itemData.put("orderItemId", item.getOrderItemId());
+                itemData.put("quantity", item.getQuantity());
+                itemData.put("specialRequests", item.getSpecialRequests());
+                itemData.put("itemTotal", item.getItemTotal());
+                itemData.put("item_total", item.getItemTotal());
+                
+                // Get menu item details
+                try {
+                    if (item.getMenuItem() != null) {
+                        MenuItem menuItem = item.getMenuItem();
+                        itemData.put("name", menuItem.getName());
+                        itemData.put("description", menuItem.getDescription());
+                        itemData.put("price", menuItem.getPrice());
+                        itemData.put("category", menuItem.getCategory());
+                    } else {
+                        itemData.put("name", "Unknown Item");
+                        itemData.put("description", "");
+                        itemData.put("price", BigDecimal.ZERO);
+                        itemData.put("category", "");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error getting menu item info: " + e.getMessage());
+                    itemData.put("name", "Unknown Item");
+                    itemData.put("description", "");
+                    itemData.put("price", BigDecimal.ZERO);
+                    itemData.put("category", "");
+                }
+                
+                orderItems.add(itemData);
+            }
+            
+            orderData.put("items", orderItems);
+            orderData.put("orderItems", orderItems);
+            
+            completeOrders.add(orderData);
+        }
+        
+        return completeOrders;
     }
 }

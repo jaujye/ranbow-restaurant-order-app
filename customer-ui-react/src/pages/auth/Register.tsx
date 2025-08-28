@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button, Input, Card } from '@/components/ui'
 import { useAuthActions } from '@/store/authStore'
@@ -84,7 +84,8 @@ const Register: React.FC = () => {
             label="姓名"
             type="text"
             placeholder="請輸入您的姓名"
-            error={errors.name?.message}
+            error={!!errors.name?.message}
+            errorMessage={errors.name?.message}
             fullWidth
             {...registerField('name')}
           />
@@ -93,7 +94,8 @@ const Register: React.FC = () => {
             label="Email"
             type="email"
             placeholder="請輸入您的Email"
-            error={errors.email?.message}
+            error={!!errors.email?.message}
+            errorMessage={errors.email?.message}
             fullWidth
             {...registerField('email')}
           />
@@ -102,7 +104,8 @@ const Register: React.FC = () => {
             label="手機號碼"
             type="tel"
             placeholder="09xxxxxxxx"
-            error={errors.phone?.message}
+            error={!!errors.phone?.message}
+            errorMessage={errors.phone?.message}
             fullWidth
             {...registerField('phone')}
           />
@@ -111,7 +114,8 @@ const Register: React.FC = () => {
             label="密碼"
             type="password"
             placeholder="至少6個字符"
-            error={errors.password?.message}
+            error={!!errors.password?.message}
+            errorMessage={errors.password?.message}
             fullWidth
             showPasswordToggle
             {...registerField('password')}
@@ -121,7 +125,8 @@ const Register: React.FC = () => {
             label="確認密碼"
             type="password"
             placeholder="請再次輸入密碼"
-            error={errors.confirmPassword?.message}
+            error={!!errors.confirmPassword?.message}
+            errorMessage={errors.confirmPassword?.message}
             fullWidth
             showPasswordToggle
             {...registerField('confirmPassword')}

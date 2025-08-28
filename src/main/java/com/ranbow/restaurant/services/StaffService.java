@@ -27,6 +27,9 @@ public class StaffService {
     
     @Autowired
     private NotificationService notificationService;
+    
+    @Autowired
+    private PasswordService passwordService;
 
     /**
      * Authenticate staff member using employee ID/email and password
@@ -36,6 +39,8 @@ public class StaffService {
      */
     public Optional<Staff> authenticateStaff(String identifier, String password) {
         try {
+            System.out.println("Attempting staff authentication for identifier: " + identifier);
+            
             // Try to find staff by employee ID first
             Optional<Staff> staffByEmployeeId = staffDAO.findByEmployeeId(identifier);
             if (staffByEmployeeId.isPresent()) {
@@ -44,12 +49,22 @@ public class StaffService {
                 
                 if (user.isPresent() && user.get().isActive() && 
                     (user.get().getRole() == UserRole.STAFF || user.get().getRole() == UserRole.ADMIN)) {
-                    // In production, verify password hash here
-                    // For demo purposes, we'll authenticate successfully
-                    userDAO.updateLastLogin(user.get().getUserId(), LocalDateTime.now());
-                    staff.updateActivity();
-                    staffDAO.update(staff);
-                    return Optional.of(staff);
+                    
+                    // 從資料庫獲取密碼雜湊進行驗證
+                    Optional<String> passwordHash = userDAO.getPasswordHashByUserId(user.get().getUserId());
+                    boolean passwordValid = passwordHash.isPresent() && 
+                                            passwordService.verifyPassword(password, passwordHash.get());
+                    System.out.println("Password verification result for employee ID " + identifier + ": " + passwordValid);
+                    
+                    if (passwordValid) {
+                        userDAO.updateLastLogin(user.get().getUserId(), LocalDateTime.now());
+                        staff.updateActivity();
+                        staffDAO.update(staff);
+                        System.out.println("Staff authentication successful for: " + identifier);
+                        return Optional.of(staff);
+                    } else {
+                        System.out.println("Password verification failed for employee ID: " + identifier);
+                    }
                 }
             }
             
@@ -62,16 +77,27 @@ public class StaffService {
                     
                     Optional<Staff> staffByUserId = staffDAO.findByUserId(user.getUserId());
                     if (staffByUserId.isPresent()) {
-                        // In production, verify password hash here
-                        userDAO.updateLastLogin(user.getUserId(), LocalDateTime.now());
-                        Staff staff = staffByUserId.get();
-                        staff.updateActivity();
-                        staffDAO.update(staff);
-                        return Optional.of(staff);
+                        // 從資料庫獲取密碼雜湊進行驗證
+                        Optional<String> passwordHash = userDAO.getPasswordHashByEmail(identifier);
+                        boolean passwordValid = passwordHash.isPresent() && 
+                                                passwordService.verifyPassword(password, passwordHash.get());
+                        System.out.println("Password verification result for email " + identifier + ": " + passwordValid);
+                        
+                        if (passwordValid) {
+                            userDAO.updateLastLogin(user.getUserId(), LocalDateTime.now());
+                            Staff staff = staffByUserId.get();
+                            staff.updateActivity();
+                            staffDAO.update(staff);
+                            System.out.println("Staff authentication successful for: " + identifier);
+                            return Optional.of(staff);
+                        } else {
+                            System.out.println("Password verification failed for email: " + identifier);
+                        }
                     }
                 }
             }
             
+            System.out.println("Staff authentication failed - user not found or password invalid for: " + identifier);
             return Optional.empty();
         } catch (Exception e) {
             System.err.println("Error in staff authentication: " + e.getMessage());

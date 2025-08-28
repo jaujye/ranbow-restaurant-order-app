@@ -1,0 +1,128 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # 允許手動觸發
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: Cache Node modules
+      uses: actions/cache@v4
+      with:
+        path: mobile/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('mobile/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+          
+    - name: Cache Gradle
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+          mobile/platforms/android/.gradle
+        key: ${{ runner.os }}-gradle-${{ hashFiles('mobile/platforms/android/build.gradle', 'mobile/platforms/android/app/build.gradle') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+      
+    - name: Install Cordova CLI
+      run: npm install -g cordova@latest
+      
+    - name: Install project dependencies
+      run: |
+        cd mobile
+        npm install
+        
+    - name: Add Android platform (if not exists)
+      run: |
+        cd mobile
+        cordova platform add android || echo "Android platform already exists"
+        
+    - name: Prepare Cordova
+      run: |
+        cd mobile
+        cordova prepare android
+        
+    - name: Build Android APK (Debug)
+      run: |
+        cd mobile
+        cordova build android --debug --verbose
+        
+    - name: List build outputs
+      run: |
+        echo "=== Build outputs ==="
+        find mobile/platforms/android -name "*.apk" -type f || echo "No APK files found"
+        
+    - name: Upload Debug APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: ranbow-restaurant-debug-apk
+        path: mobile/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
+        
+    - name: Build Android APK (Release)
+      if: github.ref == 'refs/heads/main'
+      run: |
+        cd mobile
+        cordova build android --release --verbose
+        
+    - name: Upload Release APK
+      if: github.ref == 'refs/heads/main'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ranbow-restaurant-release-apk
+        path: mobile/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
+        retention-days: 90
+        
+    - name: Create Release Notes
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "## 📱 Ranbow Restaurant APK Build" >> release-notes.md
+        echo "**Build Date**: $(date)" >> release-notes.md
+        echo "**Commit**: ${{ github.sha }}" >> release-notes.md
+        echo "**Branch**: ${{ github.ref_name }}" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "### 🚀 Features" >> release-notes.md
+        echo "- 餐廳點餐系統" >> release-notes.md
+        echo "- 用戶註冊/登入" >> release-notes.md
+        echo "- 菜單瀏覽" >> release-notes.md
+        echo "- 購物車管理" >> release-notes.md
+        echo "- 訂單處理" >> release-notes.md
+        echo "- 響應式設計" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "### 📲 Installation" >> release-notes.md
+        echo "1. Download the APK file" >> release-notes.md
+        echo "2. Enable 'Install from unknown sources' on your Android device" >> release-notes.md
+        echo "3. Install the APK" >> release-notes.md
+        echo "4. Launch Ranbow Restaurant app" >> release-notes.md
+        
+    - name: Upload Release Notes
+      if: github.ref == 'refs/heads/main'
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-notes
+        path: release-notes.md
+        retention-days: 90
