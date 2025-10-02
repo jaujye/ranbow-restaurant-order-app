@@ -12,23 +12,38 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 管理員服務 - 整合管理功能與審計日誌
+ *
+ * 職責:
+ * 1. 管理員認證與權限管理
+ * 2. Dashboard數據生成
+ * 3. 用戶管理
+ * 4. 菜單管理
+ * 5. 系統警報
+ * 6. 審計日誌記錄與查詢 (整合自AuditService)
+ */
 @Service
 public class AdminService {
-    
+
     @Autowired
     private UserDAO userDAO;
-    
+
     @Autowired
     private OrderDAO orderDAO;
-    
+
     @Autowired
     private MenuDAO menuDAO;
-    
+
     @Autowired
     private JwtService jwtService;
-    
+
     @Autowired
     private SessionService sessionService;
+
+    // ==================== 審計日誌存儲 (整合自AuditService) ====================
+    // 注意: 生產環境應替換為AuditDAO持久化存儲
+    private final List<AuditLog> auditLogs = new ArrayList<>();
     
     /**
      * Admin authentication with role verification
@@ -432,5 +447,141 @@ public class AdminService {
         popularItems.add(item3);
         
         return popularItems;
+    }
+
+    // ==================== 審計日誌功能 (整合自AuditService) ====================
+
+    /**
+     * 記錄管理員操作
+     */
+    public void logAdminAction(String adminId, String adminName, String action,
+                              String resourceType, String resourceId,
+                              String oldValue, String newValue,
+                              String ipAddress, String userAgent, String result) {
+        try {
+            AuditLog log = new AuditLog(adminId, adminName, action, resourceType, resourceId);
+            log.setOldValue(oldValue);
+            log.setNewValue(newValue);
+            log.setIpAddress(ipAddress);
+            log.setUserAgent(userAgent);
+            log.setResult(result);
+
+            auditLogs.add(log);
+            System.out.println("AUDIT LOG: " + log.toString());
+
+        } catch (Exception e) {
+            System.err.println("Failed to log admin action: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 記錄成功操作
+     */
+    public void logSuccess(String adminId, String adminName, String action,
+                          String resourceType, String resourceId,
+                          String ipAddress, String userAgent) {
+        logAdminAction(adminId, adminName, action, resourceType, resourceId,
+                      null, null, ipAddress, userAgent, "SUCCESS");
+    }
+
+    /**
+     * 記錄失敗操作
+     */
+    public void logFailure(String adminId, String adminName, String action,
+                          String resourceType, String resourceId,
+                          String errorMessage, String ipAddress, String userAgent) {
+        AuditLog log = new AuditLog(adminId, adminName, action, resourceType, resourceId);
+        log.setIpAddress(ipAddress);
+        log.setUserAgent(userAgent);
+        log.setResult("FAILURE");
+        log.setErrorMessage(errorMessage);
+
+        auditLogs.add(log);
+        System.out.println("AUDIT LOG (FAILURE): " + log.toString());
+    }
+
+    /**
+     * 記錄數據變更（包含變更前後值）
+     */
+    public void logDataChange(String adminId, String adminName, String action,
+                             String resourceType, String resourceId,
+                             String oldValue, String newValue,
+                             String ipAddress, String userAgent) {
+        logAdminAction(adminId, adminName, action, resourceType, resourceId,
+                      oldValue, newValue, ipAddress, userAgent, "SUCCESS");
+    }
+
+    /**
+     * 獲取審計日誌（支持過濾）
+     */
+    public List<AuditLog> getAuditLogs(String adminId, String action, String resourceType,
+                                      LocalDateTime startDate, LocalDateTime endDate,
+                                      int limit) {
+        return auditLogs.stream()
+                .filter(log -> adminId == null || log.getAdminId().equals(adminId))
+                .filter(log -> action == null || log.getAction().toLowerCase().contains(action.toLowerCase()))
+                .filter(log -> resourceType == null || log.getResourceType().equals(resourceType))
+                .filter(log -> startDate == null || log.getTimestamp().isAfter(startDate))
+                .filter(log -> endDate == null || log.getTimestamp().isBefore(endDate))
+                .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp())) // 最新的在前
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 獲取最近的審計日誌
+     */
+    public List<AuditLog> getRecentAuditLogs(int limit) {
+        return auditLogs.stream()
+                .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 獲取審計統計信息
+     */
+    public AuditStatistics getAuditStatistics() {
+        AuditStatistics stats = new AuditStatistics();
+
+        LocalDateTime today = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime thisWeek = LocalDateTime.now().minusDays(7);
+
+        stats.setTotalLogs(auditLogs.size());
+        stats.setTodayLogs((int) auditLogs.stream()
+                .filter(log -> log.getTimestamp().isAfter(today))
+                .count());
+        stats.setThisWeekLogs((int) auditLogs.stream()
+                .filter(log -> log.getTimestamp().isAfter(thisWeek))
+                .count());
+        stats.setFailedActions((int) auditLogs.stream()
+                .filter(log -> "FAILURE".equals(log.getResult()))
+                .count());
+
+        return stats;
+    }
+
+    /**
+     * 審計統計數據內部類
+     */
+    public static class AuditStatistics {
+        private int totalLogs;
+        private int todayLogs;
+        private int thisWeekLogs;
+        private int failedActions;
+
+        // Getters and setters
+        public int getTotalLogs() { return totalLogs; }
+        public void setTotalLogs(int totalLogs) { this.totalLogs = totalLogs; }
+
+        public int getTodayLogs() { return todayLogs; }
+        public void setTodayLogs(int todayLogs) { this.todayLogs = todayLogs; }
+
+        public int getThisWeekLogs() { return thisWeekLogs; }
+        public void setThisWeekLogs(int thisWeekLogs) { this.thisWeekLogs = thisWeekLogs; }
+
+        public int getFailedActions() { return failedActions; }
+        public void setFailedActions(int failedActions) { this.failedActions = failedActions; }
     }
 }
