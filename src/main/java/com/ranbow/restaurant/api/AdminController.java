@@ -38,9 +38,8 @@ public class AdminController {
     
     @Autowired
     private SessionService sessionService;
-    
-    @Autowired
-    private AuditService auditService;
+
+    // Note: AuditService已整合到AdminService中
     
     // ============ AUTHENTICATION APIs ============
     
@@ -69,7 +68,7 @@ public class AdminController {
                 String token = jwtService.generateToken(admin.getUserId(), sessionId, deviceInfo);
                 
                 // Log successful admin login
-                auditService.logSuccess(admin.getUserId(), admin.getUsername(), "ADMIN_LOGIN", 
+                adminService.logSuccess(admin.getUserId(), admin.getUsername(), "ADMIN_LOGIN", 
                                       "SESSION", sessionId, ipAddress, deviceInfo);
                 
                 // Prepare admin info response
@@ -223,7 +222,7 @@ public class AdminController {
                 String adminId = getCurrentAdminId(authHeader);
                 String adminName = getCurrentAdminName(authHeader);
                 String action = active ? "USER_ACTIVATE" : "USER_DEACTIVATE";
-                auditService.logSuccess(adminId, adminName, action, "USER", userId, 
+                adminService.logSuccess(adminId, adminName, action, "USER", userId, 
                                       getClientIpAddress(null), "Admin Panel");
                 
                 String message = active ? "用戶已激活" : "用戶已停用";
@@ -285,7 +284,7 @@ public class AdminController {
             // Log menu item creation
             String adminId = getCurrentAdminId(authHeader);
             String adminName = getCurrentAdminName(authHeader);
-            auditService.logSuccess(adminId, adminName, "MENU_ITEM_CREATE", "MENU_ITEM", newItem.getItemId(), 
+            adminService.logSuccess(adminId, adminName, "MENU_ITEM_CREATE", "MENU_ITEM", newItem.getItemId(), 
                                   getClientIpAddress(null), "Admin Panel");
             
             return ResponseEntity.status(HttpStatus.CREATED)
@@ -522,8 +521,8 @@ public class AdminController {
                         .body(createErrorResponse("需要管理員權限", 401));
             }
             
-            List<AuditLog> logs = auditService.getAuditLogs(adminId, action, resourceType, null, null, limit);
-            AuditService.AuditStatistics stats = auditService.getAuditStatistics();
+            List<AuditLog> logs = adminService.getAuditLogs(adminId, action, resourceType, null, null, limit);
+            AdminService.AuditStatistics stats = adminService.getAuditStatistics();
             
             Map<String, Object> result = new HashMap<>();
             result.put("logs", logs);
@@ -548,7 +547,7 @@ public class AdminController {
                         .body(createErrorResponse("需要管理員權限", 401));
             }
             
-            List<AuditLog> recentLogs = auditService.getRecentAuditLogs(limit);
+            List<AuditLog> recentLogs = adminService.getRecentAuditLogs(limit);
             return ResponseEntity.ok(createSuccessResponse(recentLogs, "最近審計日誌獲取成功"));
             
         } catch (Exception e) {
